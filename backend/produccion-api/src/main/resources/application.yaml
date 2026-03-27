@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: produccion-api
+  profiles:
+    active: dev
+  security:
+    filter:
+      dispatcher-types: request, error, async
+
+jwt:
+  secret: yerman-produccion-secret-key-2024
+  expiration: 86400000
+
+server:
+  port: 8082
+  servlet:
+    context-path: /api
+
+logging:
+  level:
+    com.yerman: DEBUG
+    org.springframework.security: TRACE
