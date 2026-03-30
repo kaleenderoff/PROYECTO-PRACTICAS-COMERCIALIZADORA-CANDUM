@@ -4,7 +4,10 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "usuario")
+@Table(name = "usuario", uniqueConstraints = {
+        @UniqueConstraint(name = "uq_usuario_cc", columnNames = "cc"),
+        @UniqueConstraint(name = "uq_usuario_email", columnNames = "email")
+})
 public class UsuarioEntity {
 
     @Id
@@ -12,7 +15,7 @@ public class UsuarioEntity {
     @Column(name = "id_usuario")
     private Long idUsuario;
 
-    @Column(name = "cc", nullable = false, unique = true, length = 20)
+    @Column(name = "cc", nullable = false, length = 20)
     private String cc;
 
     @Column(name = "primer_nombre", nullable = false, length = 100)
@@ -34,16 +37,16 @@ public class UsuarioEntity {
     private String passwordHash;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "rol", nullable = false)
+    @Column(name = "rol", nullable = false, length = 50)
     private Rol rol;
 
     @Column(name = "activo", nullable = false)
-    private boolean activo = true;
+    private Boolean activo = true;
 
-    @Column(name = "create_at", nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "update_at", nullable = false)
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
     public enum Rol {
@@ -52,13 +55,16 @@ public class UsuarioEntity {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+        if (this.activo == null) {
+            this.activo = true;
+        }
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
     public Long getIdUsuario() {
@@ -133,11 +139,15 @@ public class UsuarioEntity {
         this.rol = rol;
     }
 
-    public boolean isActivo() {
+    public Boolean getActivo() {
         return activo;
     }
 
-    public void setActivo(boolean activo) {
+    public boolean isActivo() {
+        return Boolean.TRUE.equals(activo);
+    }
+
+    public void setActivo(Boolean activo) {
         this.activo = activo;
     }
 
