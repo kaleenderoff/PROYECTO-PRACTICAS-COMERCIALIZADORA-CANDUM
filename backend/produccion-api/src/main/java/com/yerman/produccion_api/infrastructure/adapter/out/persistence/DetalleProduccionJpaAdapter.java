@@ -7,7 +7,10 @@ import com.yerman.produccion_api.infrastructure.entity.DetalleProduccionEntity;
 import com.yerman.produccion_api.infrastructure.entity.ProductoEntity;
 import com.yerman.produccion_api.infrastructure.entity.ProduccionEntity;
 import com.yerman.produccion_api.infrastructure.repository.DetalleProduccionJpaRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,14 +20,22 @@ public class DetalleProduccionJpaAdapter implements DetalleProduccionRepositoryP
 
     private final DetalleProduccionJpaRepository repository;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     public DetalleProduccionJpaAdapter(DetalleProduccionJpaRepository repository) {
         this.repository = repository;
     }
 
     @Override
+    @Transactional
     public DetalleProduccion guardar(DetalleProduccion detalleProduccion) {
         DetalleProduccionEntity entity = toEntity(detalleProduccion);
-        DetalleProduccionEntity saved = repository.save(entity);
+
+        DetalleProduccionEntity saved = repository.saveAndFlush(entity);
+
+        entityManager.refresh(saved);
+
         return toDomain(saved);
     }
 

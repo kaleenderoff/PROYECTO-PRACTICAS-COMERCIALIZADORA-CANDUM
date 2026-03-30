@@ -11,6 +11,7 @@ import com.yerman.produccion_api.domain.port.out.ProduccionRepositoryPort;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -54,13 +55,22 @@ public class GestionDetalleProduccionService implements GestionDetalleProduccion
                     "Ya existe un detalle de producción para esa producción, producto y batch");
         }
 
+        if (detalleProduccion.getKgBatch().compareTo(detalleProduccion.getKgProgramados()) > 0) {
+            throw new IllegalArgumentException("El kgBatch no puede ser mayor que el kgProgramados");
+        }
+
         detalleProduccion.setProducto(producto);
         detalleProduccion.setObservaciones(limpiarOpcional(detalleProduccion.getObservaciones()));
         detalleProduccion.setFechaHoraRegistro(LocalDateTime.now());
         detalleProduccion.setCreatedAt(LocalDateTime.now());
         detalleProduccion.setUpdatedAt(LocalDateTime.now());
 
-        return detalleProduccionRepositoryPort.guardar(detalleProduccion);
+        DetalleProduccion guardado = detalleProduccionRepositoryPort.guardar(detalleProduccion);
+
+        return detalleProduccionRepositoryPort.buscarPorId(guardado.getIdDetalleProduccion())
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Detalle de producción no encontrado después de guardar con id: "
+                                + guardado.getIdDetalleProduccion()));
     }
 
     @Override
