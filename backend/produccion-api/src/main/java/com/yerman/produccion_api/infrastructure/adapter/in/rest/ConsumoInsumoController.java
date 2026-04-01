@@ -81,4 +81,17 @@ public class ConsumoInsumoController {
 
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/consumo-insumo/buscar")
+    public ResponseEntity<ConsumoInsumoResponse> obtenerPorProduccionInsumoDetalle(
+            @RequestParam Long idProduccion,
+            @RequestParam Long idInsumo,
+            @RequestParam Long idDetalleProduccion) {
+
+        ConsumoInsumo consumo = gestionConsumoInsumoUseCase
+                .obtenerPorProduccionInsumoDetalle(idProduccion, idInsumo, idDetalleProduccion)
+                .orElseThrow(() -> new RuntimeException("Consumo de insumo no encontrado"));
+
+        return ResponseEntity.ok(ConsumoInsumoMapper.toResponse(consumo));
+    }
 }
