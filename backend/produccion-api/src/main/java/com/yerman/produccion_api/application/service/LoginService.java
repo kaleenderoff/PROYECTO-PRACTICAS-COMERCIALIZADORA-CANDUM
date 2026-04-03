@@ -2,6 +2,7 @@ package com.yerman.produccion_api.application.service;
 
 import com.yerman.produccion_api.application.dto.request.LoginRequest;
 import com.yerman.produccion_api.application.dto.response.AuthResponse;
+import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
 import com.yerman.produccion_api.application.exception.UsuarioInactivoException;
 import com.yerman.produccion_api.domain.model.Usuario;
 import com.yerman.produccion_api.domain.port.in.LoginUseCase;
@@ -31,7 +32,7 @@ public class LoginService implements LoginUseCase {
 
                 Usuario usuario = usuarioRepositoryPort
                                 .buscarPorCc(request.getCc())
-                                .orElseThrow(() -> new RuntimeException(
+                                .orElseThrow(() -> new RecursoNoEncontradoException(
                                                 "Usuario no encontrado: " + request.getCc()));
 
                 if (!usuario.isActivo()) {

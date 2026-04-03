@@ -1,6 +1,7 @@
 package com.yerman.produccion_api.application.service;
 
 import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
+import com.yerman.produccion_api.application.exception.ReglaNegocioException;
 import com.yerman.produccion_api.domain.model.LineaProduccion;
 import com.yerman.produccion_api.domain.port.in.GestionLineaProduccionUseCase;
 import com.yerman.produccion_api.domain.port.out.LineaProduccionRepositoryPort;
@@ -26,7 +27,7 @@ public class GestionLineaProduccionService implements GestionLineaProduccionUseC
         String nombreLimpio = limpiar(lineaProduccion.getNombre());
 
         if (lineaProduccionRepositoryPort.existePorNombre(nombreLimpio)) {
-            throw new IllegalArgumentException(
+            throw new ReglaNegocioException(
                     "Ya existe una línea de producción con el nombre: " + nombreLimpio);
         }
 
@@ -71,7 +72,7 @@ public class GestionLineaProduccionService implements GestionLineaProduccionUseC
 
     private void validarNombreObligatorio(String nombre) {
         if (nombre == null || nombre.trim().isEmpty()) {
-            throw new IllegalArgumentException("El nombre de la línea de producción es obligatorio");
+            throw new ReglaNegocioException("El nombre de la línea de producción es obligatorio");
         }
     }
 

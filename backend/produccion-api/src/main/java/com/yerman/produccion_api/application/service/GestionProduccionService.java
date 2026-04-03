@@ -1,6 +1,7 @@
 package com.yerman.produccion_api.application.service;
 
 import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
+import com.yerman.produccion_api.application.exception.ReglaNegocioException;
 import com.yerman.produccion_api.domain.model.LineaProduccion;
 import com.yerman.produccion_api.domain.model.Produccion;
 import com.yerman.produccion_api.domain.model.Usuario;
@@ -40,7 +41,7 @@ public class GestionProduccionService implements GestionProduccionUseCase {
         String observacionesLimpias = limpiarOpcional(produccion.getObservacionesGenerales());
 
         if (produccionRepositoryPort.existePorNumeroLote(numeroLoteLimpio)) {
-            throw new IllegalArgumentException(
+            throw new ReglaNegocioException(
                     "Ya existe una producción con el número de lote: " + numeroLoteLimpio);
         }
 
@@ -89,7 +90,7 @@ public class GestionProduccionService implements GestionProduccionUseCase {
     @Override
     public List<Produccion> listarPorFecha(LocalDate fechaProduccion) {
         if (fechaProduccion == null) {
-            throw new IllegalArgumentException("La fecha de producción es obligatoria");
+            throw new ReglaNegocioException("La fecha de producción es obligatoria");
         }
         return produccionRepositoryPort.listarPorFecha(fechaProduccion);
     }
@@ -98,7 +99,7 @@ public class GestionProduccionService implements GestionProduccionUseCase {
     public List<Produccion> listarPorEstado(String estado) {
         String estadoLimpio = limpiar(estado);
         if (estadoLimpio == null || estadoLimpio.isEmpty()) {
-            throw new IllegalArgumentException("El estado es obligatorio");
+            throw new ReglaNegocioException("El estado es obligatorio");
         }
         return produccionRepositoryPort.listarPorEstado(estadoLimpio);
     }
@@ -106,7 +107,7 @@ public class GestionProduccionService implements GestionProduccionUseCase {
     @Override
     public List<Produccion> listarPorLineaProduccion(Long idLineaProduccion) {
         if (idLineaProduccion == null) {
-            throw new IllegalArgumentException("El id de la línea de producción es obligatorio");
+            throw new ReglaNegocioException("El id de la línea de producción es obligatorio");
         }
         return produccionRepositoryPort.listarPorLineaProduccion(idLineaProduccion);
     }
@@ -114,7 +115,7 @@ public class GestionProduccionService implements GestionProduccionUseCase {
     @Override
     public List<Produccion> listarPorOperario(Long idOperario) {
         if (idOperario == null) {
-            throw new IllegalArgumentException("El id del operario es obligatorio");
+            throw new ReglaNegocioException("El id del operario es obligatorio");
         }
         return produccionRepositoryPort.listarPorOperario(idOperario);
     }
@@ -122,7 +123,7 @@ public class GestionProduccionService implements GestionProduccionUseCase {
     @Override
     public List<Produccion> listarPorJefeLinea(Long idJefeLinea) {
         if (idJefeLinea == null) {
-            throw new IllegalArgumentException("El id del jefe de línea es obligatorio");
+            throw new ReglaNegocioException("El id del jefe de línea es obligatorio");
         }
         return produccionRepositoryPort.listarPorJefeLinea(idJefeLinea);
     }
@@ -135,45 +136,45 @@ public class GestionProduccionService implements GestionProduccionUseCase {
 
     private void validarDatosObligatorios(Produccion produccion) {
         if (produccion == null) {
-            throw new IllegalArgumentException("La producción es obligatoria");
+            throw new ReglaNegocioException("La producción es obligatoria");
         }
 
         if (produccion.getFechaProduccion() == null) {
-            throw new IllegalArgumentException("La fecha de producción es obligatoria");
+            throw new ReglaNegocioException("La fecha de producción es obligatoria");
         }
 
         if (produccion.getTipoTurno() == null || produccion.getTipoTurno().trim().isEmpty()) {
-            throw new IllegalArgumentException("El tipo de turno es obligatorio");
+            throw new ReglaNegocioException("El tipo de turno es obligatorio");
         }
 
         if (produccion.getNumeroLote() == null || produccion.getNumeroLote().trim().isEmpty()) {
-            throw new IllegalArgumentException("El número de lote es obligatorio");
+            throw new ReglaNegocioException("El número de lote es obligatorio");
         }
 
         if (produccion.getEstado() == null || produccion.getEstado().trim().isEmpty()) {
-            throw new IllegalArgumentException("El estado es obligatorio");
+            throw new ReglaNegocioException("El estado es obligatorio");
         }
 
         if (produccion.getLineaProduccion() == null || produccion.getLineaProduccion().getIdLineaProduccion() == null) {
-            throw new IllegalArgumentException("La línea de producción es obligatoria");
+            throw new ReglaNegocioException("La línea de producción es obligatoria");
         }
 
         if (produccion.getIdOperario() == null) {
-            throw new IllegalArgumentException("El operario es obligatorio");
+            throw new ReglaNegocioException("El operario es obligatorio");
         }
 
         if (produccion.getIdJefeLinea() == null) {
-            throw new IllegalArgumentException("El jefe de línea es obligatorio");
+            throw new ReglaNegocioException("El jefe de línea es obligatorio");
         }
     }
 
     private void validarRoles(Usuario operario, Usuario jefeLinea) {
         if (operario.getRol() != Usuario.Rol.OPERARIO) {
-            throw new IllegalArgumentException("El usuario indicado como operario no tiene rol OPERARIO");
+            throw new ReglaNegocioException("El usuario indicado como operario no tiene rol OPERARIO");
         }
 
         if (jefeLinea.getRol() != Usuario.Rol.JEFE_LINEA) {
-            throw new IllegalArgumentException("El usuario indicado como jefe de línea no tiene rol JEFE_LINEA");
+            throw new ReglaNegocioException("El usuario indicado como jefe de línea no tiene rol JEFE_LINEA");
         }
     }
 

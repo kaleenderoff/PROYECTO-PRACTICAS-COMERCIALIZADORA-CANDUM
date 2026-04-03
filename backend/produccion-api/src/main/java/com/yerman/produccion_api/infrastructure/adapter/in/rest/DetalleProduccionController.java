@@ -2,6 +2,7 @@ package com.yerman.produccion_api.infrastructure.adapter.in.rest;
 
 import com.yerman.produccion_api.application.dto.request.DetalleProduccionRequest;
 import com.yerman.produccion_api.application.dto.response.DetalleProduccionResponse;
+import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
 import com.yerman.produccion_api.application.mapper.DetalleProduccionMapper;
 import com.yerman.produccion_api.domain.model.DetalleProduccion;
 import com.yerman.produccion_api.domain.port.in.GestionDetalleProduccionUseCase;
@@ -35,7 +36,8 @@ public class DetalleProduccionController {
     @GetMapping("/detalle-produccion/{id}")
     public ResponseEntity<DetalleProduccionResponse> obtenerPorId(@PathVariable Long id) {
         DetalleProduccion detalle = gestionDetalleProduccionUseCase.obtenerPorId(id)
-                .orElseThrow(() -> new RuntimeException("Detalle de producción no encontrado con id: " + id));
+                .orElseThrow(
+                        () -> new RecursoNoEncontradoException("Detalle de producción no encontrado con id: " + id));
 
         return ResponseEntity.ok(DetalleProduccionMapper.toResponse(detalle));
     }
@@ -78,7 +80,7 @@ public class DetalleProduccionController {
 
         DetalleProduccion detalle = gestionDetalleProduccionUseCase
                 .obtenerPorProduccionProductoBatch(idProduccion, idProducto, numBatch)
-                .orElseThrow(() -> new RuntimeException("Detalle de producción no encontrado"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Detalle de producción no encontrado"));
 
         return ResponseEntity.ok(DetalleProduccionMapper.toResponse(detalle));
     }

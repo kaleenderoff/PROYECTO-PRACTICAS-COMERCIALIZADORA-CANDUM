@@ -1,6 +1,7 @@
 package com.yerman.produccion_api.infrastructure.adapter.in.rest;
 
 import com.yerman.produccion_api.application.dto.response.MeResponse;
+import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
 import com.yerman.produccion_api.domain.model.Usuario;
 import com.yerman.produccion_api.domain.port.out.UsuarioRepositoryPort;
 import org.springframework.security.core.Authentication;
@@ -21,7 +22,7 @@ public class UserController {
         String cc = authentication.getName();
 
         Usuario usuario = usuarioRepositoryPort.buscarPorCc(cc)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + cc));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado: " + cc));
 
         return new MeResponse(
                 usuario.getCc(),

@@ -5,6 +5,7 @@ import com.yerman.produccion_api.application.dto.response.UsuarioResponse;
 import com.yerman.produccion_api.application.exception.CcDuplicadaException;
 import com.yerman.produccion_api.application.exception.PasswordIncorrectaException;
 import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
+import com.yerman.produccion_api.application.exception.ReglaNegocioException;
 import com.yerman.produccion_api.domain.model.Usuario;
 import com.yerman.produccion_api.domain.port.in.GestionUsuarioUseCase;
 import com.yerman.produccion_api.domain.port.out.UsuarioRepositoryPort;
@@ -197,10 +198,10 @@ public class GestionUsuarioService implements GestionUsuarioUseCase {
 
     private void validarPaginacion(int page, int size) {
         if (page < 0) {
-            throw new IllegalArgumentException("El número de página no puede ser negativo");
+            throw new ReglaNegocioException("El número de página no puede ser negativo");
         }
         if (size <= 0) {
-            throw new IllegalArgumentException("El tamaño de página debe ser mayor que cero");
+            throw new ReglaNegocioException("El tamaño de página debe ser mayor que cero");
         }
     }
 

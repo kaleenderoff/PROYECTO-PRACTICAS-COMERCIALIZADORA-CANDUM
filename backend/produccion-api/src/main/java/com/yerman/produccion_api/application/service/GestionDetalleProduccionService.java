@@ -1,6 +1,7 @@
 package com.yerman.produccion_api.application.service;
 
 import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
+import com.yerman.produccion_api.application.exception.ReglaNegocioException;
 import com.yerman.produccion_api.domain.model.DetalleProduccion;
 import com.yerman.produccion_api.domain.model.Producto;
 import com.yerman.produccion_api.domain.model.Produccion;
@@ -50,12 +51,12 @@ public class GestionDetalleProduccionService implements GestionDetalleProduccion
                 detalleProduccion.getIdProduccion(),
                 idProducto,
                 detalleProduccion.getNumBatch())) {
-            throw new IllegalArgumentException(
+            throw new ReglaNegocioException(
                     "Ya existe un detalle de producción para esa producción, producto y batch");
         }
 
         if (detalleProduccion.getKgBatch().compareTo(detalleProduccion.getKgProgramados()) > 0) {
-            throw new IllegalArgumentException("El kgBatch no puede ser mayor que el kgProgramados");
+            throw new ReglaNegocioException("El kgBatch no puede ser mayor que el kgProgramados");
         }
 
         detalleProduccion.setProducto(producto);
@@ -85,7 +86,7 @@ public class GestionDetalleProduccionService implements GestionDetalleProduccion
     @Override
     public List<DetalleProduccion> listarPorProduccion(Long idProduccion) {
         if (idProduccion == null) {
-            throw new IllegalArgumentException("El id de la producción es obligatorio");
+            throw new ReglaNegocioException("El id de la producción es obligatorio");
         }
         return detalleProduccionRepositoryPort.listarPorProduccion(idProduccion);
     }
@@ -93,7 +94,7 @@ public class GestionDetalleProduccionService implements GestionDetalleProduccion
     @Override
     public List<DetalleProduccion> listarPorProducto(Long idProducto) {
         if (idProducto == null) {
-            throw new IllegalArgumentException("El id del producto es obligatorio");
+            throw new ReglaNegocioException("El id del producto es obligatorio");
         }
         return detalleProduccionRepositoryPort.listarPorProducto(idProducto);
     }
@@ -102,13 +103,13 @@ public class GestionDetalleProduccionService implements GestionDetalleProduccion
     public Optional<DetalleProduccion> obtenerPorProduccionProductoBatch(Long idProduccion, Long idProducto,
             Integer numBatch) {
         if (idProduccion == null) {
-            throw new IllegalArgumentException("El id de la producción es obligatorio");
+            throw new ReglaNegocioException("El id de la producción es obligatorio");
         }
         if (idProducto == null) {
-            throw new IllegalArgumentException("El id del producto es obligatorio");
+            throw new ReglaNegocioException("El id del producto es obligatorio");
         }
         if (numBatch == null) {
-            throw new IllegalArgumentException("El número de batch es obligatorio");
+            throw new ReglaNegocioException("El número de batch es obligatorio");
         }
 
         return detalleProduccionRepositoryPort.buscarPorProduccionProductoBatch(idProduccion, idProducto, numBatch);
@@ -122,48 +123,48 @@ public class GestionDetalleProduccionService implements GestionDetalleProduccion
 
     private void validarDatosObligatorios(DetalleProduccion detalleProduccion) {
         if (detalleProduccion == null) {
-            throw new IllegalArgumentException("El detalle de producción es obligatorio");
+            throw new ReglaNegocioException("El detalle de producción es obligatorio");
         }
 
         if (detalleProduccion.getIdProduccion() == null) {
-            throw new IllegalArgumentException("La producción del detalle es obligatoria");
+            throw new ReglaNegocioException("La producción del detalle es obligatoria");
         }
 
         if (detalleProduccion.getProducto() == null || detalleProduccion.getProducto().getIdProducto() == null) {
-            throw new IllegalArgumentException("El producto del detalle es obligatorio");
+            throw new ReglaNegocioException("El producto del detalle es obligatorio");
         }
 
         if (detalleProduccion.getKgProgramados() == null
                 || detalleProduccion.getKgProgramados().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Los kg programados deben ser mayores que cero");
+            throw new ReglaNegocioException("Los kg programados deben ser mayores que cero");
         }
 
         if (detalleProduccion.getKgBatch() == null
                 || detalleProduccion.getKgBatch().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Los kg batch deben ser mayores que cero");
+            throw new ReglaNegocioException("Los kg batch deben ser mayores que cero");
         }
 
         if (detalleProduccion.getNumBatch() == null || detalleProduccion.getNumBatch() <= 0) {
-            throw new IllegalArgumentException("El número de batch debe ser mayor que cero");
+            throw new ReglaNegocioException("El número de batch debe ser mayor que cero");
         }
 
         if (detalleProduccion.getUnidadesReales() == null || detalleProduccion.getUnidadesReales() < 0) {
-            throw new IllegalArgumentException("Las unidades reales no pueden ser negativas");
+            throw new ReglaNegocioException("Las unidades reales no pueden ser negativas");
         }
     }
 
     private void validarConsistenciaLinea(Produccion produccion, Producto producto) {
         if (produccion.getLineaProduccion() == null || produccion.getLineaProduccion().getIdLineaProduccion() == null) {
-            throw new IllegalArgumentException("La producción no tiene una línea de producción válida");
+            throw new ReglaNegocioException("La producción no tiene una línea de producción válida");
         }
 
         if (producto.getLineaProduccion() == null || producto.getLineaProduccion().getIdLineaProduccion() == null) {
-            throw new IllegalArgumentException("El producto no tiene una línea de producción válida");
+            throw new ReglaNegocioException("El producto no tiene una línea de producción válida");
         }
 
         if (!produccion.getLineaProduccion().getIdLineaProduccion()
                 .equals(producto.getLineaProduccion().getIdLineaProduccion())) {
-            throw new IllegalArgumentException(
+            throw new ReglaNegocioException(
                     "El producto no pertenece a la misma línea de producción de la cabecera");
         }
     }

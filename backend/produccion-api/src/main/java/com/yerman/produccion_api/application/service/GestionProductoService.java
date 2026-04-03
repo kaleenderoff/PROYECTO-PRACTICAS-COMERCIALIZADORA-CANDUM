@@ -1,6 +1,7 @@
 package com.yerman.produccion_api.application.service;
 
 import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
+import com.yerman.produccion_api.application.exception.ReglaNegocioException;
 import com.yerman.produccion_api.domain.model.LineaProduccion;
 import com.yerman.produccion_api.domain.model.Producto;
 import com.yerman.produccion_api.domain.port.in.GestionProductoUseCase;
@@ -46,7 +47,7 @@ public class GestionProductoService implements GestionProductoUseCase {
                 nombreLimpio,
                 producto.getGramajeG(),
                 marcaLimpia)) {
-            throw new IllegalArgumentException(
+            throw new ReglaNegocioException(
                     "Ya existe un producto con nombre, gramaje y marca iguales");
         }
 
@@ -109,31 +110,31 @@ public class GestionProductoService implements GestionProductoUseCase {
 
     private void validarDatosObligatorios(Producto producto) {
         if (producto == null) {
-            throw new IllegalArgumentException("El producto es obligatorio");
+            throw new ReglaNegocioException("El producto es obligatorio");
         }
 
         if (producto.getNombre() == null || producto.getNombre().trim().isEmpty()) {
-            throw new IllegalArgumentException("El nombre del producto es obligatorio");
+            throw new ReglaNegocioException("El nombre del producto es obligatorio");
         }
 
         if (producto.getGramajeG() == null || producto.getGramajeG().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("El gramaje del producto debe ser mayor que cero");
+            throw new ReglaNegocioException("El gramaje del producto debe ser mayor que cero");
         }
 
         if (producto.getUnidadMedida() == null || producto.getUnidadMedida().trim().isEmpty()) {
-            throw new IllegalArgumentException("La unidad de medida del producto es obligatoria");
+            throw new ReglaNegocioException("La unidad de medida del producto es obligatoria");
         }
     }
 
     private void validarLineaProduccion(LineaProduccion lineaProduccion) {
         if (lineaProduccion == null || lineaProduccion.getIdLineaProduccion() == null) {
-            throw new IllegalArgumentException("La línea de producción del producto es obligatoria");
+            throw new ReglaNegocioException("La línea de producción del producto es obligatoria");
         }
     }
 
     private void validarIdLineaProduccion(Long idLineaProduccion) {
         if (idLineaProduccion == null) {
-            throw new IllegalArgumentException("El id de la línea de producción es obligatorio");
+            throw new ReglaNegocioException("El id de la línea de producción es obligatorio");
         }
     }
 

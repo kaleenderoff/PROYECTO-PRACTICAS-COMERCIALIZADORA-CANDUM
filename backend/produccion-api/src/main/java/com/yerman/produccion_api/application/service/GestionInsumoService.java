@@ -1,6 +1,7 @@
 package com.yerman.produccion_api.application.service;
 
 import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
+import com.yerman.produccion_api.application.exception.ReglaNegocioException;
 import com.yerman.produccion_api.domain.model.Insumo;
 import com.yerman.produccion_api.domain.port.in.GestionInsumoUseCase;
 import com.yerman.produccion_api.domain.port.out.InsumoRepositoryPort;
@@ -28,7 +29,7 @@ public class GestionInsumoService implements GestionInsumoUseCase {
         String unidadMedidaLimpia = limpiar(insumo.getUnidadMedida());
 
         if (insumoRepositoryPort.existePorNombre(nombreLimpio)) {
-            throw new IllegalArgumentException(
+            throw new ReglaNegocioException(
                     "Ya existe un insumo con el nombre: " + nombreLimpio);
         }
 
@@ -74,15 +75,15 @@ public class GestionInsumoService implements GestionInsumoUseCase {
 
     private void validarDatosObligatorios(Insumo insumo) {
         if (insumo == null) {
-            throw new IllegalArgumentException("El insumo es obligatorio");
+            throw new ReglaNegocioException("El insumo es obligatorio");
         }
 
         if (insumo.getNombre() == null || insumo.getNombre().trim().isEmpty()) {
-            throw new IllegalArgumentException("El nombre del insumo es obligatorio");
+            throw new ReglaNegocioException("El nombre del insumo es obligatorio");
         }
 
         if (insumo.getUnidadMedida() == null || insumo.getUnidadMedida().trim().isEmpty()) {
-            throw new IllegalArgumentException("La unidad de medida del insumo es obligatoria");
+            throw new ReglaNegocioException("La unidad de medida del insumo es obligatoria");
         }
     }
 

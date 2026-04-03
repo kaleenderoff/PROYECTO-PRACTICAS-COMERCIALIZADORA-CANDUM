@@ -2,6 +2,7 @@ package com.yerman.produccion_api.infrastructure.adapter.in.rest;
 
 import com.yerman.produccion_api.application.dto.request.ProduccionRequest;
 import com.yerman.produccion_api.application.dto.response.ProduccionResponse;
+import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
 import com.yerman.produccion_api.application.mapper.ProduccionMapper;
 import com.yerman.produccion_api.domain.model.Produccion;
 import com.yerman.produccion_api.domain.port.in.GestionProduccionUseCase;
@@ -36,7 +37,7 @@ public class ProduccionController {
     @GetMapping("/producciones/{id}")
     public ResponseEntity<ProduccionResponse> obtenerPorId(@PathVariable Long id) {
         Produccion produccion = gestionProduccionUseCase.obtenerPorId(id)
-                .orElseThrow(() -> new RuntimeException("Producción no encontrada con id: " + id));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Producción no encontrada con id: " + id));
 
         return ResponseEntity.ok(ProduccionMapper.toResponse(produccion));
     }
@@ -54,7 +55,8 @@ public class ProduccionController {
     @GetMapping("/producciones/lote/{numeroLote}")
     public ResponseEntity<ProduccionResponse> obtenerPorNumeroLote(@PathVariable String numeroLote) {
         Produccion produccion = gestionProduccionUseCase.obtenerPorNumeroLote(numeroLote)
-                .orElseThrow(() -> new RuntimeException("Producción no encontrada con lote: " + numeroLote));
+                .orElseThrow(
+                        () -> new RecursoNoEncontradoException("Producción no encontrada con lote: " + numeroLote));
 
         return ResponseEntity.ok(ProduccionMapper.toResponse(produccion));
     }
