@@ -2,6 +2,7 @@ package com.yerman.produccion_api.infrastructure.adapter.in.rest;
 
 import com.yerman.produccion_api.application.dto.request.ConsumoInsumoRequest;
 import com.yerman.produccion_api.application.dto.response.ConsumoInsumoResponse;
+import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
 import com.yerman.produccion_api.application.mapper.ConsumoInsumoMapper;
 import com.yerman.produccion_api.domain.model.ConsumoInsumo;
 import com.yerman.produccion_api.domain.port.in.GestionConsumoInsumoUseCase;
@@ -35,7 +36,8 @@ public class ConsumoInsumoController {
     @GetMapping("/consumo-insumo/{id}")
     public ResponseEntity<ConsumoInsumoResponse> obtenerPorId(@PathVariable Long id) {
         ConsumoInsumo consumo = gestionConsumoInsumoUseCase.obtenerPorId(id)
-                .orElseThrow(() -> new RuntimeException("Consumo de insumo no encontrado con id: " + id));
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Consumo de insumo no encontrado con id: " + id));
 
         return ResponseEntity.ok(ConsumoInsumoMapper.toResponse(consumo));
     }
@@ -90,7 +92,8 @@ public class ConsumoInsumoController {
 
         ConsumoInsumo consumo = gestionConsumoInsumoUseCase
                 .obtenerPorProduccionInsumoDetalle(idProduccion, idInsumo, idDetalleProduccion)
-                .orElseThrow(() -> new RuntimeException("Consumo de insumo no encontrado"));
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Consumo de insumo no encontrado para la combinación producción, insumo y detalle"));
 
         return ResponseEntity.ok(ConsumoInsumoMapper.toResponse(consumo));
     }

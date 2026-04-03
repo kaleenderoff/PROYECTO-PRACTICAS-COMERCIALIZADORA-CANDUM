@@ -2,6 +2,7 @@ package com.yerman.produccion_api.infrastructure.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -39,11 +40,25 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**", "/error").permitAll()
 
-                        // esta ruta debe ir ANTES de /usuarios/**
                         .requestMatchers("/usuarios/mi-password").authenticated()
-
-                        // gestión administrativa de usuarios
                         .requestMatchers("/usuarios/**").hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.POST, "/validaciones/**")
+                        .hasAnyRole("JEFE_LINEA", "INGENIERO", "JEFE_PLANTA", "ADMIN")
+
+                        .requestMatchers(HttpMethod.GET, "/validaciones/**")
+                        .hasAnyRole("JEFE_LINEA", "INGENIERO", "JEFE_PLANTA", "ADMIN")
+
+                        .requestMatchers("/producciones/**")
+                        .hasAnyRole("OPERARIO", "JEFE_LINEA", "INGENIERO", "JEFE_PLANTA", "ADMIN")
+
+                        .requestMatchers("/detalle-produccion/**")
+                        .hasAnyRole("OPERARIO", "JEFE_LINEA", "INGENIERO", "JEFE_PLANTA", "ADMIN")
+
+                        .requestMatchers("/consumo-insumo/**")
+                        .hasAnyRole("OPERARIO", "JEFE_LINEA", "INGENIERO", "JEFE_PLANTA", "ADMIN")
+
+                        .requestMatchers("/me").authenticated()
 
                         .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())

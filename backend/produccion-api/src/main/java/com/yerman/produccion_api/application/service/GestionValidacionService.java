@@ -1,7 +1,8 @@
 package com.yerman.produccion_api.application.service;
 
+import com.yerman.produccion_api.application.exception.RecursoDuplicadoException;
 import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
-import com.yerman.produccion_api.domain.model.DetalleProduccion;
+import com.yerman.produccion_api.application.exception.ReglaNegocioException;
 import com.yerman.produccion_api.domain.model.Usuario;
 import com.yerman.produccion_api.domain.model.Validacion;
 import com.yerman.produccion_api.domain.port.in.GestionValidacionUseCase;
@@ -21,7 +22,8 @@ public class GestionValidacionService implements GestionValidacionUseCase {
     private final DetalleProduccionRepositoryPort detalleProduccionRepositoryPort;
     private final UsuarioRepositoryPort usuarioRepositoryPort;
 
-    public GestionValidacionService(ValidacionRepositoryPort validacionRepositoryPort,
+    public GestionValidacionService(
+            ValidacionRepositoryPort validacionRepositoryPort,
             DetalleProduccionRepositoryPort detalleProduccionRepositoryPort,
             UsuarioRepositoryPort usuarioRepositoryPort) {
         this.validacionRepositoryPort = validacionRepositoryPort;
@@ -32,8 +34,9 @@ public class GestionValidacionService implements GestionValidacionUseCase {
     @Override
     public Validacion crearValidacion(Validacion validacion) {
         validarDatosObligatorios(validacion);
+        validarEstadoPermitido(validacion.getEstado());
 
-        DetalleProduccion detalle = detalleProduccionRepositoryPort.buscarPorId(validacion.getIdDetalleProduccion())
+        detalleProduccionRepositoryPort.buscarPorId(validacion.getIdDetalleProduccion())
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Detalle de producción no encontrado con id: " + validacion.getIdDetalleProduccion()));
 
@@ -44,11 +47,17 @@ public class GestionValidacionService implements GestionValidacionUseCase {
         validarRolValidador(validador);
 
         if (validacionRepositoryPort.existePorDetalleProduccion(validacion.getIdDetalleProduccion())) {
-            throw new IllegalArgumentException(
+            throw new RecursoDuplicadoException(
                     "Ya existe una validación para el detalle de producción indicado");
         }
 
-        validacion.setEstado(limpiar(validacion.getEstado()));
+        String estadoNormalizado = limpiar(validacion.getEstado());
+
+        if (estadoNormalizado == null) {
+            throw new ReglaNegocioException("El estado de la validación es obligatorio");
+        }
+
+        validacion.setEstado(estadoNormalizado.toUpperCase());
         validacion.setObservacion(limpiarOpcional(validacion.getObservacion()));
         validacion.setFechaValidacion(LocalDateTime.now());
         validacion.setCreatedAt(LocalDateTime.now());
@@ -65,7 +74,7 @@ public class GestionValidacionService implements GestionValidacionUseCase {
     @Override
     public Optional<Validacion> obtenerPorDetalleProduccion(Long idDetalleProduccion) {
         if (idDetalleProduccion == null) {
-            throw new IllegalArgumentException("El id del detalle de producción es obligatorio");
+            throw new ReglaNegocioException("El id del detalle de producción es obligatorio");
         }
         return validacionRepositoryPort.buscarPorDetalleProduccion(idDetalleProduccion);
     }
@@ -78,16 +87,20 @@ public class GestionValidacionService implements GestionValidacionUseCase {
     @Override
     public List<Validacion> listarPorEstado(String estado) {
         String estadoLimpio = limpiar(estado);
+
         if (estadoLimpio == null || estadoLimpio.isEmpty()) {
-            throw new IllegalArgumentException("El estado de la validación es obligatorio");
+            throw new ReglaNegocioException("El estado de la validación es obligatorio");
         }
-        return validacionRepositoryPort.listarPorEstado(estadoLimpio);
+
+        validarEstadoPermitido(estadoLimpio);
+
+        return validacionRepositoryPort.listarPorEstado(estadoLimpio.toUpperCase());
     }
 
     @Override
     public List<Validacion> listarPorValidador(Long idValidador) {
         if (idValidador == null) {
-            throw new IllegalArgumentException("El id del validador es obligatorio");
+            throw new ReglaNegocioException("El id del validador es obligatorio");
         }
         return validacionRepositoryPort.listarPorValidador(idValidador);
     }
@@ -100,19 +113,19 @@ public class GestionValidacionService implements GestionValidacionUseCase {
 
     private void validarDatosObligatorios(Validacion validacion) {
         if (validacion == null) {
-            throw new IllegalArgumentException("La validación es obligatoria");
+            throw new ReglaNegocioException("La validación es obligatoria");
         }
 
         if (validacion.getIdDetalleProduccion() == null) {
-            throw new IllegalArgumentException("El detalle de producción es obligatorio");
+            throw new ReglaNegocioException("El detalle de producción es obligatorio");
         }
 
         if (validacion.getIdValidador() == null) {
-            throw new IllegalArgumentException("El validador es obligatorio");
+            throw new ReglaNegocioException("El validador es obligatorio");
         }
 
         if (validacion.getEstado() == null || validacion.getEstado().trim().isEmpty()) {
-            throw new IllegalArgumentException("El estado de la validación es obligatorio");
+            throw new ReglaNegocioException("El estado de la validación es obligatorio");
         }
     }
 
@@ -123,8 +136,23 @@ public class GestionValidacionService implements GestionValidacionUseCase {
                 && rol != Usuario.Rol.INGENIERO
                 && rol != Usuario.Rol.JEFE_PLANTA
                 && rol != Usuario.Rol.ADMIN) {
-            throw new IllegalArgumentException(
+            throw new ReglaNegocioException(
                     "El usuario indicado no tiene permisos para validar registros de producción");
+        }
+    }
+
+    private void validarEstadoPermitido(String estado) {
+        String estadoLimpio = limpiar(estado);
+
+        if (estadoLimpio == null || estadoLimpio.isEmpty()) {
+            throw new ReglaNegocioException("El estado de la validación es obligatorio");
+        }
+
+        String estadoNormalizado = estadoLimpio.toUpperCase();
+
+        if (!estadoNormalizado.equals("VALIDADO") && !estadoNormalizado.equals("RECHAZADO")) {
+            throw new ReglaNegocioException(
+                    "El estado de la validación debe ser VALIDADO o RECHAZADO");
         }
     }
 
