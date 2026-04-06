@@ -1,0 +1,1 @@
+-- Inicio de versionado con Flyway sobre esquema ya existente
