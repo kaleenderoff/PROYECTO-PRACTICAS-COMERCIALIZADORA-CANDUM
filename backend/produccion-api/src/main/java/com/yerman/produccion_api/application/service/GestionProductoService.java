@@ -28,34 +28,30 @@ public class GestionProductoService implements GestionProductoUseCase {
 
     @Override
     public Producto crearProducto(Producto producto) {
-        validarDatosObligatorios(producto);
+        validarProductoObligatorio(producto);
+        validarCamposObligatorios(producto);
+        validarLineaProduccionInformada(producto.getLineaProduccion());
 
-        String nombreLimpio = limpiar(producto.getNombre());
-        String marcaLimpia = limpiarOpcional(producto.getMarca());
-        String descripcionLimpia = limpiarOpcional(producto.getDescripcion());
-        String unidadMedidaLimpia = limpiar(producto.getUnidadMedida());
+        String nombreNormalizado = normalizarTextoObligatorio(producto.getNombre());
+        String descripcionNormalizada = normalizarTextoOpcional(producto.getDescripcion());
+        String marcaNormalizada = normalizarTextoOpcional(producto.getMarca());
+        String unidadMedidaNormalizada = normalizarUnidadMedida(producto.getUnidadMedida());
 
-        validarLineaProduccion(producto.getLineaProduccion());
+        Long idLineaProduccion = producto.getLineaProduccion().getIdLineaProduccion();
 
-        Long idLinea = producto.getLineaProduccion().getIdLineaProduccion();
-
-        LineaProduccion linea = lineaProduccionRepositoryPort.buscarPorId(idLinea)
+        LineaProduccion lineaProduccion = lineaProduccionRepositoryPort.buscarPorId(idLineaProduccion)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
-                        "Línea de producción no encontrada con id: " + idLinea));
+                        "Línea de producción no encontrada con id: " + idLineaProduccion));
 
-        if (productoRepositoryPort.existePorNombreGramajeMarca(
-                nombreLimpio,
-                producto.getGramajeG(),
-                marcaLimpia)) {
-            throw new ReglaNegocioException(
-                    "Ya existe un producto con nombre, gramaje y marca iguales");
-        }
+        validarLineaProduccionActiva(lineaProduccion);
 
-        producto.setNombre(nombreLimpio);
-        producto.setMarca(marcaLimpia);
-        producto.setDescripcion(descripcionLimpia);
-        producto.setUnidadMedida(unidadMedidaLimpia);
-        producto.setLineaProduccion(linea);
+        validarDuplicadoProducto(nombreNormalizado, producto.getGramajeG(), marcaNormalizada);
+
+        producto.setNombre(nombreNormalizado);
+        producto.setDescripcion(descripcionNormalizada);
+        producto.setMarca(marcaNormalizada);
+        producto.setUnidadMedida(unidadMedidaNormalizada);
+        producto.setLineaProduccion(lineaProduccion);
 
         if (producto.getActivo() == null) {
             producto.setActivo(true);
@@ -69,15 +65,26 @@ public class GestionProductoService implements GestionProductoUseCase {
 
     @Override
     public Optional<Producto> obtenerPorId(Long id) {
+        if (id == null) {
+            throw new ReglaNegocioException("El id del producto es obligatorio");
+        }
         return productoRepositoryPort.buscarPorId(id);
     }
 
     @Override
     public Optional<Producto> obtenerPorNombreGramajeMarca(String nombre, BigDecimal gramajeG, String marca) {
+        if (nombre == null || nombre.trim().isEmpty()) {
+            throw new ReglaNegocioException("El nombre del producto es obligatorio");
+        }
+
+        if (gramajeG == null || gramajeG.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ReglaNegocioException("El gramaje del producto debe ser mayor que cero");
+        }
+
         return productoRepositoryPort.buscarPorNombreGramajeMarca(
-                limpiar(nombre),
+                normalizarTextoObligatorio(nombre),
                 gramajeG,
-                limpiarOpcional(marca));
+                normalizarTextoOpcional(marca));
     }
 
     @Override
@@ -103,16 +110,22 @@ public class GestionProductoService implements GestionProductoUseCase {
     }
 
     public Producto obtenerPorIdObligatorio(Long id) {
+        if (id == null) {
+            throw new ReglaNegocioException("El id del producto es obligatorio");
+        }
+
         return productoRepositoryPort.buscarPorId(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Producto no encontrado con id: " + id));
     }
 
-    private void validarDatosObligatorios(Producto producto) {
+    private void validarProductoObligatorio(Producto producto) {
         if (producto == null) {
             throw new ReglaNegocioException("El producto es obligatorio");
         }
+    }
 
+    private void validarCamposObligatorios(Producto producto) {
         if (producto.getNombre() == null || producto.getNombre().trim().isEmpty()) {
             throw new ReglaNegocioException("El nombre del producto es obligatorio");
         }
@@ -126,9 +139,22 @@ public class GestionProductoService implements GestionProductoUseCase {
         }
     }
 
-    private void validarLineaProduccion(LineaProduccion lineaProduccion) {
+    private void validarLineaProduccionInformada(LineaProduccion lineaProduccion) {
         if (lineaProduccion == null || lineaProduccion.getIdLineaProduccion() == null) {
             throw new ReglaNegocioException("La línea de producción del producto es obligatoria");
+        }
+    }
+
+    private void validarLineaProduccionActiva(LineaProduccion lineaProduccion) {
+        if (Boolean.FALSE.equals(lineaProduccion.getActivo())) {
+            throw new ReglaNegocioException("No se puede asociar el producto a una línea de producción inactiva");
+        }
+    }
+
+    private void validarDuplicadoProducto(String nombre, BigDecimal gramajeG, String marca) {
+        if (productoRepositoryPort.existePorNombreGramajeMarca(nombre, gramajeG, marca)) {
+            throw new ReglaNegocioException(
+                    "Ya existe un producto con el mismo nombre, gramaje y marca");
         }
     }
 
@@ -138,15 +164,19 @@ public class GestionProductoService implements GestionProductoUseCase {
         }
     }
 
-    private String limpiar(String valor) {
-        return valor == null ? null : valor.trim();
+    private String normalizarTextoObligatorio(String valor) {
+        return valor.trim();
     }
 
-    private String limpiarOpcional(String valor) {
+    private String normalizarTextoOpcional(String valor) {
         if (valor == null) {
             return null;
         }
         String limpio = valor.trim();
         return limpio.isEmpty() ? null : limpio;
+    }
+
+    private String normalizarUnidadMedida(String unidadMedida) {
+        return unidadMedida.trim().toUpperCase();
     }
 }
