@@ -26,7 +26,8 @@ public class GestionConsumoInsumoService implements GestionConsumoInsumoUseCase 
     private final DetalleProduccionRepositoryPort detalleProduccionRepositoryPort;
     private final InsumoRepositoryPort insumoRepositoryPort;
 
-    public GestionConsumoInsumoService(ConsumoInsumoRepositoryPort consumoInsumoRepositoryPort,
+    public GestionConsumoInsumoService(
+            ConsumoInsumoRepositoryPort consumoInsumoRepositoryPort,
             ProduccionRepositoryPort produccionRepositoryPort,
             DetalleProduccionRepositoryPort detalleProduccionRepositoryPort,
             InsumoRepositoryPort insumoRepositoryPort) {
@@ -38,34 +39,31 @@ public class GestionConsumoInsumoService implements GestionConsumoInsumoUseCase 
 
     @Override
     public ConsumoInsumo crearConsumoInsumo(ConsumoInsumo consumoInsumo) {
-        validarDatosObligatorios(consumoInsumo);
+        validarConsumoObligatorio(consumoInsumo);
+        validarCamposObligatorios(consumoInsumo);
 
-        Produccion produccion = produccionRepositoryPort.buscarPorId(consumoInsumo.getIdProduccion())
-                .orElseThrow(() -> new RecursoNoEncontradoException(
-                        "Producción no encontrada con id: " + consumoInsumo.getIdProduccion()));
-
-        DetalleProduccion detalle = detalleProduccionRepositoryPort.buscarPorId(consumoInsumo.getIdDetalleProduccion())
-                .orElseThrow(() -> new RecursoNoEncontradoException(
-                        "Detalle de producción no encontrado con id: " + consumoInsumo.getIdDetalleProduccion()));
-
+        Long idProduccion = consumoInsumo.getIdProduccion();
+        Long idDetalleProduccion = consumoInsumo.getIdDetalleProduccion();
         Long idInsumo = consumoInsumo.getInsumo().getIdInsumo();
+
+        Produccion produccion = produccionRepositoryPort.buscarPorId(idProduccion)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Producción no encontrada con id: " + idProduccion));
+
+        DetalleProduccion detalle = detalleProduccionRepositoryPort.buscarPorId(idDetalleProduccion)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Detalle de producción no encontrado con id: " + idDetalleProduccion));
 
         Insumo insumo = insumoRepositoryPort.buscarPorId(idInsumo)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Insumo no encontrado con id: " + idInsumo));
 
         validarConsistenciaProduccionDetalle(produccion, detalle);
-
-        if (consumoInsumoRepositoryPort.existePorProduccionInsumoDetalle(
-                consumoInsumo.getIdProduccion(),
-                idInsumo,
-                consumoInsumo.getIdDetalleProduccion())) {
-            throw new ReglaNegocioException(
-                    "Ya existe un consumo de insumo para esa producción, detalle e insumo");
-        }
+        validarInsumoActivo(insumo);
+        validarDuplicadoConsumo(idProduccion, idInsumo, idDetalleProduccion);
 
         consumoInsumo.setInsumo(insumo);
-        consumoInsumo.setObservaciones(limpiarOpcional(consumoInsumo.getObservaciones()));
+        consumoInsumo.setObservaciones(normalizarTextoOpcional(consumoInsumo.getObservaciones()));
         consumoInsumo.setCreatedAt(LocalDateTime.now());
         consumoInsumo.setUpdatedAt(LocalDateTime.now());
 
@@ -74,6 +72,9 @@ public class GestionConsumoInsumoService implements GestionConsumoInsumoUseCase 
 
     @Override
     public Optional<ConsumoInsumo> obtenerPorId(Long id) {
+        if (id == null) {
+            throw new ReglaNegocioException("El id del consumo de insumo es obligatorio");
+        }
         return consumoInsumoRepositoryPort.buscarPorId(id);
     }
 
@@ -84,56 +85,54 @@ public class GestionConsumoInsumoService implements GestionConsumoInsumoUseCase 
 
     @Override
     public List<ConsumoInsumo> listarPorProduccion(Long idProduccion) {
-        if (idProduccion == null) {
-            throw new ReglaNegocioException("El id de la producción es obligatorio");
-        }
+        validarIdProduccion(idProduccion);
         return consumoInsumoRepositoryPort.listarPorProduccion(idProduccion);
     }
 
     @Override
     public List<ConsumoInsumo> listarPorDetalleProduccion(Long idDetalleProduccion) {
-        if (idDetalleProduccion == null) {
-            throw new ReglaNegocioException("El id del detalle de producción es obligatorio");
-        }
+        validarIdDetalleProduccion(idDetalleProduccion);
         return consumoInsumoRepositoryPort.listarPorDetalleProduccion(idDetalleProduccion);
     }
 
     @Override
     public List<ConsumoInsumo> listarPorInsumo(Long idInsumo) {
-        if (idInsumo == null) {
-            throw new ReglaNegocioException("El id del insumo es obligatorio");
-        }
+        validarIdInsumo(idInsumo);
         return consumoInsumoRepositoryPort.listarPorInsumo(idInsumo);
     }
 
     @Override
-    public Optional<ConsumoInsumo> obtenerPorProduccionInsumoDetalle(Long idProduccion, Long idInsumo,
+    public Optional<ConsumoInsumo> obtenerPorProduccionInsumoDetalle(
+            Long idProduccion,
+            Long idInsumo,
             Long idDetalleProduccion) {
-        if (idProduccion == null) {
-            throw new ReglaNegocioException("El id de la producción es obligatorio");
-        }
-        if (idInsumo == null) {
-            throw new ReglaNegocioException("El id del insumo es obligatorio");
-        }
-        if (idDetalleProduccion == null) {
-            throw new ReglaNegocioException("El id del detalle de producción es obligatorio");
-        }
+        validarIdProduccion(idProduccion);
+        validarIdInsumo(idInsumo);
+        validarIdDetalleProduccion(idDetalleProduccion);
 
-        return consumoInsumoRepositoryPort.buscarPorProduccionInsumoDetalle(idProduccion, idInsumo,
+        return consumoInsumoRepositoryPort.buscarPorProduccionInsumoDetalle(
+                idProduccion,
+                idInsumo,
                 idDetalleProduccion);
     }
 
     public ConsumoInsumo obtenerPorIdObligatorio(Long id) {
+        if (id == null) {
+            throw new ReglaNegocioException("El id del consumo de insumo es obligatorio");
+        }
+
         return consumoInsumoRepositoryPort.buscarPorId(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Consumo de insumo no encontrado con id: " + id));
     }
 
-    private void validarDatosObligatorios(ConsumoInsumo consumoInsumo) {
+    private void validarConsumoObligatorio(ConsumoInsumo consumoInsumo) {
         if (consumoInsumo == null) {
             throw new ReglaNegocioException("El consumo de insumo es obligatorio");
         }
+    }
 
+    private void validarCamposObligatorios(ConsumoInsumo consumoInsumo) {
         if (consumoInsumo.getIdProduccion() == null) {
             throw new ReglaNegocioException("La producción del consumo es obligatoria");
         }
@@ -153,6 +152,10 @@ public class GestionConsumoInsumoService implements GestionConsumoInsumoUseCase 
     }
 
     private void validarConsistenciaProduccionDetalle(Produccion produccion, DetalleProduccion detalle) {
+        if (produccion.getIdProduccion() == null) {
+            throw new ReglaNegocioException("La producción indicada no es válida");
+        }
+
         if (detalle.getIdProduccion() == null) {
             throw new ReglaNegocioException("El detalle de producción no tiene una producción válida");
         }
@@ -163,7 +166,41 @@ public class GestionConsumoInsumoService implements GestionConsumoInsumoUseCase 
         }
     }
 
-    private String limpiarOpcional(String valor) {
+    private void validarInsumoActivo(Insumo insumo) {
+        if (Boolean.FALSE.equals(insumo.getActivo())) {
+            throw new ReglaNegocioException("No se puede registrar consumo con un insumo inactivo");
+        }
+    }
+
+    private void validarDuplicadoConsumo(Long idProduccion, Long idInsumo, Long idDetalleProduccion) {
+        if (consumoInsumoRepositoryPort.existePorProduccionInsumoDetalle(
+                idProduccion,
+                idInsumo,
+                idDetalleProduccion)) {
+            throw new ReglaNegocioException(
+                    "Ya existe un consumo de insumo para esa producción, detalle e insumo");
+        }
+    }
+
+    private void validarIdProduccion(Long idProduccion) {
+        if (idProduccion == null) {
+            throw new ReglaNegocioException("El id de la producción es obligatorio");
+        }
+    }
+
+    private void validarIdDetalleProduccion(Long idDetalleProduccion) {
+        if (idDetalleProduccion == null) {
+            throw new ReglaNegocioException("El id del detalle de producción es obligatorio");
+        }
+    }
+
+    private void validarIdInsumo(Long idInsumo) {
+        if (idInsumo == null) {
+            throw new ReglaNegocioException("El id del insumo es obligatorio");
+        }
+    }
+
+    private String normalizarTextoOpcional(String valor) {
         if (valor == null) {
             return null;
         }
