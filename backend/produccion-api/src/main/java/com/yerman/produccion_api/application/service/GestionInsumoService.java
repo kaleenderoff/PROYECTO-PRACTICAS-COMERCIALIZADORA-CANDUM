@@ -22,20 +22,18 @@ public class GestionInsumoService implements GestionInsumoUseCase {
 
     @Override
     public Insumo crearInsumo(Insumo insumo) {
-        validarDatosObligatorios(insumo);
+        validarInsumoObligatorio(insumo);
+        validarCamposObligatorios(insumo);
 
-        String nombreLimpio = limpiar(insumo.getNombre());
-        String descripcionLimpia = limpiarOpcional(insumo.getDescripcion());
-        String unidadMedidaLimpia = limpiar(insumo.getUnidadMedida());
+        String nombreNormalizado = normalizarTextoObligatorio(insumo.getNombre());
+        String descripcionNormalizada = normalizarTextoOpcional(insumo.getDescripcion());
+        String unidadMedidaNormalizada = normalizarUnidadMedida(insumo.getUnidadMedida());
 
-        if (insumoRepositoryPort.existePorNombre(nombreLimpio)) {
-            throw new ReglaNegocioException(
-                    "Ya existe un insumo con el nombre: " + nombreLimpio);
-        }
+        validarDuplicadoInsumo(nombreNormalizado);
 
-        insumo.setNombre(nombreLimpio);
-        insumo.setDescripcion(descripcionLimpia);
-        insumo.setUnidadMedida(unidadMedidaLimpia);
+        insumo.setNombre(nombreNormalizado);
+        insumo.setDescripcion(descripcionNormalizada);
+        insumo.setUnidadMedida(unidadMedidaNormalizada);
 
         if (insumo.getActivo() == null) {
             insumo.setActivo(true);
@@ -49,12 +47,18 @@ public class GestionInsumoService implements GestionInsumoUseCase {
 
     @Override
     public Optional<Insumo> obtenerPorId(Long id) {
+        if (id == null) {
+            throw new ReglaNegocioException("El id del insumo es obligatorio");
+        }
         return insumoRepositoryPort.buscarPorId(id);
     }
 
     @Override
     public Optional<Insumo> obtenerPorNombre(String nombre) {
-        return insumoRepositoryPort.buscarPorNombre(limpiar(nombre));
+        if (nombre == null || nombre.trim().isEmpty()) {
+            throw new ReglaNegocioException("El nombre del insumo es obligatorio");
+        }
+        return insumoRepositoryPort.buscarPorNombre(normalizarTextoObligatorio(nombre));
     }
 
     @Override
@@ -68,16 +72,22 @@ public class GestionInsumoService implements GestionInsumoUseCase {
     }
 
     public Insumo obtenerPorIdObligatorio(Long id) {
+        if (id == null) {
+            throw new ReglaNegocioException("El id del insumo es obligatorio");
+        }
+
         return insumoRepositoryPort.buscarPorId(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Insumo no encontrado con id: " + id));
     }
 
-    private void validarDatosObligatorios(Insumo insumo) {
+    private void validarInsumoObligatorio(Insumo insumo) {
         if (insumo == null) {
             throw new ReglaNegocioException("El insumo es obligatorio");
         }
+    }
 
+    private void validarCamposObligatorios(Insumo insumo) {
         if (insumo.getNombre() == null || insumo.getNombre().trim().isEmpty()) {
             throw new ReglaNegocioException("El nombre del insumo es obligatorio");
         }
@@ -87,15 +97,25 @@ public class GestionInsumoService implements GestionInsumoUseCase {
         }
     }
 
-    private String limpiar(String valor) {
-        return valor == null ? null : valor.trim();
+    private void validarDuplicadoInsumo(String nombre) {
+        if (insumoRepositoryPort.existePorNombre(nombre)) {
+            throw new ReglaNegocioException("Ya existe un insumo con el nombre: " + nombre);
+        }
     }
 
-    private String limpiarOpcional(String valor) {
+    private String normalizarTextoObligatorio(String valor) {
+        return valor.trim();
+    }
+
+    private String normalizarTextoOpcional(String valor) {
         if (valor == null) {
             return null;
         }
         String limpio = valor.trim();
         return limpio.isEmpty() ? null : limpio;
+    }
+
+    private String normalizarUnidadMedida(String unidadMedida) {
+        return unidadMedida.trim().toUpperCase();
     }
 }
