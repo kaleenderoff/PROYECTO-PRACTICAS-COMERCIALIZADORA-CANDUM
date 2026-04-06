@@ -106,7 +106,10 @@ public class ProductoJpaAdapter implements ProductoRepositoryPort {
         entity.setActivo(producto.getActivo());
 
         if (producto.getLineaProduccion() != null) {
-            entity.setLineaProduccion(toLineaEntity(producto.getLineaProduccion()));
+            LineaProduccionEntity linea = new LineaProduccionEntity();
+            linea.setIdLineaProduccion(
+                    producto.getLineaProduccion().getIdLineaProduccion());
+            entity.setLineaProduccion(linea);
         }
 
         return entity;
@@ -121,14 +124,5 @@ public class ProductoJpaAdapter implements ProductoRepositoryPort {
         linea.setCreatedAt(entity.getCreatedAt());
         linea.setUpdatedAt(entity.getUpdatedAt());
         return linea;
-    }
-
-    private LineaProduccionEntity toLineaEntity(LineaProduccion linea) {
-        LineaProduccionEntity entity = new LineaProduccionEntity();
-        entity.setIdLineaProduccion(linea.getIdLineaProduccion());
-        entity.setNombre(linea.getNombre());
-        entity.setDescripcion(linea.getDescripcion());
-        entity.setActivo(linea.getActivo());
-        return entity;
     }
 }
