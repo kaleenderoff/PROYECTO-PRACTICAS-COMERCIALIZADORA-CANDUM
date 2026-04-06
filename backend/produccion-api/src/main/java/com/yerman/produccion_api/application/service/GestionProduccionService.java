@@ -1,5 +1,6 @@
 package com.yerman.produccion_api.application.service;
 
+import com.yerman.produccion_api.application.exception.RecursoDuplicadoException;
 import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
 import com.yerman.produccion_api.application.exception.ReglaNegocioException;
 import com.yerman.produccion_api.domain.model.LineaProduccion;
@@ -11,7 +12,6 @@ import com.yerman.produccion_api.domain.port.out.ProduccionRepositoryPort;
 import com.yerman.produccion_api.domain.port.out.UsuarioRepositoryPort;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -23,7 +23,8 @@ public class GestionProduccionService implements GestionProduccionUseCase {
     private final LineaProduccionRepositoryPort lineaProduccionRepositoryPort;
     private final UsuarioRepositoryPort usuarioRepositoryPort;
 
-    public GestionProduccionService(ProduccionRepositoryPort produccionRepositoryPort,
+    public GestionProduccionService(
+            ProduccionRepositoryPort produccionRepositoryPort,
             LineaProduccionRepositoryPort lineaProduccionRepositoryPort,
             UsuarioRepositoryPort usuarioRepositoryPort) {
         this.produccionRepositoryPort = produccionRepositoryPort;
@@ -33,39 +34,40 @@ public class GestionProduccionService implements GestionProduccionUseCase {
 
     @Override
     public Produccion crearProduccion(Produccion produccion) {
-        validarDatosObligatorios(produccion);
+        validarProduccionObligatoria(produccion);
+        validarCamposObligatorios(produccion);
 
-        String tipoTurnoLimpio = limpiar(produccion.getTipoTurno());
-        String numeroLoteLimpio = limpiar(produccion.getNumeroLote());
-        String estadoLimpio = limpiar(produccion.getEstado());
-        String observacionesLimpias = limpiarOpcional(produccion.getObservacionesGenerales());
+        String tipoTurnoNormalizado = normalizarTextoObligatorio(produccion.getTipoTurno()).toUpperCase();
+        String numeroLoteNormalizado = normalizarTextoObligatorio(produccion.getNumeroLote());
+        String estadoNormalizado = normalizarTextoObligatorio(produccion.getEstado()).toUpperCase();
 
-        if (produccionRepositoryPort.existePorNumeroLote(numeroLoteLimpio)) {
-            throw new ReglaNegocioException(
-                    "Ya existe una producción con el número de lote: " + numeroLoteLimpio);
-        }
+        validarDuplicadoLote(numeroLoteNormalizado);
 
-        Long idLinea = produccion.getLineaProduccion().getIdLineaProduccion();
+        Long idLineaProduccion = produccion.getLineaProduccion().getIdLineaProduccion();
+        Long idOperario = produccion.getIdOperario();
+        Long idJefeLinea = produccion.getIdJefeLinea();
 
-        LineaProduccion linea = lineaProduccionRepositoryPort.buscarPorId(idLinea)
+        LineaProduccion lineaProduccion = lineaProduccionRepositoryPort.buscarPorId(idLineaProduccion)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
-                        "Línea de producción no encontrada con id: " + idLinea));
+                        "Línea de producción no encontrada con id: " + idLineaProduccion));
 
-        Usuario operario = usuarioRepositoryPort.buscarPorId(produccion.getIdOperario())
+        Usuario operario = usuarioRepositoryPort.buscarPorId(idOperario)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
-                        "Operario no encontrado con id: " + produccion.getIdOperario()));
+                        "Operario no encontrado con id: " + idOperario));
 
-        Usuario jefeLinea = usuarioRepositoryPort.buscarPorId(produccion.getIdJefeLinea())
+        Usuario jefeLinea = usuarioRepositoryPort.buscarPorId(idJefeLinea)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
-                        "Jefe de línea no encontrado con id: " + produccion.getIdJefeLinea()));
+                        "Jefe de línea no encontrado con id: " + idJefeLinea));
 
-        validarRoles(operario, jefeLinea);
+        validarLineaProduccionActiva(lineaProduccion);
+        validarUsuarioActivo(operario, "operario");
+        validarUsuarioActivo(jefeLinea, "jefe de línea");
+        validarRolOperario(operario);
+        validarRolJefeLinea(jefeLinea);
 
-        produccion.setTipoTurno(tipoTurnoLimpio);
-        produccion.setNumeroLote(numeroLoteLimpio);
-        produccion.setEstado(estadoLimpio);
-        produccion.setObservacionesGenerales(observacionesLimpias);
-        produccion.setLineaProduccion(linea);
+        produccion.setTipoTurno(tipoTurnoNormalizado);
+        produccion.setNumeroLote(numeroLoteNormalizado);
+        produccion.setEstado(estadoNormalizado);
         produccion.setCreatedAt(LocalDateTime.now());
         produccion.setUpdatedAt(LocalDateTime.now());
 
@@ -74,12 +76,18 @@ public class GestionProduccionService implements GestionProduccionUseCase {
 
     @Override
     public Optional<Produccion> obtenerPorId(Long id) {
+        if (id == null) {
+            throw new ReglaNegocioException("El id de la producción es obligatorio");
+        }
         return produccionRepositoryPort.buscarPorId(id);
     }
 
     @Override
     public Optional<Produccion> obtenerPorNumeroLote(String numeroLote) {
-        return produccionRepositoryPort.buscarPorNumeroLote(limpiar(numeroLote));
+        if (numeroLote == null || numeroLote.trim().isEmpty()) {
+            throw new ReglaNegocioException("El número de lote es obligatorio");
+        }
+        return produccionRepositoryPort.buscarPorNumeroLote(normalizarTextoObligatorio(numeroLote));
     }
 
     @Override
@@ -88,7 +96,7 @@ public class GestionProduccionService implements GestionProduccionUseCase {
     }
 
     @Override
-    public List<Produccion> listarPorFecha(LocalDate fechaProduccion) {
+    public List<Produccion> listarPorFecha(java.time.LocalDate fechaProduccion) {
         if (fechaProduccion == null) {
             throw new ReglaNegocioException("La fecha de producción es obligatoria");
         }
@@ -97,11 +105,10 @@ public class GestionProduccionService implements GestionProduccionUseCase {
 
     @Override
     public List<Produccion> listarPorEstado(String estado) {
-        String estadoLimpio = limpiar(estado);
-        if (estadoLimpio == null || estadoLimpio.isEmpty()) {
+        if (estado == null || estado.trim().isEmpty()) {
             throw new ReglaNegocioException("El estado es obligatorio");
         }
-        return produccionRepositoryPort.listarPorEstado(estadoLimpio);
+        return produccionRepositoryPort.listarPorEstado(normalizarTextoObligatorio(estado).toUpperCase());
     }
 
     @Override
@@ -129,16 +136,22 @@ public class GestionProduccionService implements GestionProduccionUseCase {
     }
 
     public Produccion obtenerPorIdObligatorio(Long id) {
+        if (id == null) {
+            throw new ReglaNegocioException("El id de la producción es obligatorio");
+        }
+
         return produccionRepositoryPort.buscarPorId(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Producción no encontrada con id: " + id));
     }
 
-    private void validarDatosObligatorios(Produccion produccion) {
+    private void validarProduccionObligatoria(Produccion produccion) {
         if (produccion == null) {
             throw new ReglaNegocioException("La producción es obligatoria");
         }
+    }
 
+    private void validarCamposObligatorios(Produccion produccion) {
         if (produccion.getFechaProduccion() == null) {
             throw new ReglaNegocioException("La fecha de producción es obligatoria");
         }
@@ -155,7 +168,7 @@ public class GestionProduccionService implements GestionProduccionUseCase {
             throw new ReglaNegocioException("El estado es obligatorio");
         }
 
-        if (produccion.getLineaProduccion() == null || produccion.getLineaProduccion().getIdLineaProduccion() == null) {
+        if (produccion.getLineaProduccion().getIdLineaProduccion() == null) {
             throw new ReglaNegocioException("La línea de producción es obligatoria");
         }
 
@@ -168,25 +181,41 @@ public class GestionProduccionService implements GestionProduccionUseCase {
         }
     }
 
-    private void validarRoles(Usuario operario, Usuario jefeLinea) {
+    private void validarDuplicadoLote(String numeroLote) {
+        if (produccionRepositoryPort.buscarPorNumeroLote(numeroLote).isPresent()) {
+            throw new RecursoDuplicadoException(
+                    "Ya existe una producción con el número de lote: " + numeroLote);
+        }
+    }
+
+    private void validarLineaProduccionActiva(LineaProduccion lineaProduccion) {
+        if (Boolean.FALSE.equals(lineaProduccion.getActivo())) {
+            throw new ReglaNegocioException("No se puede crear producción con una línea de producción inactiva");
+        }
+    }
+
+    private void validarUsuarioActivo(Usuario usuario, String etiqueta) {
+        if (!usuario.isActivo()) {
+            throw new ReglaNegocioException(
+                    "No se puede usar un usuario inactivo como " + etiqueta);
+        }
+    }
+
+    private void validarRolOperario(Usuario operario) {
         if (operario.getRol() != Usuario.Rol.OPERARIO) {
-            throw new ReglaNegocioException("El usuario indicado como operario no tiene rol OPERARIO");
+            throw new ReglaNegocioException(
+                    "El usuario indicado como operario no tiene rol OPERARIO");
         }
+    }
 
+    private void validarRolJefeLinea(Usuario jefeLinea) {
         if (jefeLinea.getRol() != Usuario.Rol.JEFE_LINEA) {
-            throw new ReglaNegocioException("El usuario indicado como jefe de línea no tiene rol JEFE_LINEA");
+            throw new ReglaNegocioException(
+                    "El usuario indicado como jefe de línea no tiene rol JEFE_LINEA");
         }
     }
 
-    private String limpiar(String valor) {
-        return valor == null ? null : valor.trim();
-    }
-
-    private String limpiarOpcional(String valor) {
-        if (valor == null) {
-            return null;
-        }
-        String limpio = valor.trim();
-        return limpio.isEmpty() ? null : limpio;
+    private String normalizarTextoObligatorio(String valor) {
+        return valor.trim();
     }
 }
