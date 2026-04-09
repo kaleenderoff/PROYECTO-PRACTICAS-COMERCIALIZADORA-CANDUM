@@ -13,6 +13,8 @@ public interface GestionUsuarioUseCase {
 
     Optional<Usuario> obtenerUsuarioPorId(Long id);
 
+    Optional<Usuario> obtenerUsuarioPorCc(String cc);
+
     Optional<Usuario> obtenerUsuarioPorEmail(String email);
 
     List<Usuario> listarUsuarios();
@@ -33,5 +35,5 @@ public interface GestionUsuarioUseCase {
 
     void resetearPassword(Long id, String nuevaPassword);
 
-    void cambiarMiPassword(String email, String passwordActual, String nuevaPassword);
+    void cambiarMiPassword(String cc, String passwordActual, String nuevaPassword);
 }

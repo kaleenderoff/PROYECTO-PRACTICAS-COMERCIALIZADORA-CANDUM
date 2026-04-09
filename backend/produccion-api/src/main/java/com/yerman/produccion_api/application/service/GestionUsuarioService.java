@@ -6,10 +6,13 @@ import com.yerman.produccion_api.application.exception.CcDuplicadaException;
 import com.yerman.produccion_api.application.exception.PasswordIncorrectaException;
 import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
 import com.yerman.produccion_api.application.exception.ReglaNegocioException;
+import com.yerman.produccion_api.application.mapper.UsuarioMapper;
 import com.yerman.produccion_api.domain.model.Usuario;
 import com.yerman.produccion_api.domain.port.in.GestionUsuarioUseCase;
 import com.yerman.produccion_api.domain.port.out.UsuarioRepositoryPort;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -20,10 +23,13 @@ import java.util.Optional;
 @Service
 public class GestionUsuarioService implements GestionUsuarioUseCase {
 
+    private static final String MENSAJE_USUARIO_NO_ENCONTRADO_ID = "Usuario no encontrado con id: ";
+
     private final UsuarioRepositoryPort usuarioRepositoryPort;
     private final PasswordEncoder passwordEncoder;
 
-    public GestionUsuarioService(UsuarioRepositoryPort usuarioRepositoryPort,
+    public GestionUsuarioService(
+            UsuarioRepositoryPort usuarioRepositoryPort,
             PasswordEncoder passwordEncoder) {
         this.usuarioRepositoryPort = usuarioRepositoryPort;
         this.passwordEncoder = passwordEncoder;
@@ -31,34 +37,54 @@ public class GestionUsuarioService implements GestionUsuarioUseCase {
 
     @Override
     public Usuario crearUsuario(Usuario usuario) {
-        validarCcUnicaParaCrear(usuario.getCc());
+        validarUsuarioObligatorio(usuario);
+        validarCamposObligatoriosCreacion(usuario);
 
-        usuario.setCc(limpiar(usuario.getCc()));
-        usuario.setPrimerNombre(limpiar(usuario.getPrimerNombre()));
-        usuario.setSegundoNombre(limpiarOpcional(usuario.getSegundoNombre()));
-        usuario.setPrimerApellido(limpiar(usuario.getPrimerApellido()));
-        usuario.setSegundoApellido(limpiarOpcional(usuario.getSegundoApellido()));
-        usuario.setEmail(limpiarOpcional(usuario.getEmail()));
+        String ccNormalizada = normalizarTextoObligatorio(usuario.getCc());
+        String primerNombreNormalizado = normalizarTextoObligatorio(usuario.getPrimerNombre());
+        String segundoNombreNormalizado = normalizarTextoOpcional(usuario.getSegundoNombre());
+        String primerApellidoNormalizado = normalizarTextoObligatorio(usuario.getPrimerApellido());
+        String segundoApellidoNormalizado = normalizarTextoOpcional(usuario.getSegundoApellido());
+        String emailNormalizado = normalizarEmailOpcional(usuario.getEmail());
 
-        usuario.setActivo(true);
+        validarCcUnica(ccNormalizada);
+        validarEmailUnicoSiAplica(emailNormalizado);
+
+        usuario.setCc(ccNormalizada);
+        usuario.setPrimerNombre(primerNombreNormalizado);
+        usuario.setSegundoNombre(segundoNombreNormalizado);
+        usuario.setPrimerApellido(primerApellidoNormalizado);
+        usuario.setSegundoApellido(segundoApellidoNormalizado);
+        usuario.setEmail(emailNormalizado);
+        usuario.setPasswordHash(passwordEncoder.encode(usuario.getPasswordHash()));
         usuario.setCreatedAt(LocalDateTime.now());
         usuario.setUpdatedAt(LocalDateTime.now());
-
-        if (usuario.getPasswordHash() != null && !usuario.getPasswordHash().isBlank()) {
-            usuario.setPasswordHash(passwordEncoder.encode(usuario.getPasswordHash()));
-        }
 
         return usuarioRepositoryPort.guardar(usuario);
     }
 
     @Override
     public Optional<Usuario> obtenerUsuarioPorId(Long id) {
+        if (id == null) {
+            throw new ReglaNegocioException("El id del usuario es obligatorio");
+        }
         return usuarioRepositoryPort.buscarPorId(id);
     }
 
     @Override
+    public Optional<Usuario> obtenerUsuarioPorCc(String cc) {
+        if (cc == null || cc.trim().isEmpty()) {
+            throw new ReglaNegocioException("La cédula es obligatoria");
+        }
+        return usuarioRepositoryPort.buscarPorCc(cc.trim());
+    }
+
+    @Override
     public Optional<Usuario> obtenerUsuarioPorEmail(String email) {
-        return usuarioRepositoryPort.buscarPorEmail(email);
+        if (email == null || email.trim().isEmpty()) {
+            return Optional.empty();
+        }
+        return usuarioRepositoryPort.buscarPorEmail(email.trim().toLowerCase());
     }
 
     @Override
@@ -73,59 +99,107 @@ public class GestionUsuarioService implements GestionUsuarioUseCase {
 
     @Override
     public List<Usuario> listarPorRol(String rol) {
-        Usuario.Rol rolEnum = Usuario.Rol.valueOf(rol.toUpperCase());
-        return usuarioRepositoryPort.buscarPorRolYActivo(rolEnum);
+        if (rol == null || rol.trim().isEmpty()) {
+            throw new ReglaNegocioException("El rol es obligatorio");
+        }
+
+        try {
+            Usuario.Rol rolEnum = Usuario.Rol.valueOf(rol.trim().toUpperCase());
+            return usuarioRepositoryPort.buscarPorRolYActivo(rolEnum);
+        } catch (IllegalArgumentException ex) {
+            throw new ReglaNegocioException("Rol no válido: " + rol);
+        }
     }
 
     @Override
     public PageResponse<UsuarioResponse> listarUsuariosActivosPaginado(int page, int size) {
-        validarPaginacion(page, size);
+        validarParametrosPaginacion(page, size);
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("idUsuario").ascending());
+        Pageable pageable = PageRequest.of(page, size);
         Page<Usuario> usuariosPage = usuarioRepositoryPort.listarActivosPaginado(pageable);
 
-        return construirPageResponse(usuariosPage);
+        List<UsuarioResponse> content = usuariosPage.getContent()
+                .stream()
+                .map(UsuarioMapper::toResponse)
+                .toList();
+
+        return new PageResponse<>(
+                content,
+                usuariosPage.getNumber(),
+                usuariosPage.getSize(),
+                usuariosPage.getTotalElements(),
+                usuariosPage.getTotalPages(),
+                usuariosPage.isLast());
     }
 
     @Override
     public PageResponse<UsuarioResponse> listarTodosPaginado(int page, int size) {
-        validarPaginacion(page, size);
+        validarParametrosPaginacion(page, size);
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("idUsuario").ascending());
+        Pageable pageable = PageRequest.of(page, size);
         Page<Usuario> usuariosPage = usuarioRepositoryPort.listarTodosPaginado(pageable);
 
-        return construirPageResponse(usuariosPage);
+        List<UsuarioResponse> content = usuariosPage.getContent()
+                .stream()
+                .map(UsuarioMapper::toResponse)
+                .toList();
+
+        return new PageResponse<>(
+                content,
+                usuariosPage.getNumber(),
+                usuariosPage.getSize(),
+                usuariosPage.getTotalElements(),
+                usuariosPage.getTotalPages(),
+                usuariosPage.isLast());
     }
 
     @Override
-    public Usuario actualizarUsuario(Long id, Usuario usuarioActualizado) {
-        Usuario usuarioExistente = usuarioRepositoryPort.buscarPorId(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado con id: " + id));
-
-        String ccNueva = limpiar(usuarioActualizado.getCc());
-        validarCcUnicaParaActualizar(id, ccNueva);
-
-        usuarioExistente.setCc(ccNueva);
-        usuarioExistente.setPrimerNombre(limpiar(usuarioActualizado.getPrimerNombre()));
-        usuarioExistente.setSegundoNombre(limpiarOpcional(usuarioActualizado.getSegundoNombre()));
-        usuarioExistente.setPrimerApellido(limpiar(usuarioActualizado.getPrimerApellido()));
-        usuarioExistente.setSegundoApellido(limpiarOpcional(usuarioActualizado.getSegundoApellido()));
-        usuarioExistente.setEmail(limpiarOpcional(usuarioActualizado.getEmail()));
-        usuarioExistente.setRol(usuarioActualizado.getRol());
-        usuarioExistente.setActivo(usuarioActualizado.isActivo());
-        usuarioExistente.setUpdatedAt(LocalDateTime.now());
-
-        if (usuarioActualizado.getPasswordHash() != null && !usuarioActualizado.getPasswordHash().isBlank()) {
-            usuarioExistente.setPasswordHash(passwordEncoder.encode(usuarioActualizado.getPasswordHash()));
+    public Usuario actualizarUsuario(Long id, Usuario usuario) {
+        if (id == null) {
+            throw new ReglaNegocioException("El id del usuario es obligatorio");
         }
 
-        return usuarioRepositoryPort.guardar(usuarioExistente);
+        validarUsuarioObligatorio(usuario);
+
+        Usuario existente = usuarioRepositoryPort.buscarPorId(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        MENSAJE_USUARIO_NO_ENCONTRADO_ID + id));
+
+        if (usuario.getPrimerNombre() != null && !usuario.getPrimerNombre().trim().isEmpty()) {
+            existente.setPrimerNombre(normalizarTextoObligatorio(usuario.getPrimerNombre()));
+        }
+
+        existente.setSegundoNombre(normalizarTextoOpcional(usuario.getSegundoNombre()));
+
+        if (usuario.getPrimerApellido() != null && !usuario.getPrimerApellido().trim().isEmpty()) {
+            existente.setPrimerApellido(normalizarTextoObligatorio(usuario.getPrimerApellido()));
+        }
+
+        existente.setSegundoApellido(normalizarTextoOpcional(usuario.getSegundoApellido()));
+
+        String emailNormalizado = normalizarEmailOpcional(usuario.getEmail());
+        if (emailNormalizado != null
+                && (existente.getEmail() == null || !emailNormalizado.equalsIgnoreCase(existente.getEmail()))
+                && usuarioRepositoryPort.existePorEmail(emailNormalizado)) {
+            throw new ReglaNegocioException("Ya existe un usuario con el email: " + emailNormalizado);
+        }
+        existente.setEmail(emailNormalizado);
+
+        if (usuario.getRol() != null) {
+            existente.setRol(usuario.getRol());
+        }
+
+        existente.setActivo(usuario.isActivo());
+        existente.setUpdatedAt(LocalDateTime.now());
+
+        return usuarioRepositoryPort.guardar(existente);
     }
 
     @Override
     public void desactivarUsuario(Long id) {
         Usuario usuario = usuarioRepositoryPort.buscarPorId(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado con id: " + id));
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        MENSAJE_USUARIO_NO_ENCONTRADO_ID + id));
 
         usuario.setActivo(false);
         usuario.setUpdatedAt(LocalDateTime.now());
@@ -135,7 +209,8 @@ public class GestionUsuarioService implements GestionUsuarioUseCase {
     @Override
     public void activarUsuario(Long id) {
         Usuario usuario = usuarioRepositoryPort.buscarPorId(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado con id: " + id));
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        MENSAJE_USUARIO_NO_ENCONTRADO_ID + id));
 
         usuario.setActivo(true);
         usuario.setUpdatedAt(LocalDateTime.now());
@@ -144,59 +219,87 @@ public class GestionUsuarioService implements GestionUsuarioUseCase {
 
     @Override
     public void resetearPassword(Long id, String nuevaPassword) {
+        if (nuevaPassword == null || nuevaPassword.trim().isEmpty()) {
+            throw new ReglaNegocioException("La nueva contraseña es obligatoria");
+        }
+
         Usuario usuario = usuarioRepositoryPort.buscarPorId(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado con id: " + id));
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        MENSAJE_USUARIO_NO_ENCONTRADO_ID + id));
 
-        usuario.setPasswordHash(passwordEncoder.encode(nuevaPassword));
+        usuario.setPasswordHash(passwordEncoder.encode(nuevaPassword.trim()));
         usuario.setUpdatedAt(LocalDateTime.now());
-
         usuarioRepositoryPort.guardar(usuario);
     }
 
     @Override
     public void cambiarMiPassword(String cc, String passwordActual, String nuevaPassword) {
-        Usuario usuario = usuarioRepositoryPort.buscarPorCc(cc)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado con cc: " + cc));
-
-        if (!passwordEncoder.matches(passwordActual, usuario.getPasswordHash())) {
-            throw new PasswordIncorrectaException("La contraseña actual no es correcta");
+        if (cc == null || cc.trim().isEmpty()) {
+            throw new ReglaNegocioException("La cédula del usuario autenticado es obligatoria");
         }
 
-        usuario.setPasswordHash(passwordEncoder.encode(nuevaPassword));
-        usuario.setUpdatedAt(LocalDateTime.now());
+        if (passwordActual == null || passwordActual.trim().isEmpty()) {
+            throw new ReglaNegocioException("La contraseña actual es obligatoria");
+        }
 
+        if (nuevaPassword == null || nuevaPassword.trim().isEmpty()) {
+            throw new ReglaNegocioException("La nueva contraseña es obligatoria");
+        }
+
+        Usuario usuario = usuarioRepositoryPort.buscarPorCc(cc.trim())
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Usuario no encontrado con cc: " + cc));
+
+        if (!passwordEncoder.matches(passwordActual, usuario.getPasswordHash())) {
+            throw new PasswordIncorrectaException("La contraseña actual es incorrecta");
+        }
+
+        usuario.setPasswordHash(passwordEncoder.encode(nuevaPassword.trim()));
+        usuario.setUpdatedAt(LocalDateTime.now());
         usuarioRepositoryPort.guardar(usuario);
     }
 
-    private void validarCcUnicaParaCrear(String cc) {
-        String ccLimpia = limpiar(cc);
-        if (usuarioRepositoryPort.existePorCc(ccLimpia)) {
-            throw new CcDuplicadaException("Ya existe un usuario con la cédula " + ccLimpia);
+    private void validarUsuarioObligatorio(Usuario usuario) {
+        if (usuario == null) {
+            throw new ReglaNegocioException("El usuario es obligatorio");
         }
     }
 
-    private void validarCcUnicaParaActualizar(Long idUsuarioActual, String ccNueva) {
-        Optional<Usuario> usuarioConMismaCc = usuarioRepositoryPort.buscarPorCc(ccNueva);
+    private void validarCamposObligatoriosCreacion(Usuario usuario) {
+        if (usuario.getCc() == null || usuario.getCc().trim().isEmpty()) {
+            throw new ReglaNegocioException("La cédula es obligatoria");
+        }
 
-        if (usuarioConMismaCc.isPresent()
-                && !usuarioConMismaCc.get().getIdUsuario().equals(idUsuarioActual)) {
-            throw new CcDuplicadaException("Ya existe un usuario con la cédula " + ccNueva);
+        if (usuario.getPrimerNombre() == null || usuario.getPrimerNombre().trim().isEmpty()) {
+            throw new ReglaNegocioException("El primer nombre es obligatorio");
+        }
+
+        if (usuario.getPrimerApellido() == null || usuario.getPrimerApellido().trim().isEmpty()) {
+            throw new ReglaNegocioException("El primer apellido es obligatorio");
+        }
+
+        if (usuario.getPasswordHash() == null || usuario.getPasswordHash().trim().isEmpty()) {
+            throw new ReglaNegocioException("La contraseña es obligatoria");
+        }
+
+        if (usuario.getRol() == null) {
+            throw new ReglaNegocioException("El rol es obligatorio");
         }
     }
 
-    private String limpiar(String valor) {
-        return valor == null ? null : valor.trim();
-    }
-
-    private String limpiarOpcional(String valor) {
-        if (valor == null) {
-            return null;
+    private void validarCcUnica(String cc) {
+        if (usuarioRepositoryPort.existePorCc(cc)) {
+            throw new CcDuplicadaException("Ya existe un usuario con la cédula: " + cc);
         }
-        String limpio = valor.trim();
-        return limpio.isEmpty() ? null : limpio;
     }
 
-    private void validarPaginacion(int page, int size) {
+    private void validarEmailUnicoSiAplica(String email) {
+        if (email != null && usuarioRepositoryPort.existePorEmail(email)) {
+            throw new ReglaNegocioException("Ya existe un usuario con el email: " + email);
+        }
+    }
+
+    private void validarParametrosPaginacion(int page, int size) {
         if (page < 0) {
             throw new ReglaNegocioException("El número de página no puede ser negativo");
         }
@@ -205,31 +308,23 @@ public class GestionUsuarioService implements GestionUsuarioUseCase {
         }
     }
 
-    private PageResponse<UsuarioResponse> construirPageResponse(Page<Usuario> page) {
-        List<UsuarioResponse> content = page.getContent()
-                .stream()
-                .map(this::toResponse)
-                .toList();
-
-        return new PageResponse<>(
-                content,
-                page.getNumber(),
-                page.getSize(),
-                page.getTotalElements(),
-                page.getTotalPages(),
-                page.isLast());
+    private String normalizarTextoObligatorio(String valor) {
+        return valor.trim();
     }
 
-    private UsuarioResponse toResponse(Usuario usuario) {
-        return new UsuarioResponse(
-                usuario.getIdUsuario(),
-                usuario.getCc(),
-                usuario.getPrimerNombre(),
-                usuario.getSegundoNombre(),
-                usuario.getPrimerApellido(),
-                usuario.getSegundoApellido(),
-                usuario.getEmail(),
-                usuario.getRol().name(),
-                usuario.isActivo());
+    private String normalizarTextoOpcional(String valor) {
+        if (valor == null) {
+            return null;
+        }
+        String limpio = valor.trim();
+        return limpio.isEmpty() ? null : limpio;
+    }
+
+    private String normalizarEmailOpcional(String email) {
+        if (email == null) {
+            return null;
+        }
+        String limpio = email.trim().toLowerCase();
+        return limpio.isEmpty() ? null : limpio;
     }
 }

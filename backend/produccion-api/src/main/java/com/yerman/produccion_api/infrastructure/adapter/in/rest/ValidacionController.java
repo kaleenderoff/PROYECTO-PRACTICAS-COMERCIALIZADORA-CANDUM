@@ -17,78 +17,78 @@ import java.util.List;
 @RequestMapping("/validaciones")
 public class ValidacionController {
 
-    private final GestionValidacionUseCase gestionValidacionUseCase;
+        private final GestionValidacionUseCase gestionValidacionUseCase;
 
-    public ValidacionController(GestionValidacionUseCase gestionValidacionUseCase) {
-        this.gestionValidacionUseCase = gestionValidacionUseCase;
-    }
+        public ValidacionController(GestionValidacionUseCase gestionValidacionUseCase) {
+                this.gestionValidacionUseCase = gestionValidacionUseCase;
+        }
 
-    @PostMapping
-    public ResponseEntity<ValidacionResponse> crearValidacion(
-            @Valid @RequestBody ValidacionRequest request) {
+        @PostMapping
+        public ResponseEntity<ValidacionResponse> crearValidacion(
+                        @Valid @RequestBody ValidacionRequest request) {
 
-        Validacion validacion = ValidacionMapper.toDomain(request);
-        Validacion creada = gestionValidacionUseCase.crearValidacion(validacion);
+                Validacion validacion = ValidacionMapper.toDomain(request);
+                Validacion creada = gestionValidacionUseCase.crearValidacion(validacion);
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ValidacionMapper.toResponse(creada));
-    }
+                return ResponseEntity.status(HttpStatus.CREATED)
+                                .body(ValidacionMapper.toResponse(creada));
+        }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ValidacionResponse> obtenerPorId(@PathVariable Long id) {
-        Validacion validacion = gestionValidacionUseCase.obtenerPorId(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException(
-                        "Validación no encontrada con id: " + id));
+        @GetMapping("/{id}")
+        public ResponseEntity<ValidacionResponse> obtenerPorId(@PathVariable Long id) {
+                Validacion validacion = gestionValidacionUseCase.obtenerPorId(id)
+                                .orElseThrow(() -> new RecursoNoEncontradoException(
+                                                "Validación no encontrada con id: " + id));
 
-        return ResponseEntity.ok(ValidacionMapper.toResponse(validacion));
-    }
+                return ResponseEntity.ok(ValidacionMapper.toResponse(validacion));
+        }
 
-    @GetMapping
-    public ResponseEntity<List<ValidacionResponse>> listarTodas() {
-        List<ValidacionResponse> response = gestionValidacionUseCase.listarTodas()
-                .stream()
-                .map(ValidacionMapper::toResponse)
-                .toList();
+        @GetMapping
+        public ResponseEntity<List<ValidacionResponse>> listarTodas() {
+                List<ValidacionResponse> response = gestionValidacionUseCase.listarTodas()
+                                .stream()
+                                .map(ValidacionMapper::toResponse)
+                                .toList();
 
-        return ResponseEntity.ok(response);
-    }
+                return ResponseEntity.ok(response);
+        }
 
-    @GetMapping("/detalle/{idDetalleProduccion}")
-    public ResponseEntity<ValidacionResponse> obtenerPorDetalleProduccion(
-            @PathVariable Long idDetalleProduccion) {
+        @GetMapping("/detalle/{idDetalleProduccion}")
+        public ResponseEntity<ValidacionResponse> obtenerPorDetalleProduccion(
+                        @PathVariable Long idDetalleProduccion) {
 
-        Validacion validacion = gestionValidacionUseCase
-                .obtenerPorDetalleProduccion(idDetalleProduccion)
-                .orElseThrow(() -> new RecursoNoEncontradoException(
-                        "Validación no encontrada para el detalle de producción con id: "
-                                + idDetalleProduccion));
+                Validacion validacion = gestionValidacionUseCase
+                                .obtenerPorDetalleProduccion(idDetalleProduccion)
+                                .orElseThrow(() -> new RecursoNoEncontradoException(
+                                                "Validación no encontrada para el detalle de producción con id: "
+                                                                + idDetalleProduccion));
 
-        return ResponseEntity.ok(ValidacionMapper.toResponse(validacion));
-    }
+                return ResponseEntity.ok(ValidacionMapper.toResponse(validacion));
+        }
 
-    @GetMapping("/estado/{estado}")
-    public ResponseEntity<List<ValidacionResponse>> listarPorEstado(
-            @PathVariable String estado) {
+        @GetMapping("/estado/{estado}")
+        public ResponseEntity<List<ValidacionResponse>> listarPorEstado(
+                        @PathVariable String estado) {
 
-        List<ValidacionResponse> response = gestionValidacionUseCase
-                .listarPorEstado(estado)
-                .stream()
-                .map(ValidacionMapper::toResponse)
-                .toList();
+                List<ValidacionResponse> response = gestionValidacionUseCase
+                                .listarPorEstado(estado)
+                                .stream()
+                                .map(ValidacionMapper::toResponse)
+                                .toList();
 
-        return ResponseEntity.ok(response);
-    }
+                return ResponseEntity.ok(response);
+        }
 
-    @GetMapping("/validador/{idValidador}")
-    public ResponseEntity<List<ValidacionResponse>> listarPorValidador(
-            @PathVariable Long idValidador) {
+        @GetMapping("/validador/{idValidador}")
+        public ResponseEntity<List<ValidacionResponse>> listarPorValidador(
+                        @PathVariable Long idValidador) {
 
-        List<ValidacionResponse> response = gestionValidacionUseCase
-                .listarPorValidador(idValidador)
-                .stream()
-                .map(ValidacionMapper::toResponse)
-                .toList();
+                List<ValidacionResponse> response = gestionValidacionUseCase
+                                .listarPorValidador(idValidador)
+                                .stream()
+                                .map(ValidacionMapper::toResponse)
+                                .toList();
 
-        return ResponseEntity.ok(response);
-    }
+                return ResponseEntity.ok(response);
+        }
 }
