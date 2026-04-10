@@ -74,6 +74,19 @@ public class SecurityConfig {
                         .requestMatchers("/consumo-insumo/**")
                         .hasAnyRole(ROL_OPERARIO, ROL_JEFE_LINEA, ROL_INGENIERO, ROL_JEFE_PLANTA, ROL_ADMIN)
 
+                        // PRODUCTOS TERMINADOS
+                        .requestMatchers(HttpMethod.POST, "/productos-terminados/**")
+                        .hasAnyRole(ROL_ADMIN, ROL_INGENIERO)
+
+                        .requestMatchers(HttpMethod.PUT, "/productos-terminados/**")
+                        .hasAnyRole(ROL_ADMIN, ROL_INGENIERO)
+
+                        .requestMatchers(HttpMethod.PATCH, "/productos-terminados/**")
+                        .hasAnyRole(ROL_ADMIN, ROL_INGENIERO)
+
+                        .requestMatchers(HttpMethod.GET, "/productos-terminados/**")
+                        .hasAnyRole(ROL_ADMIN, ROL_INGENIERO, ROL_JEFE_PLANTA, ROL_JEFE_LINEA)
+
                         .requestMatchers("/me").authenticated()
 
                         .anyRequest().authenticated())

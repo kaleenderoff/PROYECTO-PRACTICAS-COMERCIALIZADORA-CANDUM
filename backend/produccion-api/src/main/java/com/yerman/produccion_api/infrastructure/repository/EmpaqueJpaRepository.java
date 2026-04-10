@@ -8,9 +8,9 @@ import java.util.List;
 
 public interface EmpaqueJpaRepository extends JpaRepository<EmpaqueEntity, Long> {
 
-    List<EmpaqueEntity> findByDetalleProduccionId(Long idDetalleProduccion);
+    List<EmpaqueEntity> findByDetalleProduccion_IdDetalleProduccion(Long idDetalleProduccion);
 
-    List<EmpaqueEntity> findByProductoTerminadoId(Long idProductoTerminado);
+    List<EmpaqueEntity> findByProductoTerminado_Id(Long idProductoTerminado);
 
     List<EmpaqueEntity> findByFechaEmpaqueBetween(LocalDateTime fechaInicio, LocalDateTime fechaFin);
 

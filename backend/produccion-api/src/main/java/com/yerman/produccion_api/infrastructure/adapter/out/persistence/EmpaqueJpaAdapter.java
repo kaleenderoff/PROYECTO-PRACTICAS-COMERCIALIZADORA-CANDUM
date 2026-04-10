@@ -46,7 +46,7 @@ public class EmpaqueJpaAdapter implements EmpaqueRepositoryPort {
 
     @Override
     public List<Empaque> listarPorDetalleProduccion(Long idDetalleProduccion) {
-        return repository.findByDetalleProduccionId(idDetalleProduccion)
+        return repository.findByDetalleProduccion_IdDetalleProduccion(idDetalleProduccion)
                 .stream()
                 .map(this::toDomain)
                 .collect(Collectors.toList());
@@ -54,7 +54,7 @@ public class EmpaqueJpaAdapter implements EmpaqueRepositoryPort {
 
     @Override
     public List<Empaque> listarPorProductoTerminado(Long idProductoTerminado) {
-        return repository.findByProductoTerminadoId(idProductoTerminado)
+        return repository.findByProductoTerminado_Id(idProductoTerminado)
                 .stream()
                 .map(this::toDomain)
                 .collect(Collectors.toList());
