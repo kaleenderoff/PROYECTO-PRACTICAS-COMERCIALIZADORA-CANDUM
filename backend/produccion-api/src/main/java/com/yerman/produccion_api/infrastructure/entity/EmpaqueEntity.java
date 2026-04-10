@@ -1,5 +1,6 @@
 package com.yerman.produccion_api.infrastructure.entity;
 
+import com.yerman.produccion_api.domain.model.EstadoEmpaque;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -8,8 +9,9 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "empaque", uniqueConstraints = {
-        @UniqueConstraint(name = "uq_empaque_detalle_producto_lote", columnNames = { "id_detalle_produccion",
-                "id_producto_terminado", "lote_empaque" })
+        @UniqueConstraint(name = "uq_empaque_detalle_producto_lote", columnNames = {
+                "id_detalle_produccion", "id_producto_terminado", "lote_empaque"
+        })
 })
 public class EmpaqueEntity {
 
@@ -35,8 +37,9 @@ public class EmpaqueEntity {
     @Column(name = "fecha_vencimiento")
     private LocalDate fechaVencimiento;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "estado", nullable = false, length = 50)
-    private String estado;
+    private EstadoEmpaque estado;
 
     @Column(name = "cantidad_unidades", nullable = false)
     private Integer cantidadUnidades;
@@ -83,7 +86,7 @@ public class EmpaqueEntity {
         return fechaVencimiento;
     }
 
-    public String getEstado() {
+    public EstadoEmpaque getEstado() {
         return estado;
     }
 
@@ -135,7 +138,7 @@ public class EmpaqueEntity {
         this.fechaVencimiento = fechaVencimiento;
     }
 
-    public void setEstado(String estado) {
+    public void setEstado(EstadoEmpaque estado) {
         this.estado = estado;
     }
 

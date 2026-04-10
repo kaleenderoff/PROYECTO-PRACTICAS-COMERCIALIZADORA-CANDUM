@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Component
 public class EmpaqueJpaAdapter implements EmpaqueRepositoryPort {
@@ -41,7 +40,7 @@ public class EmpaqueJpaAdapter implements EmpaqueRepositoryPort {
         return repository.findAll()
                 .stream()
                 .map(this::toDomain)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -49,7 +48,7 @@ public class EmpaqueJpaAdapter implements EmpaqueRepositoryPort {
         return repository.findByDetalleProduccion_IdDetalleProduccion(idDetalleProduccion)
                 .stream()
                 .map(this::toDomain)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -57,7 +56,7 @@ public class EmpaqueJpaAdapter implements EmpaqueRepositoryPort {
         return repository.findByProductoTerminado_Id(idProductoTerminado)
                 .stream()
                 .map(this::toDomain)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -65,7 +64,7 @@ public class EmpaqueJpaAdapter implements EmpaqueRepositoryPort {
         return repository.findByLoteEmpaque(loteEmpaque)
                 .stream()
                 .map(this::toDomain)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -73,7 +72,7 @@ public class EmpaqueJpaAdapter implements EmpaqueRepositoryPort {
         return repository.findByFechaEmpaqueBetween(fechaInicio, fechaFin)
                 .stream()
                 .map(this::toDomain)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private Empaque toDomain(EmpaqueEntity entity) {

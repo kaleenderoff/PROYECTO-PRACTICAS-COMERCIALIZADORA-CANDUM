@@ -2,8 +2,10 @@ package com.yerman.produccion_api.application.mapper;
 
 import com.yerman.produccion_api.application.dto.request.EmpaqueRequest;
 import com.yerman.produccion_api.application.dto.response.EmpaqueResponse;
+import com.yerman.produccion_api.application.exception.ReglaNegocioException;
 import com.yerman.produccion_api.domain.model.DetalleProduccion;
 import com.yerman.produccion_api.domain.model.Empaque;
+import com.yerman.produccion_api.domain.model.EstadoEmpaque;
 import com.yerman.produccion_api.domain.model.ProductoTerminado;
 
 public class EmpaqueMapper {
@@ -33,7 +35,15 @@ public class EmpaqueMapper {
         domain.setLoteEmpaque(request.getLoteEmpaque());
         domain.setFechaEmpaque(request.getFechaEmpaque());
         domain.setFechaVencimiento(request.getFechaVencimiento());
-        domain.setEstado(request.getEstado());
+
+        if (request.getEstado() != null && !request.getEstado().trim().isEmpty()) {
+            try {
+                domain.setEstado(EstadoEmpaque.valueOf(request.getEstado().trim().toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                throw new ReglaNegocioException("Estado de empaque no válido. Use: EN_PROCESO, COMPLETADO o RECHAZADO");
+            }
+        }
+
         domain.setCantidadUnidades(request.getCantidadUnidades());
         domain.setCantidadCajas(request.getCantidadCajas());
         domain.setPesoTotalKg(request.getPesoTotalKg());
@@ -52,7 +62,7 @@ public class EmpaqueMapper {
         response.setLoteEmpaque(domain.getLoteEmpaque());
         response.setFechaEmpaque(domain.getFechaEmpaque());
         response.setFechaVencimiento(domain.getFechaVencimiento());
-        response.setEstado(domain.getEstado());
+        response.setEstado(domain.getEstado() != null ? domain.getEstado().name() : null);
         response.setCantidadUnidades(domain.getCantidadUnidades());
         response.setCantidadCajas(domain.getCantidadCajas());
         response.setPesoTotalKg(domain.getPesoTotalKg());

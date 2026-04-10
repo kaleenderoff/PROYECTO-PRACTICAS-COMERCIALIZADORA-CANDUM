@@ -33,10 +33,8 @@ public class EmpaqueController {
 
     @PreAuthorize("hasAnyRole('ADMIN','INGENIERO')")
     @PutMapping("/{id}")
-    public ResponseEntity<EmpaqueResponse> actualizar(
-            @PathVariable Long id,
+    public ResponseEntity<EmpaqueResponse> actualizar(@PathVariable Long id,
             @RequestBody EmpaqueRequest request) {
-
         Empaque empaque = EmpaqueMapper.toDomain(request);
         Empaque actualizado = gestionEmpaqueUseCase.actualizarEmpaque(id, empaque);
         return ResponseEntity.ok(EmpaqueMapper.toResponse(actualizado));
@@ -97,10 +95,8 @@ public class EmpaqueController {
 
     @PreAuthorize("hasAnyRole('ADMIN','INGENIERO','JEFE_PLANTA','JEFE_LINEA')")
     @GetMapping("/rango-fecha")
-    public ResponseEntity<List<EmpaqueResponse>> listarPorRangoFecha(
-            @RequestParam LocalDateTime fechaInicio,
+    public ResponseEntity<List<EmpaqueResponse>> listarPorRangoFecha(@RequestParam LocalDateTime fechaInicio,
             @RequestParam LocalDateTime fechaFin) {
-
         List<EmpaqueResponse> response = gestionEmpaqueUseCase.listarPorRangoFecha(fechaInicio, fechaFin)
                 .stream()
                 .map(EmpaqueMapper::toResponse)

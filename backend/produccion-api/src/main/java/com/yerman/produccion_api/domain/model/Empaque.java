@@ -12,7 +12,7 @@ public class Empaque {
     private String loteEmpaque;
     private LocalDateTime fechaEmpaque;
     private LocalDate fechaVencimiento;
-    private String estado;
+    private EstadoEmpaque estado;
     private Integer cantidadUnidades;
     private Integer cantidadCajas;
     private BigDecimal pesoTotalKg;
@@ -21,26 +21,6 @@ public class Empaque {
     private LocalDateTime updatedAt;
 
     public Empaque() {
-    }
-
-    public Empaque(Long id, DetalleProduccion detalleProduccion, ProductoTerminado productoTerminado,
-            String loteEmpaque, LocalDateTime fechaEmpaque, LocalDate fechaVencimiento,
-            String estado, Integer cantidadUnidades, Integer cantidadCajas,
-            BigDecimal pesoTotalKg, String observaciones,
-            LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.id = id;
-        this.detalleProduccion = detalleProduccion;
-        this.productoTerminado = productoTerminado;
-        this.loteEmpaque = loteEmpaque;
-        this.fechaEmpaque = fechaEmpaque;
-        this.fechaVencimiento = fechaVencimiento;
-        this.estado = estado;
-        this.cantidadUnidades = cantidadUnidades;
-        this.cantidadCajas = cantidadCajas;
-        this.pesoTotalKg = pesoTotalKg;
-        this.observaciones = observaciones;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
     }
 
     public Long getId() {
@@ -67,7 +47,7 @@ public class Empaque {
         return fechaVencimiento;
     }
 
-    public String getEstado() {
+    public EstadoEmpaque getEstado() {
         return estado;
     }
 
@@ -119,7 +99,7 @@ public class Empaque {
         this.fechaVencimiento = fechaVencimiento;
     }
 
-    public void setEstado(String estado) {
+    public void setEstado(EstadoEmpaque estado) {
         this.estado = estado;
     }
 
