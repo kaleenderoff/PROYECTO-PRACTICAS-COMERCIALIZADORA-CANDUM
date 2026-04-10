@@ -28,6 +28,9 @@ public class SecurityConfig {
     private static final String ROL_JEFE_PLANTA = "JEFE_PLANTA";
     private static final String ROL_ADMIN = "ADMIN";
 
+    private static final String RUTA_PRODUCTOS_TERMINADOS = "/productos-terminados/**";
+    private static final String RUTA_EMPAQUES = "/empaques/**";
+
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailsService userDetailsService;
     private final JwtAuthenticationEntryPoint authenticationEntryPoint;
@@ -75,16 +78,26 @@ public class SecurityConfig {
                         .hasAnyRole(ROL_OPERARIO, ROL_JEFE_LINEA, ROL_INGENIERO, ROL_JEFE_PLANTA, ROL_ADMIN)
 
                         // PRODUCTOS TERMINADOS
-                        .requestMatchers(HttpMethod.POST, "/productos-terminados/**")
+                        .requestMatchers(HttpMethod.POST, RUTA_PRODUCTOS_TERMINADOS)
                         .hasAnyRole(ROL_ADMIN, ROL_INGENIERO)
 
-                        .requestMatchers(HttpMethod.PUT, "/productos-terminados/**")
+                        .requestMatchers(HttpMethod.PUT, RUTA_PRODUCTOS_TERMINADOS)
                         .hasAnyRole(ROL_ADMIN, ROL_INGENIERO)
 
-                        .requestMatchers(HttpMethod.PATCH, "/productos-terminados/**")
+                        .requestMatchers(HttpMethod.PATCH, RUTA_PRODUCTOS_TERMINADOS)
                         .hasAnyRole(ROL_ADMIN, ROL_INGENIERO)
 
-                        .requestMatchers(HttpMethod.GET, "/productos-terminados/**")
+                        .requestMatchers(HttpMethod.GET, RUTA_PRODUCTOS_TERMINADOS)
+                        .hasAnyRole(ROL_ADMIN, ROL_INGENIERO, ROL_JEFE_PLANTA, ROL_JEFE_LINEA)
+
+                        // Empaques
+                        .requestMatchers(HttpMethod.POST, RUTA_EMPAQUES)
+                        .hasAnyRole(ROL_ADMIN, ROL_INGENIERO)
+
+                        .requestMatchers(HttpMethod.PUT, RUTA_EMPAQUES)
+                        .hasAnyRole(ROL_ADMIN, ROL_INGENIERO)
+
+                        .requestMatchers(HttpMethod.GET, RUTA_EMPAQUES)
                         .hasAnyRole(ROL_ADMIN, ROL_INGENIERO, ROL_JEFE_PLANTA, ROL_JEFE_LINEA)
 
                         .requestMatchers("/me").authenticated()

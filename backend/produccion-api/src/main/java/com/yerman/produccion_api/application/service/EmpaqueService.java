@@ -43,12 +43,15 @@ public class EmpaqueService implements GestionEmpaqueUseCase {
         boolean detalleExiste = detalleProduccionRepositoryPort
                 .buscarPorId(empaque.getDetalleProduccion().getIdDetalleProduccion())
                 .isPresent();
+
         if (!detalleExiste) {
             throw new IllegalArgumentException("El detalle de producción asociado no existe");
         }
 
         boolean productoTerminadoExiste = productoTerminadoRepositoryPort
-                .obtenerPorId(empaque.getProductoTerminado().getId()).isPresent();
+                .obtenerPorId(empaque.getProductoTerminado().getId())
+                .isPresent();
+
         if (!productoTerminadoExiste) {
             throw new IllegalArgumentException("El producto terminado asociado no existe");
         }
@@ -82,12 +85,15 @@ public class EmpaqueService implements GestionEmpaqueUseCase {
         boolean detalleExiste = detalleProduccionRepositoryPort
                 .buscarPorId(empaque.getDetalleProduccion().getIdDetalleProduccion())
                 .isPresent();
+
         if (!detalleExiste) {
             throw new IllegalArgumentException("El detalle de producción asociado no existe");
         }
 
         boolean productoTerminadoExiste = productoTerminadoRepositoryPort
-                .obtenerPorId(empaque.getProductoTerminado().getId()).isPresent();
+                .obtenerPorId(empaque.getProductoTerminado().getId())
+                .isPresent();
+
         if (!productoTerminadoExiste) {
             throw new IllegalArgumentException("El producto terminado asociado no existe");
         }
