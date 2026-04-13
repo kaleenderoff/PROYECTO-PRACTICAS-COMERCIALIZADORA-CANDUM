@@ -1,6 +1,7 @@
 package com.yerman.produccion_api.application.service;
 
 import com.yerman.produccion_api.application.dto.response.DashboardProduccionPorSkuResponse;
+import com.yerman.produccion_api.application.dto.response.DashboardProduccionVsEmpaqueResponse;
 import com.yerman.produccion_api.application.dto.response.DashboardValidacionResponse;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -49,6 +50,23 @@ public class DashboardExcelService {
             crearEncabezadoProduccionPorSku(sheet);
             llenarFilasProduccionPorSku(sheet, data);
             autoAjustarColumnas(sheet, 7);
+
+            workbook.write(outputStream);
+            return outputStream.toByteArray();
+        }
+    }
+
+    public byte[] exportarProduccionVsEmpaque() throws IOException {
+        List<DashboardProduccionVsEmpaqueResponse> data = dashboardService.obtenerProduccionVsEmpaque();
+
+        try (Workbook workbook = new XSSFWorkbook();
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+
+            Sheet sheet = workbook.createSheet("ProduccionVsEmpaque");
+
+            crearEncabezadoProduccionVsEmpaque(sheet);
+            llenarFilasProduccionVsEmpaque(sheet, data);
+            autoAjustarColumnas(sheet, 12);
 
             workbook.write(outputStream);
             return outputStream.toByteArray();
@@ -118,6 +136,49 @@ public class DashboardExcelService {
         }
     }
 
+    private void crearEncabezadoProduccionVsEmpaque(Sheet sheet) {
+        Row header = sheet.createRow(0);
+
+        header.createCell(0).setCellValue("ID Detalle Producción");
+        header.createCell(1).setCellValue("ID Producción");
+        header.createCell(2).setCellValue("Número Lote Producción");
+        header.createCell(3).setCellValue("ID Producto");
+        header.createCell(4).setCellValue("Nombre Producto");
+        header.createCell(5).setCellValue("Num Batch");
+        header.createCell(6).setCellValue("Kg Programados");
+        header.createCell(7).setCellValue("Kg Batch");
+        header.createCell(8).setCellValue("Unidades Reales");
+        header.createCell(9).setCellValue("Unidades Empacadas");
+        header.createCell(10).setCellValue("Cajas Empacadas");
+        header.createCell(11).setCellValue("Peso Empacado Kg");
+        header.createCell(12).setCellValue("Unidades Pendientes");
+    }
+
+    private void llenarFilasProduccionVsEmpaque(
+            Sheet sheet,
+            List<DashboardProduccionVsEmpaqueResponse> data) {
+
+        int rowIndex = 1;
+
+        for (DashboardProduccionVsEmpaqueResponse item : data) {
+            Row row = sheet.createRow(rowIndex++);
+
+            row.createCell(0).setCellValue(valorLong(item.getIdDetalleProduccion()));
+            row.createCell(1).setCellValue(valorLong(item.getIdProduccion()));
+            row.createCell(2).setCellValue(valorTexto(item.getNumeroLoteProduccion()));
+            row.createCell(3).setCellValue(valorLong(item.getIdProducto()));
+            row.createCell(4).setCellValue(valorTexto(item.getNombreProducto()));
+            row.createCell(5).setCellValue(valorInteger(item.getNumBatch()));
+            row.createCell(6).setCellValue(valorDouble(item.getKgProgramados()));
+            row.createCell(7).setCellValue(valorDouble(item.getKgBatch()));
+            row.createCell(8).setCellValue(item.getUnidadesReales());
+            row.createCell(9).setCellValue(item.getUnidadesEmpacadas());
+            row.createCell(10).setCellValue(item.getCajasEmpacadas());
+            row.createCell(11).setCellValue(valorDouble(item.getPesoEmpacadoKg()));
+            row.createCell(12).setCellValue(item.getUnidadesPendientesPorEmpacar());
+        }
+    }
+
     private void autoAjustarColumnas(Sheet sheet, int lastColumnIndex) {
         for (int i = 0; i <= lastColumnIndex; i++) {
             sheet.autoSizeColumn(i);
@@ -130,6 +191,10 @@ public class DashboardExcelService {
 
     private double valorDouble(Number value) {
         return value != null ? value.doubleValue() : 0D;
+    }
+
+    private int valorInteger(Integer value) {
+        return value != null ? value : 0;
     }
 
     private String valorTexto(String value) {

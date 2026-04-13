@@ -21,6 +21,8 @@ import java.util.List;
 @RequestMapping("/dashboard")
 public class DashboardController {
 
+    private static final String EXCEL_CONTENT_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
     private final GestionDashboardUseCase gestionDashboardUseCase;
     private final DashboardExcelService dashboardExcelService;
 
@@ -67,8 +69,7 @@ public class DashboardController {
         byte[] excel = dashboardExcelService.exportarValidaciones();
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(
-                MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+        headers.setContentType(MediaType.parseMediaType(EXCEL_CONTENT_TYPE));
         headers.setContentDisposition(
                 ContentDisposition.attachment().filename("dashboard-validaciones.xlsx").build());
 
@@ -82,10 +83,23 @@ public class DashboardController {
         byte[] excel = dashboardExcelService.exportarProduccionPorSku();
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(
-                MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+        headers.setContentType(MediaType.parseMediaType(EXCEL_CONTENT_TYPE));
         headers.setContentDisposition(
                 ContentDisposition.attachment().filename("dashboard-produccion-por-sku.xlsx").build());
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(excel);
+    }
+
+    @GetMapping("/exportar/produccion-vs-empaque")
+    public ResponseEntity<byte[]> exportarProduccionVsEmpaque() throws IOException {
+        byte[] excel = dashboardExcelService.exportarProduccionVsEmpaque();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType(EXCEL_CONTENT_TYPE));
+        headers.setContentDisposition(
+                ContentDisposition.attachment().filename("dashboard-produccion-vs-empaque.xlsx").build());
 
         return ResponseEntity.ok()
                 .headers(headers)
