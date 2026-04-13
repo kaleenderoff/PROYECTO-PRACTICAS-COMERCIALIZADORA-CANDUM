@@ -6,6 +6,7 @@ import com.yerman.produccion_api.application.dto.response.DashboardResumenRespon
 import com.yerman.produccion_api.application.dto.response.DashboardTrazabilidadDetalleResponse;
 import com.yerman.produccion_api.application.dto.response.DashboardTrazabilidadEmpaqueResponse;
 import com.yerman.produccion_api.application.dto.response.DashboardTrazabilidadLoteResponse;
+import com.yerman.produccion_api.application.dto.response.DashboardValidacionResponse;
 import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
 import com.yerman.produccion_api.domain.port.in.GestionDashboardUseCase;
 import com.yerman.produccion_api.infrastructure.entity.DetalleProduccionEntity;
@@ -13,6 +14,7 @@ import com.yerman.produccion_api.infrastructure.entity.EmpaqueEntity;
 import com.yerman.produccion_api.infrastructure.entity.ProductoEntity;
 import com.yerman.produccion_api.infrastructure.entity.ProductoTerminadoEntity;
 import com.yerman.produccion_api.infrastructure.entity.ProduccionEntity;
+import com.yerman.produccion_api.infrastructure.entity.UsuarioEntity;
 import com.yerman.produccion_api.infrastructure.entity.ValidacionEntity;
 import com.yerman.produccion_api.infrastructure.repository.DetalleProduccionJpaRepository;
 import com.yerman.produccion_api.infrastructure.repository.EmpaqueJpaRepository;
@@ -135,6 +137,60 @@ public class DashboardService implements GestionDashboardUseCase {
 
         response.setDetalles(detallesResponse);
         return response;
+    }
+
+    @Override
+    public List<DashboardValidacionResponse> obtenerValidaciones() {
+        List<ValidacionEntity> validaciones = validacionJpaRepository.findAll();
+        List<DashboardValidacionResponse> response = new ArrayList<>();
+
+        for (ValidacionEntity validacion : validaciones) {
+            DashboardValidacionResponse item = new DashboardValidacionResponse();
+
+            item.setIdValidacion(validacion.getIdValidacion());
+            item.setEstadoValidacion(validacion.getEstado() != null ? validacion.getEstado().name() : null);
+            item.setObservacion(validacion.getObservacion());
+            item.setFechaValidacion(validacion.getFechaValidacion());
+
+            if (validacion.getDetalleProduccion() != null) {
+                item.setIdDetalleProduccion(validacion.getDetalleProduccion().getIdDetalleProduccion());
+
+                ProduccionEntity produccion = validacion.getDetalleProduccion().getProduccion();
+                if (produccion != null) {
+                    item.setIdProduccion(produccion.getIdProduccion());
+                    item.setNumeroLote(produccion.getNumeroLote());
+                }
+            }
+
+            if (validacion.getValidador() != null) {
+                UsuarioEntity validador = validacion.getValidador();
+                item.setIdValidador(validador.getIdUsuario());
+                item.setNombreValidador(construirNombreCompleto(validador));
+            }
+
+            response.add(item);
+        }
+
+        return response;
+    }
+
+    private String construirNombreCompleto(UsuarioEntity usuario) {
+        List<String> partes = new ArrayList<>();
+
+        if (usuario.getPrimerNombre() != null && !usuario.getPrimerNombre().isBlank()) {
+            partes.add(usuario.getPrimerNombre().trim());
+        }
+        if (usuario.getSegundoNombre() != null && !usuario.getSegundoNombre().isBlank()) {
+            partes.add(usuario.getSegundoNombre().trim());
+        }
+        if (usuario.getPrimerApellido() != null && !usuario.getPrimerApellido().isBlank()) {
+            partes.add(usuario.getPrimerApellido().trim());
+        }
+        if (usuario.getSegundoApellido() != null && !usuario.getSegundoApellido().isBlank()) {
+            partes.add(usuario.getSegundoApellido().trim());
+        }
+
+        return String.join(" ", partes);
     }
 
     private boolean esProductoTerminadoValido(ProductoTerminadoEntity productoTerminado) {

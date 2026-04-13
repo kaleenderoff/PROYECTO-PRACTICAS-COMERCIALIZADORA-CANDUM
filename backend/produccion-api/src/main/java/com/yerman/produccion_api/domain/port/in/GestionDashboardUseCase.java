@@ -4,6 +4,7 @@ import com.yerman.produccion_api.application.dto.response.DashboardProduccionPor
 import com.yerman.produccion_api.application.dto.response.DashboardProduccionVsEmpaqueResponse;
 import com.yerman.produccion_api.application.dto.response.DashboardResumenResponse;
 import com.yerman.produccion_api.application.dto.response.DashboardTrazabilidadLoteResponse;
+import com.yerman.produccion_api.application.dto.response.DashboardValidacionResponse;
 
 import java.util.List;
 
@@ -16,4 +17,6 @@ public interface GestionDashboardUseCase {
     List<DashboardProduccionVsEmpaqueResponse> obtenerProduccionVsEmpaque();
 
     DashboardTrazabilidadLoteResponse obtenerTrazabilidadPorLote(String lote);
+
+    List<DashboardValidacionResponse> obtenerValidaciones();
 }
