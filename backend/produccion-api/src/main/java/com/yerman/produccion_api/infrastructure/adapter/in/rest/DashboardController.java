@@ -1,6 +1,7 @@
 package com.yerman.produccion_api.infrastructure.adapter.in.rest;
 
 import com.yerman.produccion_api.application.dto.response.DashboardProduccionPorSkuResponse;
+import com.yerman.produccion_api.application.dto.response.DashboardProduccionVsEmpaqueResponse;
 import com.yerman.produccion_api.application.dto.response.DashboardResumenResponse;
 import com.yerman.produccion_api.domain.port.in.GestionDashboardUseCase;
 import org.springframework.http.ResponseEntity;
@@ -28,5 +29,10 @@ public class DashboardController {
     @GetMapping("/produccion-por-sku")
     public ResponseEntity<List<DashboardProduccionPorSkuResponse>> obtenerProduccionPorSku() {
         return ResponseEntity.ok(gestionDashboardUseCase.obtenerProduccionPorSku());
+    }
+
+    @GetMapping("/produccion-vs-empaque")
+    public ResponseEntity<List<DashboardProduccionVsEmpaqueResponse>> obtenerProduccionVsEmpaque() {
+        return ResponseEntity.ok(gestionDashboardUseCase.obtenerProduccionVsEmpaque());
     }
 }
