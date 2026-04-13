@@ -4,6 +4,7 @@ import com.yerman.produccion_api.application.dto.response.DashboardProduccionPor
 import com.yerman.produccion_api.application.dto.response.DashboardProduccionVsEmpaqueResponse;
 import com.yerman.produccion_api.application.dto.response.DashboardResumenResponse;
 import com.yerman.produccion_api.application.dto.response.DashboardTrazabilidadLoteResponse;
+import com.yerman.produccion_api.application.dto.response.DashboardValidacionPendienteResponse;
 import com.yerman.produccion_api.application.dto.response.DashboardValidacionResponse;
 import com.yerman.produccion_api.domain.port.in.GestionDashboardUseCase;
 import org.springframework.http.ResponseEntity;
@@ -45,5 +46,10 @@ public class DashboardController {
     @GetMapping("/validaciones")
     public ResponseEntity<List<DashboardValidacionResponse>> obtenerValidaciones() {
         return ResponseEntity.ok(gestionDashboardUseCase.obtenerValidaciones());
+    }
+
+    @GetMapping("/validaciones-pendientes")
+    public ResponseEntity<List<DashboardValidacionPendienteResponse>> obtenerValidacionesPendientes() {
+        return ResponseEntity.ok(gestionDashboardUseCase.obtenerValidacionesPendientes());
     }
 }

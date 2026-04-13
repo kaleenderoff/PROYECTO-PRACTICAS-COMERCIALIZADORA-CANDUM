@@ -6,6 +6,7 @@ import com.yerman.produccion_api.application.dto.response.DashboardResumenRespon
 import com.yerman.produccion_api.application.dto.response.DashboardTrazabilidadDetalleResponse;
 import com.yerman.produccion_api.application.dto.response.DashboardTrazabilidadEmpaqueResponse;
 import com.yerman.produccion_api.application.dto.response.DashboardTrazabilidadLoteResponse;
+import com.yerman.produccion_api.application.dto.response.DashboardValidacionPendienteResponse;
 import com.yerman.produccion_api.application.dto.response.DashboardValidacionResponse;
 import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
 import com.yerman.produccion_api.domain.port.in.GestionDashboardUseCase;
@@ -167,6 +168,43 @@ public class DashboardService implements GestionDashboardUseCase {
                 item.setIdValidador(validador.getIdUsuario());
                 item.setNombreValidador(construirNombreCompleto(validador));
             }
+
+            response.add(item);
+        }
+
+        return response;
+    }
+
+    @Override
+    public List<DashboardValidacionPendienteResponse> obtenerValidacionesPendientes() {
+        List<DetalleProduccionEntity> detalles = detalleProduccionJpaRepository.findAll();
+        List<DashboardValidacionPendienteResponse> response = new ArrayList<>();
+
+        for (DetalleProduccionEntity detalle : detalles) {
+            if (detalle.getValidacion() != null) {
+                continue;
+            }
+
+            DashboardValidacionPendienteResponse item = new DashboardValidacionPendienteResponse();
+            item.setIdDetalleProduccion(detalle.getIdDetalleProduccion());
+
+            if (detalle.getProduccion() != null) {
+                item.setIdProduccion(detalle.getProduccion().getIdProduccion());
+                item.setNumeroLote(detalle.getProduccion().getNumeroLote());
+                item.setFechaProduccion(detalle.getProduccion().getFechaProduccion());
+                item.setEstadoProduccion(detalle.getProduccion().getEstado());
+            }
+
+            if (detalle.getProducto() != null) {
+                item.setIdProducto(detalle.getProducto().getIdProducto());
+                item.setNombreProducto(detalle.getProducto().getNombre());
+            }
+
+            item.setNumBatch(detalle.getNumBatch());
+            item.setKgProgramados(valorBigDecimal(detalle.getKgProgramados()));
+            item.setKgBatch(valorBigDecimal(detalle.getKgBatch()));
+            item.setUnidadesReales(detalle.getUnidadesReales());
+            item.setRendimientoPct(valorBigDecimal(detalle.getRendimientoPct()));
 
             response.add(item);
         }
