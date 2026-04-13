@@ -1,9 +1,11 @@
 package com.yerman.produccion_api.application.service;
 
+import com.yerman.produccion_api.application.dto.response.DashboardProduccionPorSkuResponse;
 import com.yerman.produccion_api.application.dto.response.DashboardResumenResponse;
 import com.yerman.produccion_api.domain.port.in.GestionDashboardUseCase;
 import com.yerman.produccion_api.infrastructure.entity.DetalleProduccionEntity;
 import com.yerman.produccion_api.infrastructure.entity.EmpaqueEntity;
+import com.yerman.produccion_api.infrastructure.entity.ProductoTerminadoEntity;
 import com.yerman.produccion_api.infrastructure.repository.DetalleProduccionJpaRepository;
 import com.yerman.produccion_api.infrastructure.repository.EmpaqueJpaRepository;
 import com.yerman.produccion_api.infrastructure.repository.ProduccionJpaRepository;
@@ -12,7 +14,10 @@ import com.yerman.produccion_api.infrastructure.repository.ValidacionJpaReposito
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class DashboardService implements GestionDashboardUseCase {
@@ -98,5 +103,54 @@ public class DashboardService implements GestionDashboardUseCase {
         response.setTotalPesoEmpacadoKg(totalPesoEmpacadoKg);
 
         return response;
+    }
+
+    @Override
+    public List<DashboardProduccionPorSkuResponse> obtenerProduccionPorSku() {
+        List<EmpaqueEntity> empaques = empaqueJpaRepository.findAll();
+
+        Map<Long, DashboardProduccionPorSkuResponse> acumuladoPorSku = new LinkedHashMap<>();
+
+        for (EmpaqueEntity empaque : empaques) {
+            ProductoTerminadoEntity productoTerminado = empaque.getProductoTerminado();
+
+            if (productoTerminado == null || productoTerminado.getId() == null) {
+                continue;
+            }
+
+            Long idProductoTerminado = productoTerminado.getId();
+
+            DashboardProduccionPorSkuResponse item = acumuladoPorSku.get(idProductoTerminado);
+
+            if (item == null) {
+                item = new DashboardProduccionPorSkuResponse();
+                item.setIdProductoTerminado(idProductoTerminado);
+                item.setSku(productoTerminado.getSku());
+                item.setNombreComercial(productoTerminado.getNombreComercial());
+                item.setReferencia(productoTerminado.getReferencia());
+                item.setTotalUnidades(0L);
+                item.setTotalCajas(0L);
+                item.setTotalPesoKg(BigDecimal.ZERO);
+                item.setTotalRegistrosEmpaque(0L);
+
+                acumuladoPorSku.put(idProductoTerminado, item);
+            }
+
+            if (empaque.getCantidadUnidades() != null) {
+                item.setTotalUnidades(item.getTotalUnidades() + empaque.getCantidadUnidades());
+            }
+
+            if (empaque.getCantidadCajas() != null) {
+                item.setTotalCajas(item.getTotalCajas() + empaque.getCantidadCajas());
+            }
+
+            if (empaque.getPesoTotalKg() != null) {
+                item.setTotalPesoKg(item.getTotalPesoKg().add(empaque.getPesoTotalKg()));
+            }
+
+            item.setTotalRegistrosEmpaque(item.getTotalRegistrosEmpaque() + 1);
+        }
+
+        return new ArrayList<>(acumuladoPorSku.values());
     }
 }
