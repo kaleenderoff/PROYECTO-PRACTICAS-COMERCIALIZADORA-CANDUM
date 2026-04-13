@@ -34,7 +34,6 @@ public class GestionValidacionService implements GestionValidacionUseCase {
     @Override
     public Validacion crearValidacion(Validacion validacion) {
         validarDatosObligatorios(validacion);
-        validarEstadoPermitido(validacion.getEstado());
 
         detalleProduccionRepositoryPort.buscarPorId(validacion.getIdDetalleProduccion())
                 .orElseThrow(() -> new RecursoNoEncontradoException(
@@ -51,13 +50,6 @@ public class GestionValidacionService implements GestionValidacionUseCase {
                     "Ya existe una validación para el detalle de producción indicado");
         }
 
-        String estadoNormalizado = limpiar(validacion.getEstado());
-
-        if (estadoNormalizado == null) {
-            throw new ReglaNegocioException("El estado de la validación es obligatorio");
-        }
-
-        validacion.setEstado(estadoNormalizado.toUpperCase());
         validacion.setObservacion(limpiarOpcional(validacion.getObservacion()));
         validacion.setFechaValidacion(LocalDateTime.now());
         validacion.setCreatedAt(LocalDateTime.now());
@@ -92,8 +84,6 @@ public class GestionValidacionService implements GestionValidacionUseCase {
             throw new ReglaNegocioException("El estado de la validación es obligatorio");
         }
 
-        validarEstadoPermitido(estadoLimpio);
-
         return validacionRepositoryPort.listarPorEstado(estadoLimpio.toUpperCase());
     }
 
@@ -124,7 +114,7 @@ public class GestionValidacionService implements GestionValidacionUseCase {
             throw new ReglaNegocioException("El validador es obligatorio");
         }
 
-        if (validacion.getEstado() == null || validacion.getEstado().trim().isEmpty()) {
+        if (validacion.getEstado() == null) {
             throw new ReglaNegocioException("El estado de la validación es obligatorio");
         }
     }
@@ -138,21 +128,6 @@ public class GestionValidacionService implements GestionValidacionUseCase {
                 && rol != Usuario.Rol.ADMIN) {
             throw new ReglaNegocioException(
                     "El usuario indicado no tiene permisos para validar registros de producción");
-        }
-    }
-
-    private void validarEstadoPermitido(String estado) {
-        String estadoLimpio = limpiar(estado);
-
-        if (estadoLimpio == null || estadoLimpio.isEmpty()) {
-            throw new ReglaNegocioException("El estado de la validación es obligatorio");
-        }
-
-        String estadoNormalizado = estadoLimpio.toUpperCase();
-
-        if (!estadoNormalizado.equals("VALIDADO") && !estadoNormalizado.equals("RECHAZADO")) {
-            throw new ReglaNegocioException(
-                    "El estado de la validación debe ser VALIDADO o RECHAZADO");
         }
     }
 

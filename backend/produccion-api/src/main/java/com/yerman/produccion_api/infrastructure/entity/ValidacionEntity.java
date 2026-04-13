@@ -1,5 +1,6 @@
 package com.yerman.produccion_api.infrastructure.entity;
 
+import com.yerman.produccion_api.domain.model.EstadoValidacion;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -22,8 +23,9 @@ public class ValidacionEntity {
     @JoinColumn(name = "id_validador", nullable = false)
     private UsuarioEntity validador;
 
-    @Column(name = "estado", nullable = false, length = 50)
-    private String estado;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado", nullable = false, length = 20)
+    private EstadoValidacion estado;
 
     @Column(name = "observacion", length = 500)
     private String observacion;
@@ -39,9 +41,10 @@ public class ValidacionEntity {
 
     @PrePersist
     protected void onCreate() {
-        this.fechaValidacion = LocalDateTime.now();
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        LocalDateTime ahora = LocalDateTime.now();
+        this.fechaValidacion = ahora;
+        this.createdAt = ahora;
+        this.updatedAt = ahora;
     }
 
     @PreUpdate
@@ -73,11 +76,11 @@ public class ValidacionEntity {
         this.validador = validador;
     }
 
-    public String getEstado() {
+    public EstadoValidacion getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
+    public void setEstado(EstadoValidacion estado) {
         this.estado = estado;
     }
 
@@ -91,6 +94,10 @@ public class ValidacionEntity {
 
     public LocalDateTime getFechaValidacion() {
         return fechaValidacion;
+    }
+
+    public void setFechaValidacion(LocalDateTime fechaValidacion) {
+        this.fechaValidacion = fechaValidacion;
     }
 
     public LocalDateTime getCreatedAt() {

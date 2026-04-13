@@ -7,7 +7,7 @@ public class Validacion {
     private Long idValidacion;
     private Long idDetalleProduccion;
     private Long idValidador;
-    private String estado;
+    private EstadoValidacion estado;
     private String observacion;
     private LocalDateTime fechaValidacion;
     private LocalDateTime createdAt;
@@ -16,8 +16,8 @@ public class Validacion {
     public Validacion() {
     }
 
-    public Validacion(Long idValidacion, Long idDetalleProduccion, Long idValidador, String estado,
-            String observacion, LocalDateTime fechaValidacion,
+    public Validacion(Long idValidacion, Long idDetalleProduccion, Long idValidador,
+            EstadoValidacion estado, String observacion, LocalDateTime fechaValidacion,
             LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.idValidacion = idValidacion;
         this.idDetalleProduccion = idDetalleProduccion;
@@ -53,11 +53,11 @@ public class Validacion {
         this.idValidador = idValidador;
     }
 
-    public String getEstado() {
+    public EstadoValidacion getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
+    public void setEstado(EstadoValidacion estado) {
         this.estado = estado;
     }
 

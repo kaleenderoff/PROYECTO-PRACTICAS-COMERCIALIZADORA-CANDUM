@@ -53,7 +53,8 @@ public class ValidacionJpaAdapter implements ValidacionRepositoryPort {
 
     @Override
     public List<Validacion> listarPorEstado(String estado) {
-        return repository.findByEstado(estado)
+        return repository.findByEstado(
+                com.yerman.produccion_api.domain.model.EstadoValidacion.valueOf(estado.toUpperCase()))
                 .stream()
                 .map(this::toDomain)
                 .toList();
@@ -106,6 +107,7 @@ public class ValidacionJpaAdapter implements ValidacionRepositoryPort {
 
         entity.setEstado(validacion.getEstado());
         entity.setObservacion(validacion.getObservacion());
+        entity.setFechaValidacion(validacion.getFechaValidacion());
 
         return entity;
     }
