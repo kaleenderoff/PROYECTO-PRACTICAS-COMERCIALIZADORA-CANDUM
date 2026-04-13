@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -23,6 +24,12 @@ public class GlobalExceptionHandler {
 
         private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+        private static final String BAD_REQUEST = HttpStatus.BAD_REQUEST.getReasonPhrase();
+        private static final String CONFLICT = HttpStatus.CONFLICT.getReasonPhrase();
+        private static final String INTERNAL_ERROR = HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase();
+        private static final String NOT_FOUND = HttpStatus.NOT_FOUND.getReasonPhrase();
+        private static final String FORBIDDEN = HttpStatus.FORBIDDEN.getReasonPhrase();
+
         @ExceptionHandler(UsuarioInactivoException.class)
         public ResponseEntity<ErrorResponse> handleUsuarioInactivo(
                         UsuarioInactivoException ex,
@@ -31,14 +38,7 @@ public class GlobalExceptionHandler {
                 log.warn("Usuario inactivo en {} {}: {}",
                                 request.getMethod(), request.getRequestURI(), ex.getMessage());
 
-                ErrorResponse error = new ErrorResponse(
-                                LocalDateTime.now(),
-                                HttpStatus.FORBIDDEN.value(),
-                                "Forbidden",
-                                ex.getMessage(),
-                                request.getRequestURI());
-
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+                return buildResponse(HttpStatus.FORBIDDEN, FORBIDDEN, ex.getMessage(), request);
         }
 
         @ExceptionHandler(RecursoNoEncontradoException.class)
@@ -49,14 +49,7 @@ public class GlobalExceptionHandler {
                 log.warn("Recurso no encontrado en {} {}: {}",
                                 request.getMethod(), request.getRequestURI(), ex.getMessage());
 
-                ErrorResponse error = new ErrorResponse(
-                                LocalDateTime.now(),
-                                HttpStatus.NOT_FOUND.value(),
-                                "Not Found",
-                                ex.getMessage(),
-                                request.getRequestURI());
-
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+                return buildResponse(HttpStatus.NOT_FOUND, NOT_FOUND, ex.getMessage(), request);
         }
 
         @ExceptionHandler({
@@ -70,19 +63,13 @@ public class GlobalExceptionHandler {
                 log.warn("Recurso duplicado en {} {}: {}",
                                 request.getMethod(), request.getRequestURI(), ex.getMessage());
 
-                ErrorResponse error = new ErrorResponse(
-                                LocalDateTime.now(),
-                                HttpStatus.CONFLICT.value(),
-                                "Conflict",
-                                ex.getMessage(),
-                                request.getRequestURI());
-
-                return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+                return buildResponse(HttpStatus.CONFLICT, CONFLICT, ex.getMessage(), request);
         }
 
         @ExceptionHandler({
                         ReglaNegocioException.class,
-                        PasswordIncorrectaException.class
+                        PasswordIncorrectaException.class,
+                        IllegalArgumentException.class
         })
         public ResponseEntity<ErrorResponse> handleBadRequest(
                         RuntimeException ex,
@@ -91,14 +78,7 @@ public class GlobalExceptionHandler {
                 log.warn("Regla de negocio / solicitud inválida en {} {}: {}",
                                 request.getMethod(), request.getRequestURI(), ex.getMessage());
 
-                ErrorResponse error = new ErrorResponse(
-                                LocalDateTime.now(),
-                                HttpStatus.BAD_REQUEST.value(),
-                                "Bad Request",
-                                ex.getMessage(),
-                                request.getRequestURI());
-
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+                return buildResponse(HttpStatus.BAD_REQUEST, BAD_REQUEST, ex.getMessage(), request);
         }
 
         @ExceptionHandler(DataIntegrityViolationException.class)
@@ -108,10 +88,11 @@ public class GlobalExceptionHandler {
 
                 String message = "Error de integridad en la base de datos";
 
-                if (ex.getMostSpecificCause() != null &&
-                                ex.getMostSpecificCause().getMessage() != null) {
+                Throwable cause = ex.getMostSpecificCause();
+                String dbMessage = cause.getMessage();
 
-                        String dbMessage = ex.getMostSpecificCause().getMessage().toLowerCase();
+                if (dbMessage != null) {
+                        dbMessage = dbMessage.toLowerCase();
 
                         if (dbMessage.contains("cc") || dbMessage.contains("uk_usuario_cc")) {
                                 message = "Ya existe un usuario con esa cédula";
@@ -131,32 +112,19 @@ public class GlobalExceptionHandler {
                 log.warn("Error de integridad en {} {}: {}",
                                 request.getMethod(), request.getRequestURI(), message, ex);
 
-                ErrorResponse error = new ErrorResponse(
-                                LocalDateTime.now(),
-                                HttpStatus.CONFLICT.value(),
-                                "Conflict",
-                                message,
-                                request.getRequestURI());
-
-                return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+                return buildResponse(HttpStatus.CONFLICT, CONFLICT, message, request);
         }
 
-        @ExceptionHandler(IllegalArgumentException.class)
-        public ResponseEntity<ErrorResponse> handleIllegalArgument(
-                        IllegalArgumentException ex,
+        @ExceptionHandler(HttpMessageNotReadableException.class)
+        public ResponseEntity<ErrorResponse> handleHttpMessageNotReadable(
+                        HttpMessageNotReadableException ex,
                         HttpServletRequest request) {
 
-                log.warn("Argumento inválido en {} {}: {}",
-                                request.getMethod(), request.getRequestURI(), ex.getMessage());
-
-                ErrorResponse error = new ErrorResponse(
-                                LocalDateTime.now(),
-                                HttpStatus.BAD_REQUEST.value(),
-                                "Bad Request",
-                                ex.getMessage(),
-                                request.getRequestURI());
-
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+                return buildResponse(
+                                HttpStatus.BAD_REQUEST,
+                                BAD_REQUEST,
+                                "El cuerpo de la solicitud contiene tipos de datos inválidos",
+                                request);
         }
 
         @ExceptionHandler(Exception.class)
@@ -167,13 +135,26 @@ public class GlobalExceptionHandler {
                 log.error("Error inesperado en {} {}",
                                 request.getMethod(), request.getRequestURI(), ex);
 
-                ErrorResponse error = new ErrorResponse(
-                                LocalDateTime.now(),
-                                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                                "Internal Server Error",
+                return buildResponse(
+                                HttpStatus.INTERNAL_SERVER_ERROR,
+                                INTERNAL_ERROR,
                                 "Ocurrió un error inesperado en el servidor",
+                                request);
+        }
+
+        private ResponseEntity<ErrorResponse> buildResponse(
+                        HttpStatus status,
+                        String error,
+                        String message,
+                        HttpServletRequest request) {
+
+                ErrorResponse response = new ErrorResponse(
+                                LocalDateTime.now(),
+                                status.value(),
+                                error,
+                                message,
                                 request.getRequestURI());
 
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+                return ResponseEntity.status(status).body(response);
         }
 }

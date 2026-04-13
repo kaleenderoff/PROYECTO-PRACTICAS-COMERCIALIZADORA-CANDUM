@@ -5,6 +5,7 @@ import com.yerman.produccion_api.application.exception.RecursoNoEncontradoExcept
 import com.yerman.produccion_api.application.exception.ReglaNegocioException;
 import com.yerman.produccion_api.domain.model.Usuario;
 import com.yerman.produccion_api.domain.model.Validacion;
+import com.yerman.produccion_api.domain.port.in.GestionAuditoriaUseCase;
 import com.yerman.produccion_api.domain.port.in.GestionValidacionUseCase;
 import com.yerman.produccion_api.domain.port.out.DetalleProduccionRepositoryPort;
 import com.yerman.produccion_api.domain.port.out.UsuarioRepositoryPort;
@@ -21,14 +22,17 @@ public class GestionValidacionService implements GestionValidacionUseCase {
     private final ValidacionRepositoryPort validacionRepositoryPort;
     private final DetalleProduccionRepositoryPort detalleProduccionRepositoryPort;
     private final UsuarioRepositoryPort usuarioRepositoryPort;
+    private final GestionAuditoriaUseCase gestionAuditoriaUseCase;
 
     public GestionValidacionService(
             ValidacionRepositoryPort validacionRepositoryPort,
             DetalleProduccionRepositoryPort detalleProduccionRepositoryPort,
-            UsuarioRepositoryPort usuarioRepositoryPort) {
+            UsuarioRepositoryPort usuarioRepositoryPort,
+            GestionAuditoriaUseCase gestionAuditoriaUseCase) {
         this.validacionRepositoryPort = validacionRepositoryPort;
         this.detalleProduccionRepositoryPort = detalleProduccionRepositoryPort;
         this.usuarioRepositoryPort = usuarioRepositoryPort;
+        this.gestionAuditoriaUseCase = gestionAuditoriaUseCase;
     }
 
     @Override
@@ -55,7 +59,19 @@ public class GestionValidacionService implements GestionValidacionUseCase {
         validacion.setCreatedAt(LocalDateTime.now());
         validacion.setUpdatedAt(LocalDateTime.now());
 
-        return validacionRepositoryPort.guardar(validacion);
+        Validacion validacionGuardada = validacionRepositoryPort.guardar(validacion);
+
+        gestionAuditoriaUseCase.registrar(
+                validacionGuardada.getIdValidador(),
+                "VALIDATE",
+                "VALIDACION",
+                validacionGuardada.getIdValidacion(),
+                "Se registró una validación para el detalle de producción con id "
+                        + validacionGuardada.getIdDetalleProduccion()
+                        + " con estado "
+                        + validacionGuardada.getEstado().name());
+
+        return validacionGuardada;
     }
 
     @Override
