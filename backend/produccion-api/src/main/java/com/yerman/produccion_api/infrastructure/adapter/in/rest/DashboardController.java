@@ -3,11 +3,10 @@ package com.yerman.produccion_api.infrastructure.adapter.in.rest;
 import com.yerman.produccion_api.application.dto.response.DashboardProduccionPorSkuResponse;
 import com.yerman.produccion_api.application.dto.response.DashboardProduccionVsEmpaqueResponse;
 import com.yerman.produccion_api.application.dto.response.DashboardResumenResponse;
+import com.yerman.produccion_api.application.dto.response.DashboardTrazabilidadLoteResponse;
 import com.yerman.produccion_api.domain.port.in.GestionDashboardUseCase;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -34,5 +33,11 @@ public class DashboardController {
     @GetMapping("/produccion-vs-empaque")
     public ResponseEntity<List<DashboardProduccionVsEmpaqueResponse>> obtenerProduccionVsEmpaque() {
         return ResponseEntity.ok(gestionDashboardUseCase.obtenerProduccionVsEmpaque());
+    }
+
+    @GetMapping("/trazabilidad/lote/{lote}")
+    public ResponseEntity<DashboardTrazabilidadLoteResponse> obtenerTrazabilidadPorLote(
+            @PathVariable String lote) {
+        return ResponseEntity.ok(gestionDashboardUseCase.obtenerTrazabilidadPorLote(lote));
     }
 }
