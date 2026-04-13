@@ -6,10 +6,15 @@ import com.yerman.produccion_api.application.dto.response.DashboardResumenRespon
 import com.yerman.produccion_api.application.dto.response.DashboardTrazabilidadLoteResponse;
 import com.yerman.produccion_api.application.dto.response.DashboardValidacionPendienteResponse;
 import com.yerman.produccion_api.application.dto.response.DashboardValidacionResponse;
+import com.yerman.produccion_api.application.service.DashboardExcelService;
 import com.yerman.produccion_api.domain.port.in.GestionDashboardUseCase;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -17,9 +22,13 @@ import java.util.List;
 public class DashboardController {
 
     private final GestionDashboardUseCase gestionDashboardUseCase;
+    private final DashboardExcelService dashboardExcelService;
 
-    public DashboardController(GestionDashboardUseCase gestionDashboardUseCase) {
+    public DashboardController(
+            GestionDashboardUseCase gestionDashboardUseCase,
+            DashboardExcelService dashboardExcelService) {
         this.gestionDashboardUseCase = gestionDashboardUseCase;
+        this.dashboardExcelService = dashboardExcelService;
     }
 
     @GetMapping("/resumen-general")
@@ -51,5 +60,35 @@ public class DashboardController {
     @GetMapping("/validaciones-pendientes")
     public ResponseEntity<List<DashboardValidacionPendienteResponse>> obtenerValidacionesPendientes() {
         return ResponseEntity.ok(gestionDashboardUseCase.obtenerValidacionesPendientes());
+    }
+
+    @GetMapping("/exportar/validaciones")
+    public ResponseEntity<byte[]> exportarValidaciones() throws IOException {
+        byte[] excel = dashboardExcelService.exportarValidaciones();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(
+                MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+        headers.setContentDisposition(
+                ContentDisposition.attachment().filename("dashboard-validaciones.xlsx").build());
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(excel);
+    }
+
+    @GetMapping("/exportar/produccion-por-sku")
+    public ResponseEntity<byte[]> exportarProduccionPorSku() throws IOException {
+        byte[] excel = dashboardExcelService.exportarProduccionPorSku();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(
+                MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+        headers.setContentDisposition(
+                ContentDisposition.attachment().filename("dashboard-produccion-por-sku.xlsx").build());
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(excel);
     }
 }
