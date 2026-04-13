@@ -77,4 +77,13 @@ public interface EmpaqueJpaRepository extends JpaRepository<EmpaqueEntity, Long>
             order by p.numeroLote asc, d.numBatch asc
             """)
     List<DashboardProduccionVsEmpaqueProjection> obtenerProduccionVsEmpaqueOptimizado();
+
+    @Query("""
+            select e
+            from EmpaqueEntity e
+            join fetch e.productoTerminado pt
+            where e.detalleProduccion.idDetalleProduccion in :idsDetalleProduccion
+            order by e.fechaEmpaque asc
+            """)
+    List<EmpaqueEntity> findByDetalleProduccionIdsConProductoTerminado(List<Long> idsDetalleProduccion);
 }

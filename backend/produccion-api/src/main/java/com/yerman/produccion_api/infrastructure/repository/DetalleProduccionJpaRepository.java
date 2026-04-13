@@ -55,4 +55,14 @@ public interface DetalleProduccionJpaRepository extends JpaRepository<DetallePro
                         where v is null
                         """)
         List<DashboardValidacionPendienteProjection> obtenerValidacionesPendientesOptimizado();
+
+        @Query("""
+                        select distinct d
+                        from DetalleProduccionEntity d
+                        join fetch d.producto pr
+                        left join fetch d.validacion v
+                        where d.produccion.idProduccion = :idProduccion
+                        order by d.numBatch asc
+                        """)
+        List<DetalleProduccionEntity> findDetallesConProductoYValidacionPorProduccionId(Long idProduccion);
 }

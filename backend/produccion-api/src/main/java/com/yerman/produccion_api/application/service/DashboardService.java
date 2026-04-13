@@ -29,7 +29,9 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class DashboardService implements GestionDashboardUseCase {
@@ -142,12 +144,19 @@ public class DashboardService implements GestionDashboardUseCase {
                 produccion.getLineaProduccion() != null ? produccion.getLineaProduccion().getNombre() : null);
 
         List<DetalleProduccionEntity> detalles = detalleProduccionJpaRepository
-                .findByProduccion_IdProduccion(produccion.getIdProduccion());
+                .findDetallesConProductoYValidacionPorProduccionId(
+                        produccion.getIdProduccion());
+
+        List<Long> idsDetalle = detalles.stream()
+                .map(DetalleProduccionEntity::getIdDetalleProduccion)
+                .toList();
+
+        Map<Long, List<EmpaqueEntity>> empaquesPorDetalle = agruparEmpaquesPorDetalle(idsDetalle);
 
         List<DashboardTrazabilidadDetalleResponse> detallesResponse = new ArrayList<>();
 
         for (DetalleProduccionEntity detalle : detalles) {
-            detallesResponse.add(construirDetalleTrazabilidad(detalle));
+            detallesResponse.add(construirDetalleTrazabilidad(detalle, empaquesPorDetalle));
         }
 
         response.setDetalles(detallesResponse);
@@ -156,7 +165,7 @@ public class DashboardService implements GestionDashboardUseCase {
 
     @Override
     public List<DashboardValidacionResponse> obtenerValidaciones() {
-        List<ValidacionEntity> validaciones = validacionJpaRepository.findAll();
+        List<ValidacionEntity> validaciones = validacionJpaRepository.findAllConRelaciones();
         List<DashboardValidacionResponse> response = new ArrayList<>();
 
         for (ValidacionEntity validacion : validaciones) {
@@ -216,6 +225,23 @@ public class DashboardService implements GestionDashboardUseCase {
         return response;
     }
 
+    private Map<Long, List<EmpaqueEntity>> agruparEmpaquesPorDetalle(List<Long> idsDetalle) {
+        Map<Long, List<EmpaqueEntity>> mapa = new HashMap<>();
+
+        if (idsDetalle == null || idsDetalle.isEmpty()) {
+            return mapa;
+        }
+
+        List<EmpaqueEntity> empaques = empaqueJpaRepository.findByDetalleProduccionIdsConProductoTerminado(idsDetalle);
+
+        for (EmpaqueEntity empaque : empaques) {
+            Long idDetalle = empaque.getDetalleProduccion().getIdDetalleProduccion();
+            mapa.computeIfAbsent(idDetalle, k -> new ArrayList<>()).add(empaque);
+        }
+
+        return mapa;
+    }
+
     private String construirNombreCompleto(UsuarioEntity usuario) {
         List<String> partes = new ArrayList<>();
 
@@ -235,7 +261,10 @@ public class DashboardService implements GestionDashboardUseCase {
         return String.join(" ", partes);
     }
 
-    private DashboardTrazabilidadDetalleResponse construirDetalleTrazabilidad(DetalleProduccionEntity detalle) {
+    private DashboardTrazabilidadDetalleResponse construirDetalleTrazabilidad(
+            DetalleProduccionEntity detalle,
+            Map<Long, List<EmpaqueEntity>> empaquesPorDetalle) {
+
         DashboardTrazabilidadDetalleResponse item = new DashboardTrazabilidadDetalleResponse();
 
         item.setIdDetalleProduccion(detalle.getIdDetalleProduccion());
@@ -251,33 +280,24 @@ public class DashboardService implements GestionDashboardUseCase {
         item.setUnidadesReales(detalle.getUnidadesReales());
         item.setRendimientoPct(valorBigDecimal(detalle.getRendimientoPct()));
 
-        completarDatosValidacion(item, detalle.getIdDetalleProduccion());
-        item.setEmpaques(construirEmpaquesTrazabilidad(detalle.getIdDetalleProduccion()));
+        if (detalle.getValidacion() != null) {
+            item.setEstadoValidacion(detalle.getValidacion().getEstado() != null
+                    ? detalle.getValidacion().getEstado().name()
+                    : null);
+            item.setFechaValidacion(detalle.getValidacion().getFechaValidacion());
+            item.setObservacionValidacion(detalle.getValidacion().getObservacion());
+        }
+
+        List<EmpaqueEntity> empaques = empaquesPorDetalle.getOrDefault(
+                detalle.getIdDetalleProduccion(),
+                List.of());
+
+        item.setEmpaques(construirEmpaquesTrazabilidad(empaques));
 
         return item;
     }
 
-    private void completarDatosValidacion(
-            DashboardTrazabilidadDetalleResponse item,
-            Long idDetalleProduccion) {
-
-        ValidacionEntity validacion = validacionJpaRepository
-                .findByDetalleProduccion_IdDetalleProduccion(idDetalleProduccion)
-                .orElse(null);
-
-        if (validacion == null) {
-            return;
-        }
-
-        item.setEstadoValidacion(validacion.getEstado() != null ? validacion.getEstado().name() : null);
-        item.setFechaValidacion(validacion.getFechaValidacion());
-        item.setObservacionValidacion(validacion.getObservacion());
-    }
-
-    private List<DashboardTrazabilidadEmpaqueResponse> construirEmpaquesTrazabilidad(Long idDetalleProduccion) {
-        List<EmpaqueEntity> empaques = empaqueJpaRepository
-                .findByDetalleProduccion_IdDetalleProduccion(idDetalleProduccion);
-
+    private List<DashboardTrazabilidadEmpaqueResponse> construirEmpaquesTrazabilidad(List<EmpaqueEntity> empaques) {
         List<DashboardTrazabilidadEmpaqueResponse> response = new ArrayList<>();
 
         for (EmpaqueEntity empaque : empaques) {
