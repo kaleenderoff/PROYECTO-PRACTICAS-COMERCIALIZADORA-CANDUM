@@ -3,6 +3,8 @@ package com.yerman.produccion_api.application.service;
 import com.yerman.produccion_api.application.exception.RecursoDuplicadoException;
 import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
 import com.yerman.produccion_api.application.exception.ReglaNegocioException;
+import com.yerman.produccion_api.domain.model.AccionAuditoria;
+import com.yerman.produccion_api.domain.model.EntidadAuditoria;
 import com.yerman.produccion_api.domain.model.EstadoValidacion;
 import com.yerman.produccion_api.domain.model.Usuario;
 import com.yerman.produccion_api.domain.model.Validacion;
@@ -63,10 +65,12 @@ public class GestionValidacionService implements GestionValidacionUseCase {
 
         gestionAuditoriaUseCase.registrar(
                 validacionGuardada.getIdValidador(),
-                "VALIDATE",
-                "VALIDACION",
+                AccionAuditoria.VALIDACION,
+                EntidadAuditoria.VALIDACION,
                 validacionGuardada.getIdValidacion(),
-                "Se registró una validación para el detalle de producción con id "
+                "Se registró una validación con id "
+                        + validacionGuardada.getIdValidacion()
+                        + " para el detalle de producción con id "
                         + validacionGuardada.getIdDetalleProduccion()
                         + " con estado "
                         + validacionGuardada.getEstado().name());

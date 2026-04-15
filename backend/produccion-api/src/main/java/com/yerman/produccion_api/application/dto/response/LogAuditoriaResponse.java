@@ -1,19 +1,16 @@
-package com.yerman.produccion_api.domain.model;
+package com.yerman.produccion_api.application.dto.response;
 
 import java.time.LocalDateTime;
 
-public class LogAuditoria {
+public class LogAuditoriaResponse {
 
     private Long idLog;
     private Long idUsuario;
-    private AccionAuditoria accion;
-    private EntidadAuditoria entidadAfectada;
+    private String accion;
+    private String entidadAfectada;
     private Long idRegistroAfectado;
     private String detalle;
     private LocalDateTime fechaHora;
-
-    public LogAuditoria() {
-    }
 
     public Long getIdLog() {
         return idLog;
@@ -31,19 +28,19 @@ public class LogAuditoria {
         this.idUsuario = idUsuario;
     }
 
-    public AccionAuditoria getAccion() {
+    public String getAccion() {
         return accion;
     }
 
-    public void setAccion(AccionAuditoria accion) {
+    public void setAccion(String accion) {
         this.accion = accion;
     }
 
-    public EntidadAuditoria getEntidadAfectada() {
+    public String getEntidadAfectada() {
         return entidadAfectada;
     }
 
-    public void setEntidadAfectada(EntidadAuditoria entidadAfectada) {
+    public void setEntidadAfectada(String entidadAfectada) {
         this.entidadAfectada = entidadAfectada;
     }
 

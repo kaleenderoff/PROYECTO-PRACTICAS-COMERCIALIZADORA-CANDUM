@@ -1,5 +1,7 @@
 package com.yerman.produccion_api.infrastructure.entity;
 
+import com.yerman.produccion_api.domain.model.AccionAuditoria;
+import com.yerman.produccion_api.domain.model.EntidadAuditoria;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -17,11 +19,13 @@ public class LogAuditoriaEntity {
     @JoinColumn(name = "id_usuario", nullable = false)
     private UsuarioEntity usuario;
 
-    @Column(name = "accion", nullable = false, length = 100)
-    private String accion;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "accion", nullable = false, length = 50)
+    private AccionAuditoria accion;
 
-    @Column(name = "entidad_afectada", nullable = false, length = 100)
-    private String entidadAfectada;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "entidad_afectada", nullable = false, length = 50)
+    private EntidadAuditoria entidadAfectada;
 
     @Column(name = "id_registro_afectado")
     private Long idRegistroAfectado;
@@ -55,19 +59,19 @@ public class LogAuditoriaEntity {
         this.usuario = usuario;
     }
 
-    public String getAccion() {
+    public AccionAuditoria getAccion() {
         return accion;
     }
 
-    public void setAccion(String accion) {
+    public void setAccion(AccionAuditoria accion) {
         this.accion = accion;
     }
 
-    public String getEntidadAfectada() {
+    public EntidadAuditoria getEntidadAfectada() {
         return entidadAfectada;
     }
 
-    public void setEntidadAfectada(String entidadAfectada) {
+    public void setEntidadAfectada(EntidadAuditoria entidadAfectada) {
         this.entidadAfectada = entidadAfectada;
     }
 

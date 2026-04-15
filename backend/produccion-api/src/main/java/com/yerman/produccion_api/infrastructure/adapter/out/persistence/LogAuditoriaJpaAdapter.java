@@ -1,5 +1,6 @@
 package com.yerman.produccion_api.infrastructure.adapter.out.persistence;
 
+import com.yerman.produccion_api.domain.model.EntidadAuditoria;
 import com.yerman.produccion_api.domain.model.LogAuditoria;
 import com.yerman.produccion_api.domain.port.out.LogAuditoriaRepositoryPort;
 import com.yerman.produccion_api.infrastructure.entity.LogAuditoriaEntity;
@@ -42,7 +43,7 @@ public class LogAuditoriaJpaAdapter implements LogAuditoriaRepositoryPort {
     }
 
     @Override
-    public List<LogAuditoria> listarPorEntidad(String entidadAfectada) {
+    public List<LogAuditoria> listarPorEntidad(EntidadAuditoria entidadAfectada) {
         return repository.findByEntidadAfectadaOrderByFechaHoraDesc(entidadAfectada)
                 .stream()
                 .map(this::toDomain)

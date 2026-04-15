@@ -1,6 +1,5 @@
 package com.yerman.produccion_api.infrastructure.adapter.in.rest;
 
-import com.yerman.produccion_api.application.dto.request.ProduccionFiltroRequest;
 import com.yerman.produccion_api.application.dto.request.ProduccionRequest;
 import com.yerman.produccion_api.application.dto.response.PageResponse;
 import com.yerman.produccion_api.application.dto.response.ProduccionResponse;

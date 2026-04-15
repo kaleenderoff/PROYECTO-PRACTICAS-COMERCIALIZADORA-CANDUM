@@ -100,6 +100,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, RUTA_EMPAQUES)
                         .hasAnyRole(ROL_ADMIN, ROL_INGENIERO, ROL_JEFE_PLANTA, ROL_JEFE_LINEA)
 
+                        // AUDITORIA
+                        .requestMatchers(HttpMethod.GET, "/auditoria/**")
+                        .hasAnyRole(ROL_ADMIN, ROL_INGENIERO, ROL_JEFE_PLANTA)
+
                         // DASHBOARD
                         .requestMatchers(HttpMethod.GET, "/dashboard/**")
                         .hasAnyRole(ROL_ADMIN, ROL_INGENIERO, ROL_JEFE_PLANTA, ROL_JEFE_LINEA)
