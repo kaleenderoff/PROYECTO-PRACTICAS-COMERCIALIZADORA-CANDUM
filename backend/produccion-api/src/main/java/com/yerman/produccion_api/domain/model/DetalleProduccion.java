@@ -25,24 +25,6 @@ public class DetalleProduccion {
     public DetalleProduccion() {
     }
 
-    public DetalleProduccion(Long idDetalleProduccion, Long idProduccion, Producto producto,
-            BigDecimal kgProgramados, BigDecimal kgBatch, Integer numBatch,
-            Integer unidadesReales, BigDecimal rendimientoPct, String observaciones,
-            LocalDateTime fechaHoraRegistro, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.idDetalleProduccion = idDetalleProduccion;
-        this.idProduccion = idProduccion;
-        this.producto = producto;
-        this.kgProgramados = kgProgramados;
-        this.kgBatch = kgBatch;
-        this.numBatch = numBatch;
-        this.unidadesReales = unidadesReales;
-        this.rendimientoPct = rendimientoPct;
-        this.observaciones = observaciones;
-        this.fechaHoraRegistro = fechaHoraRegistro;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-    }
-
     public Long getIdDetalleProduccion() {
         return idDetalleProduccion;
     }
