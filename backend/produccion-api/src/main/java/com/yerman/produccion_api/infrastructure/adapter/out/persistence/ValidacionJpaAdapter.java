@@ -1,5 +1,6 @@
 package com.yerman.produccion_api.infrastructure.adapter.out.persistence;
 
+import com.yerman.produccion_api.domain.model.EstadoValidacion;
 import com.yerman.produccion_api.domain.model.Validacion;
 import com.yerman.produccion_api.domain.port.out.ValidacionRepositoryPort;
 import com.yerman.produccion_api.infrastructure.entity.DetalleProduccionEntity;
@@ -45,16 +46,15 @@ public class ValidacionJpaAdapter implements ValidacionRepositoryPort {
 
     @Override
     public List<Validacion> listarTodas() {
-        return repository.findAll()
+        return repository.findAllConRelaciones()
                 .stream()
                 .map(this::toDomain)
                 .toList();
     }
 
     @Override
-    public List<Validacion> listarPorEstado(String estado) {
-        return repository.findByEstado(
-                com.yerman.produccion_api.domain.model.EstadoValidacion.valueOf(estado.toUpperCase()))
+    public List<Validacion> listarPorEstado(EstadoValidacion estado) {
+        return repository.findByEstado(estado)
                 .stream()
                 .map(this::toDomain)
                 .toList();

@@ -3,6 +3,7 @@ package com.yerman.produccion_api.application.service;
 import com.yerman.produccion_api.application.exception.RecursoDuplicadoException;
 import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
 import com.yerman.produccion_api.application.exception.ReglaNegocioException;
+import com.yerman.produccion_api.domain.model.EstadoValidacion;
 import com.yerman.produccion_api.domain.model.Usuario;
 import com.yerman.produccion_api.domain.model.Validacion;
 import com.yerman.produccion_api.domain.port.in.GestionAuditoriaUseCase;
@@ -47,6 +48,7 @@ public class GestionValidacionService implements GestionValidacionUseCase {
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Usuario validador no encontrado con id: " + validacion.getIdValidador()));
 
+        validarUsuarioActivo(validador);
         validarRolValidador(validador);
 
         if (validacionRepositoryPort.existePorDetalleProduccion(validacion.getIdDetalleProduccion())) {
@@ -56,8 +58,6 @@ public class GestionValidacionService implements GestionValidacionUseCase {
 
         validacion.setObservacion(limpiarOpcional(validacion.getObservacion()));
         validacion.setFechaValidacion(LocalDateTime.now());
-        validacion.setCreatedAt(LocalDateTime.now());
-        validacion.setUpdatedAt(LocalDateTime.now());
 
         Validacion validacionGuardada = validacionRepositoryPort.guardar(validacion);
 
@@ -76,6 +76,9 @@ public class GestionValidacionService implements GestionValidacionUseCase {
 
     @Override
     public Optional<Validacion> obtenerPorId(Long id) {
+        if (id == null) {
+            throw new ReglaNegocioException("El id de la validación es obligatorio");
+        }
         return validacionRepositoryPort.buscarPorId(id);
     }
 
@@ -93,14 +96,11 @@ public class GestionValidacionService implements GestionValidacionUseCase {
     }
 
     @Override
-    public List<Validacion> listarPorEstado(String estado) {
-        String estadoLimpio = limpiar(estado);
-
-        if (estadoLimpio == null || estadoLimpio.isEmpty()) {
+    public List<Validacion> listarPorEstado(EstadoValidacion estado) {
+        if (estado == null) {
             throw new ReglaNegocioException("El estado de la validación es obligatorio");
         }
-
-        return validacionRepositoryPort.listarPorEstado(estadoLimpio.toUpperCase());
+        return validacionRepositoryPort.listarPorEstado(estado);
     }
 
     @Override
@@ -112,6 +112,10 @@ public class GestionValidacionService implements GestionValidacionUseCase {
     }
 
     public Validacion obtenerPorIdObligatorio(Long id) {
+        if (id == null) {
+            throw new ReglaNegocioException("El id de la validación es obligatorio");
+        }
+
         return validacionRepositoryPort.buscarPorId(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Validación no encontrada con id: " + id));
@@ -135,6 +139,12 @@ public class GestionValidacionService implements GestionValidacionUseCase {
         }
     }
 
+    private void validarUsuarioActivo(Usuario validador) {
+        if (!validador.isActivo()) {
+            throw new ReglaNegocioException("El usuario validador está inactivo");
+        }
+    }
+
     private void validarRolValidador(Usuario validador) {
         Usuario.Rol rol = validador.getRol();
 
@@ -145,10 +155,6 @@ public class GestionValidacionService implements GestionValidacionUseCase {
             throw new ReglaNegocioException(
                     "El usuario indicado no tiene permisos para validar registros de producción");
         }
-    }
-
-    private String limpiar(String valor) {
-        return valor == null ? null : valor.trim();
     }
 
     private String limpiarOpcional(String valor) {

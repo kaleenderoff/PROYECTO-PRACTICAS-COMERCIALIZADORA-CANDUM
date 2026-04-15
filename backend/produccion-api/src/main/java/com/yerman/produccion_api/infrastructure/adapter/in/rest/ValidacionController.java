@@ -3,7 +3,9 @@ package com.yerman.produccion_api.infrastructure.adapter.in.rest;
 import com.yerman.produccion_api.application.dto.request.ValidacionRequest;
 import com.yerman.produccion_api.application.dto.response.ValidacionResponse;
 import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
+import com.yerman.produccion_api.application.exception.ReglaNegocioException;
 import com.yerman.produccion_api.application.mapper.ValidacionMapper;
+import com.yerman.produccion_api.domain.model.EstadoValidacion;
 import com.yerman.produccion_api.domain.model.Validacion;
 import com.yerman.produccion_api.domain.port.in.GestionValidacionUseCase;
 import jakarta.validation.Valid;
@@ -67,11 +69,17 @@ public class ValidacionController {
         }
 
         @GetMapping("/estado/{estado}")
-        public ResponseEntity<List<ValidacionResponse>> listarPorEstado(
-                        @PathVariable String estado) {
+        public ResponseEntity<List<ValidacionResponse>> listarPorEstado(@PathVariable String estado) {
+                EstadoValidacion estadoValidacion;
+
+                try {
+                        estadoValidacion = EstadoValidacion.valueOf(estado.trim().toUpperCase());
+                } catch (IllegalArgumentException e) {
+                        throw new ReglaNegocioException("Estado de validación inválido");
+                }
 
                 List<ValidacionResponse> response = gestionValidacionUseCase
-                                .listarPorEstado(estado)
+                                .listarPorEstado(estadoValidacion)
                                 .stream()
                                 .map(ValidacionMapper::toResponse)
                                 .toList();

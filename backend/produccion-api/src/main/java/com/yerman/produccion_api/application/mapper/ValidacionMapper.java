@@ -12,50 +12,34 @@ public class ValidacionMapper {
     }
 
     public static Validacion toDomain(ValidacionRequest request) {
-        if (request == null) {
-            return null;
-        }
+        Validacion v = new Validacion();
 
-        Validacion validacion = new Validacion();
-        validacion.setIdDetalleProduccion(request.getIdDetalleProduccion());
-        validacion.setIdValidador(request.getIdValidador());
-        validacion.setEstado(convertirEstado(request.getEstado()));
-        validacion.setObservacion(
-                request.getObservacion() != null && !request.getObservacion().trim().isEmpty()
-                        ? request.getObservacion().trim()
-                        : null);
-
-        return validacion;
-    }
-
-    public static ValidacionResponse toResponse(Validacion validacion) {
-        if (validacion == null) {
-            return null;
-        }
-
-        ValidacionResponse response = new ValidacionResponse();
-        response.setIdValidacion(validacion.getIdValidacion());
-        response.setIdDetalleProduccion(validacion.getIdDetalleProduccion());
-        response.setIdValidador(validacion.getIdValidador());
-        response.setEstado(validacion.getEstado() != null ? validacion.getEstado().name() : null);
-        response.setObservacion(validacion.getObservacion());
-        response.setFechaValidacion(validacion.getFechaValidacion());
-        response.setCreatedAt(validacion.getCreatedAt());
-        response.setUpdatedAt(validacion.getUpdatedAt());
-
-        return response;
-    }
-
-    private static EstadoValidacion convertirEstado(String estado) {
-        if (estado == null || estado.trim().isEmpty()) {
-            throw new ReglaNegocioException("El estado de la validación es obligatorio");
-        }
+        v.setIdDetalleProduccion(request.getIdDetalleProduccion());
+        v.setIdValidador(request.getIdValidador());
 
         try {
-            return EstadoValidacion.valueOf(estado.trim().toUpperCase());
+            v.setEstado(EstadoValidacion.valueOf(request.getEstado().toUpperCase()));
         } catch (IllegalArgumentException e) {
-            throw new ReglaNegocioException(
-                    "El estado de la validación debe ser VALIDADO o RECHAZADO");
+            throw new ReglaNegocioException("Estado de validación inválido");
         }
+
+        v.setObservacion(request.getObservacion());
+
+        return v;
+    }
+
+    public static ValidacionResponse toResponse(Validacion v) {
+        ValidacionResponse r = new ValidacionResponse();
+
+        r.setIdValidacion(v.getIdValidacion());
+        r.setIdDetalleProduccion(v.getIdDetalleProduccion());
+        r.setIdValidador(v.getIdValidador());
+        r.setEstado(v.getEstado().name());
+        r.setObservacion(v.getObservacion());
+        r.setFechaValidacion(v.getFechaValidacion());
+        r.setCreatedAt(v.getCreatedAt());
+        r.setUpdatedAt(v.getUpdatedAt());
+
+        return r;
     }
 }

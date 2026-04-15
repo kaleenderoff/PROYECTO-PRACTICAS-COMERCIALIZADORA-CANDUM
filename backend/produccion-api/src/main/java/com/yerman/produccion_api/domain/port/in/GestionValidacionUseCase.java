@@ -1,5 +1,6 @@
 package com.yerman.produccion_api.domain.port.in;
 
+import com.yerman.produccion_api.domain.model.EstadoValidacion;
 import com.yerman.produccion_api.domain.model.Validacion;
 
 import java.util.List;
@@ -15,7 +16,7 @@ public interface GestionValidacionUseCase {
 
     List<Validacion> listarTodas();
 
-    List<Validacion> listarPorEstado(String estado);
+    List<Validacion> listarPorEstado(EstadoValidacion estado);
 
     List<Validacion> listarPorValidador(Long idValidador);
 }
