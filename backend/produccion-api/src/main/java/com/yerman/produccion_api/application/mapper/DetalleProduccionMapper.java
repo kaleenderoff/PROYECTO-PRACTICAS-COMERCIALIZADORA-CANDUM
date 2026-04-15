@@ -7,6 +7,9 @@ import com.yerman.produccion_api.domain.model.Producto;
 
 public class DetalleProduccionMapper {
 
+    private DetalleProduccionMapper() {
+    }
+
     public static DetalleProduccion toDomain(DetalleProduccionRequest request) {
         DetalleProduccion detalle = new DetalleProduccion();
 
@@ -30,9 +33,13 @@ public class DetalleProduccionMapper {
 
         response.setIdDetalleProduccion(detalle.getIdDetalleProduccion());
         response.setIdProduccion(detalle.getIdProduccion());
+        response.setNumeroLoteProduccion(detalle.getNumeroLoteProduccion());
+        response.setFechaProduccion(detalle.getFechaProduccion());
+        response.setEstadoProduccion(detalle.getEstadoProduccion());
 
         if (detalle.getProducto() != null) {
             response.setIdProducto(detalle.getProducto().getIdProducto());
+            response.setNombreProducto(detalle.getProducto().getNombre());
         }
 
         response.setKgProgramados(detalle.getKgProgramados());
@@ -42,6 +49,7 @@ public class DetalleProduccionMapper {
         response.setRendimientoPct(detalle.getRendimientoPct());
         response.setObservaciones(detalle.getObservaciones());
         response.setFechaHoraRegistro(detalle.getFechaHoraRegistro());
+        response.setTieneValidacion(detalle.getTieneValidacion());
 
         return response;
     }

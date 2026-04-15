@@ -15,6 +15,10 @@ public class DetalleProduccion {
     private BigDecimal rendimientoPct;
     private String observaciones;
     private LocalDateTime fechaHoraRegistro;
+    private String numeroLoteProduccion;
+    private java.time.LocalDate fechaProduccion;
+    private String estadoProduccion;
+    private Boolean tieneValidacion;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -117,6 +121,38 @@ public class DetalleProduccion {
 
     public void setFechaHoraRegistro(LocalDateTime fechaHoraRegistro) {
         this.fechaHoraRegistro = fechaHoraRegistro;
+    }
+
+    public String getNumeroLoteProduccion() {
+        return numeroLoteProduccion;
+    }
+
+    public void setNumeroLoteProduccion(String numeroLoteProduccion) {
+        this.numeroLoteProduccion = numeroLoteProduccion;
+    }
+
+    public java.time.LocalDate getFechaProduccion() {
+        return fechaProduccion;
+    }
+
+    public void setFechaProduccion(java.time.LocalDate fechaProduccion) {
+        this.fechaProduccion = fechaProduccion;
+    }
+
+    public String getEstadoProduccion() {
+        return estadoProduccion;
+    }
+
+    public void setEstadoProduccion(String estadoProduccion) {
+        this.estadoProduccion = estadoProduccion;
+    }
+
+    public Boolean getTieneValidacion() {
+        return tieneValidacion;
+    }
+
+    public void setTieneValidacion(Boolean tieneValidacion) {
+        this.tieneValidacion = tieneValidacion;
     }
 
     public LocalDateTime getCreatedAt() {

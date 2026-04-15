@@ -54,7 +54,7 @@ public class DetalleProduccionJpaAdapter implements DetalleProduccionRepositoryP
 
     @Override
     public List<DetalleProduccion> listarPorProduccion(Long idProduccion) {
-        return repository.findByProduccion_IdProduccion(idProduccion)
+        return repository.findDetallesConProductoYValidacionPorProduccionId(idProduccion)
                 .stream()
                 .map(this::toDomain)
                 .toList();
@@ -88,6 +88,9 @@ public class DetalleProduccionJpaAdapter implements DetalleProduccionRepositoryP
 
         if (entity.getProduccion() != null) {
             detalle.setIdProduccion(entity.getProduccion().getIdProduccion());
+            detalle.setNumeroLoteProduccion(entity.getProduccion().getNumeroLote());
+            detalle.setFechaProduccion(entity.getProduccion().getFechaProduccion());
+            detalle.setEstadoProduccion(entity.getProduccion().getEstado());
         }
 
         if (entity.getProducto() != null) {
@@ -103,6 +106,7 @@ public class DetalleProduccionJpaAdapter implements DetalleProduccionRepositoryP
         detalle.setFechaHoraRegistro(entity.getFechaHoraRegistro());
         detalle.setCreatedAt(entity.getCreatedAt());
         detalle.setUpdatedAt(entity.getUpdatedAt());
+        detalle.setTieneValidacion(entity.getValidacion() != null);
 
         return detalle;
     }
