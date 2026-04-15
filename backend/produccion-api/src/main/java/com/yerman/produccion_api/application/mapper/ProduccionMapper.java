@@ -7,6 +7,9 @@ import com.yerman.produccion_api.domain.model.Produccion;
 
 public class ProduccionMapper {
 
+    private ProduccionMapper() {
+    }
+
     public static Produccion toDomain(ProduccionRequest request) {
         Produccion p = new Produccion();
 
@@ -33,15 +36,19 @@ public class ProduccionMapper {
         r.setFechaProduccion(p.getFechaProduccion());
         r.setTipoTurno(p.getTipoTurno());
         r.setNumeroLote(p.getNumeroLote());
+        r.setFechaVencimiento(p.getFechaVencimiento());
         r.setEstado(p.getEstado());
+        r.setObservacionesGenerales(p.getObservacionesGenerales());
+        r.setCreatedAt(p.getCreatedAt());
+        r.setUpdatedAt(p.getUpdatedAt());
 
         if (p.getLineaProduccion() != null) {
             r.setIdLineaProduccion(p.getLineaProduccion().getIdLineaProduccion());
+            r.setNombreLineaProduccion(p.getLineaProduccion().getNombre());
         }
 
         r.setIdOperario(p.getIdOperario());
         r.setIdJefeLinea(p.getIdJefeLinea());
-        r.setCreatedAt(p.getCreatedAt());
 
         return r;
     }

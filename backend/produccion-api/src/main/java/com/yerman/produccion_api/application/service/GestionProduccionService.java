@@ -5,13 +5,17 @@ import com.yerman.produccion_api.application.exception.RecursoNoEncontradoExcept
 import com.yerman.produccion_api.application.exception.ReglaNegocioException;
 import com.yerman.produccion_api.domain.model.LineaProduccion;
 import com.yerman.produccion_api.domain.model.Produccion;
+import com.yerman.produccion_api.domain.model.ProduccionFiltro;
 import com.yerman.produccion_api.domain.model.Usuario;
 import com.yerman.produccion_api.domain.port.in.GestionProduccionUseCase;
 import com.yerman.produccion_api.domain.port.out.LineaProduccionRepositoryPort;
 import com.yerman.produccion_api.domain.port.out.ProduccionRepositoryPort;
 import com.yerman.produccion_api.domain.port.out.UsuarioRepositoryPort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -96,7 +100,7 @@ public class GestionProduccionService implements GestionProduccionUseCase {
     }
 
     @Override
-    public List<Produccion> listarPorFecha(java.time.LocalDate fechaProduccion) {
+    public List<Produccion> listarPorFecha(LocalDate fechaProduccion) {
         if (fechaProduccion == null) {
             throw new ReglaNegocioException("La fecha de producción es obligatoria");
         }
@@ -135,6 +139,32 @@ public class GestionProduccionService implements GestionProduccionUseCase {
         return produccionRepositoryPort.listarPorJefeLinea(idJefeLinea);
     }
 
+    @Override
+    public Page<Produccion> listarPaginado(Pageable pageable) {
+        return produccionRepositoryPort.listarPaginado(pageable);
+    }
+
+    @Override
+    public Page<Produccion> filtrar(ProduccionFiltro filtro, Pageable pageable) {
+        if (filtro != null
+                && filtro.getFechaDesde() != null
+                && filtro.getFechaHasta() != null
+                && filtro.getFechaDesde().isAfter(filtro.getFechaHasta())) {
+            throw new ReglaNegocioException("La fecha desde no puede ser mayor que la fecha hasta");
+        }
+
+        if (filtro == null) {
+            filtro = new ProduccionFiltro();
+        }
+
+        filtro.setNumeroLote(normalizarTextoOpcional(filtro.getNumeroLote()));
+
+        String estado = normalizarTextoOpcional(filtro.getEstado());
+        filtro.setEstado(estado != null ? estado.toUpperCase() : null);
+
+        return produccionRepositoryPort.filtrar(filtro, pageable);
+    }
+
     public Produccion obtenerPorIdObligatorio(Long id) {
         if (id == null) {
             throw new ReglaNegocioException("El id de la producción es obligatorio");
@@ -168,7 +198,8 @@ public class GestionProduccionService implements GestionProduccionUseCase {
             throw new ReglaNegocioException("El estado es obligatorio");
         }
 
-        if (produccion.getLineaProduccion().getIdLineaProduccion() == null) {
+        if (produccion.getLineaProduccion() == null
+                || produccion.getLineaProduccion().getIdLineaProduccion() == null) {
             throw new ReglaNegocioException("La línea de producción es obligatoria");
         }
 
@@ -196,26 +227,30 @@ public class GestionProduccionService implements GestionProduccionUseCase {
 
     private void validarUsuarioActivo(Usuario usuario, String etiqueta) {
         if (!usuario.isActivo()) {
-            throw new ReglaNegocioException(
-                    "No se puede usar un usuario inactivo como " + etiqueta);
+            throw new ReglaNegocioException("No se puede usar un usuario inactivo como " + etiqueta);
         }
     }
 
     private void validarRolOperario(Usuario operario) {
         if (operario.getRol() != Usuario.Rol.OPERARIO) {
-            throw new ReglaNegocioException(
-                    "El usuario indicado como operario no tiene rol OPERARIO");
+            throw new ReglaNegocioException("El usuario indicado como operario no tiene rol OPERARIO");
         }
     }
 
     private void validarRolJefeLinea(Usuario jefeLinea) {
         if (jefeLinea.getRol() != Usuario.Rol.JEFE_LINEA) {
-            throw new ReglaNegocioException(
-                    "El usuario indicado como jefe de línea no tiene rol JEFE_LINEA");
+            throw new ReglaNegocioException("El usuario indicado como jefe de línea no tiene rol JEFE_LINEA");
         }
     }
 
     private String normalizarTextoObligatorio(String valor) {
+        return valor.trim();
+    }
+
+    private String normalizarTextoOpcional(String valor) {
+        if (valor == null || valor.trim().isEmpty()) {
+            return null;
+        }
         return valor.trim();
     }
 }

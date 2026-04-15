@@ -1,6 +1,10 @@
 package com.yerman.produccion_api.domain.port.in;
 
 import com.yerman.produccion_api.domain.model.Produccion;
+import com.yerman.produccion_api.domain.model.ProduccionFiltro;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -25,4 +29,8 @@ public interface GestionProduccionUseCase {
     List<Produccion> listarPorOperario(Long idOperario);
 
     List<Produccion> listarPorJefeLinea(Long idJefeLinea);
+
+    Page<Produccion> listarPaginado(Pageable pageable);
+
+    Page<Produccion> filtrar(ProduccionFiltro filtro, Pageable pageable);
 }
