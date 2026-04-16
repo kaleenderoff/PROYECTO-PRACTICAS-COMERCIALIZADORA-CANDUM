@@ -37,7 +37,7 @@ public class EmpaqueJpaAdapter implements EmpaqueRepositoryPort {
 
     @Override
     public List<Empaque> listarTodos() {
-        return repository.findAll()
+        return repository.findAllConProductoTerminadoYDetalle()
                 .stream()
                 .map(this::toDomain)
                 .toList();

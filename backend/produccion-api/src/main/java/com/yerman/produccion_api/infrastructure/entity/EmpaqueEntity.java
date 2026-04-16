@@ -53,13 +53,33 @@ public class EmpaqueEntity {
     @Column(name = "observaciones", length = 500)
     private String observaciones;
 
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
     public EmpaqueEntity() {
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        LocalDateTime ahora = LocalDateTime.now();
+
+        if (this.fechaEmpaque == null) {
+            this.fechaEmpaque = ahora;
+        }
+
+        if (this.createdAt == null) {
+            this.createdAt = ahora;
+        }
+
+        this.updatedAt = ahora;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 
     public Long getId() {

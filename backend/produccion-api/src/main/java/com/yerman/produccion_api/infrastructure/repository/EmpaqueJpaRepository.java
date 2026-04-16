@@ -21,6 +21,15 @@ public interface EmpaqueJpaRepository extends JpaRepository<EmpaqueEntity, Long>
     List<EmpaqueEntity> findByLoteEmpaque(String loteEmpaque);
 
     @Query("""
+            select e
+            from EmpaqueEntity e
+            join fetch e.productoTerminado pt
+            join fetch e.detalleProduccion dp
+            order by e.fechaEmpaque desc
+            """)
+    List<EmpaqueEntity> findAllConProductoTerminadoYDetalle();
+
+    @Query("""
             select
                 coalesce(sum(e.cantidadUnidades), 0) as totalUnidadesEmpacadas,
                 coalesce(sum(e.cantidadCajas), 0) as totalCajasEmpacadas,
