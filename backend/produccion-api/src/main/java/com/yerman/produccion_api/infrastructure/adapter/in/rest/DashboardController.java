@@ -78,6 +78,20 @@ public class DashboardController {
                 .body(excel);
     }
 
+    @GetMapping("/exportar/validaciones-pendientes")
+    public ResponseEntity<byte[]> exportarValidacionesPendientes() throws IOException {
+        byte[] excel = dashboardExcelService.exportarValidacionesPendientes();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType(EXCEL_CONTENT_TYPE));
+        headers.setContentDisposition(
+                ContentDisposition.attachment().filename("dashboard-validaciones-pendientes.xlsx").build());
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(excel);
+    }
+
     @GetMapping("/exportar/produccion-por-sku")
     public ResponseEntity<byte[]> exportarProduccionPorSku() throws IOException {
         byte[] excel = dashboardExcelService.exportarProduccionPorSku();
@@ -100,6 +114,20 @@ public class DashboardController {
         headers.setContentType(MediaType.parseMediaType(EXCEL_CONTENT_TYPE));
         headers.setContentDisposition(
                 ContentDisposition.attachment().filename("dashboard-produccion-vs-empaque.xlsx").build());
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(excel);
+    }
+
+    @GetMapping("/exportar/trazabilidad/lote/{lote}")
+    public ResponseEntity<byte[]> exportarTrazabilidadPorLote(@PathVariable String lote) throws IOException {
+        byte[] excel = dashboardExcelService.exportarTrazabilidadPorLote(lote);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType(EXCEL_CONTENT_TYPE));
+        headers.setContentDisposition(
+                ContentDisposition.attachment().filename("dashboard-trazabilidad-" + lote + ".xlsx").build());
 
         return ResponseEntity.ok()
                 .headers(headers)

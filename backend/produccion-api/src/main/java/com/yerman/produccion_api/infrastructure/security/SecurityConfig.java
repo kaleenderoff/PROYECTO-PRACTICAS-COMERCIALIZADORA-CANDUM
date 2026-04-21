@@ -106,7 +106,7 @@ public class SecurityConfig {
 
                         // DASHBOARD
                         .requestMatchers(HttpMethod.GET, "/dashboard/**")
-                        .hasAnyRole(ROL_ADMIN, ROL_INGENIERO, ROL_JEFE_PLANTA, ROL_JEFE_LINEA)
+                        .hasAnyRole(ROL_ADMIN, ROL_INGENIERO, ROL_JEFE_PLANTA)
 
                         .requestMatchers("/me").authenticated()
 
