@@ -32,6 +32,8 @@ Desde `V13__alinear_modelo_oficial_mvp.sql`, el modelo oficial del MVP queda def
 
 El sistema no debe comportarse como inventario oficial. El inventario formal, kardex, reservas, costos y saldos quedan en el software externo de inventario.
 
+Desde `V14__cerrar_modelo_mvp_sin_legacy.sql`, las tablas legacy y las tablas de inventario operativo se retiran del esquema activo. La base queda enfocada en produccion, trazabilidad de ejecucion y consumo reportado.
+
 ## Flujo principal nuevo
 
 1. `programacion_produccion`
@@ -73,10 +75,10 @@ El sistema no debe comportarse como inventario oficial. El inventario formal, ka
   Catalogo de materias primas, empaques, aditivos u otros insumos.
 
 - `inventario_insumo`
-  Tabla tecnica creada antes de cerrar el alcance. No debe bloquear la operacion del MVP ni ser fuente oficial de stock.
+  Retirada del esquema activo en V14. El MVP no administra stock.
 
 - `movimiento_inventario_insumo`
-  Tabla tecnica creada antes de cerrar el alcance. No debe usarse como kardex oficial del MVP.
+  Retirada del esquema activo en V14. El MVP no administra kardex.
 
 - `formula`
   Formula principal asociada a un SKU.
@@ -144,6 +146,8 @@ Se congela como legado:
 - `consumo_insumo_orden`
 - `validacion`
 - `consumo_insumo`
+
+Estas tablas quedan retiradas del esquema activo desde V14. No deben tener entidades, repositorios ni endpoints nuevos.
 
 Se crea como nucleo nuevo:
 
