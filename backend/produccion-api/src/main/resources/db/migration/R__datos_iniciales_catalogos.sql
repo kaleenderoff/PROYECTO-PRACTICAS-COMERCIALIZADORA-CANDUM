@@ -48,6 +48,7 @@ FROM (
   UNION ALL SELECT 'Dulce de Leche', 'Lacteos'
   UNION ALL SELECT 'Arequipe', 'Lacteos'
   UNION ALL SELECT 'Crema de Leche', 'Lacteos'
+  UNION ALL SELECT 'Bipack Lacteo', 'Lacteos'
 ) producto
 JOIN catalogo_linea linea ON linea.nombre = producto.linea
 ON DUPLICATE KEY UPDATE
