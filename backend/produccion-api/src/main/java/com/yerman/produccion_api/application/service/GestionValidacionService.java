@@ -152,9 +152,7 @@ public class GestionValidacionService implements GestionValidacionUseCase {
     private void validarRolValidador(Usuario validador) {
         Usuario.Rol rol = validador.getRol();
 
-        if (rol != Usuario.Rol.JEFE_LINEA
-                && rol != Usuario.Rol.INGENIERO
-                && rol != Usuario.Rol.JEFE_PLANTA
+        if (rol != Usuario.Rol.JEFE_PRODUCCION
                 && rol != Usuario.Rol.ADMIN) {
             throw new ReglaNegocioException(
                     "El usuario indicado no tiene permisos para validar registros de producción");

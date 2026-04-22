@@ -64,9 +64,9 @@ public class GestionProduccionService implements GestionProduccionUseCase {
                         "Jefe de línea no encontrado con id: " + idJefeLinea));
 
         validarLineaProduccionActiva(lineaProduccion);
-        validarUsuarioActivo(operario, "operario");
+        validarUsuarioActivo(operario, "jefe de linea ejecutor");
         validarUsuarioActivo(jefeLinea, "jefe de línea");
-        validarRolOperario(operario);
+        validarRolJefeLineaEjecutor(operario);
         validarRolJefeLinea(jefeLinea);
 
         produccion.setTipoTurno(tipoTurnoNormalizado);
@@ -231,9 +231,9 @@ public class GestionProduccionService implements GestionProduccionUseCase {
         }
     }
 
-    private void validarRolOperario(Usuario operario) {
-        if (operario.getRol() != Usuario.Rol.OPERARIO) {
-            throw new ReglaNegocioException("El usuario indicado como operario no tiene rol OPERARIO");
+    private void validarRolJefeLineaEjecutor(Usuario usuario) {
+        if (usuario.getRol() != Usuario.Rol.JEFE_LINEA) {
+            throw new ReglaNegocioException("El usuario ejecutor debe tener rol JEFE_LINEA");
         }
     }
 

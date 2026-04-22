@@ -30,7 +30,7 @@ public class UpdateUsuarioRequest {
     private String email;
 
     @NotBlank(message = "El rol es obligatorio")
-    @Pattern(regexp = "OPERARIO|JEFE_LINEA|INGENIERO|JEFE_PLANTA|ADMIN", message = "Rol inválido")
+    @Pattern(regexp = "JEFE_PRODUCCION|JEFE_LINEA|AUXILIAR_CALIDAD|ANALISTA_LACTEOS|JEFE_PLANTA|GERENCIA|ADMIN", message = "Rol inválido")
     private String rol;
 
     private boolean activo;

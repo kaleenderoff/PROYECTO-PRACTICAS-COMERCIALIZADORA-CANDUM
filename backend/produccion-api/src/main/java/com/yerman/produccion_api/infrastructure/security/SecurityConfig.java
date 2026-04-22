@@ -22,10 +22,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private static final String ROL_OPERARIO = "OPERARIO";
+    private static final String ROL_JEFE_PRODUCCION = "JEFE_PRODUCCION";
     private static final String ROL_JEFE_LINEA = "JEFE_LINEA";
-    private static final String ROL_INGENIERO = "INGENIERO";
+    private static final String ROL_AUXILIAR_CALIDAD = "AUXILIAR_CALIDAD";
+    private static final String ROL_ANALISTA_LACTEOS = "ANALISTA_LACTEOS";
     private static final String ROL_JEFE_PLANTA = "JEFE_PLANTA";
+    private static final String ROL_GERENCIA = "GERENCIA";
     private static final String ROL_ADMIN = "ADMIN";
 
     private static final String RUTA_PRODUCTOS_TERMINADOS = "/productos-terminados/**";
@@ -63,50 +65,53 @@ public class SecurityConfig {
                         .requestMatchers("/usuarios/**").hasRole(ROL_ADMIN)
 
                         .requestMatchers(HttpMethod.POST, "/validaciones/**")
-                        .hasAnyRole(ROL_JEFE_LINEA, ROL_INGENIERO, ROL_JEFE_PLANTA, ROL_ADMIN)
+                        .hasAnyRole(ROL_JEFE_PRODUCCION, ROL_ADMIN)
 
                         .requestMatchers(HttpMethod.GET, "/validaciones/**")
-                        .hasAnyRole(ROL_JEFE_LINEA, ROL_INGENIERO, ROL_JEFE_PLANTA, ROL_ADMIN)
+                        .hasAnyRole(ROL_JEFE_PRODUCCION, ROL_JEFE_PLANTA, ROL_ADMIN)
 
                         .requestMatchers("/producciones/**")
-                        .hasAnyRole(ROL_OPERARIO, ROL_JEFE_LINEA, ROL_INGENIERO, ROL_JEFE_PLANTA, ROL_ADMIN)
+                        .hasAnyRole(ROL_JEFE_PRODUCCION, ROL_JEFE_LINEA, ROL_JEFE_PLANTA, ROL_ADMIN)
 
                         .requestMatchers("/detalle-produccion/**")
-                        .hasAnyRole(ROL_OPERARIO, ROL_JEFE_LINEA, ROL_INGENIERO, ROL_JEFE_PLANTA, ROL_ADMIN)
+                        .hasAnyRole(ROL_JEFE_PRODUCCION, ROL_JEFE_LINEA, ROL_JEFE_PLANTA, ROL_ADMIN)
 
                         .requestMatchers("/consumo-insumo/**")
-                        .hasAnyRole(ROL_OPERARIO, ROL_JEFE_LINEA, ROL_INGENIERO, ROL_JEFE_PLANTA, ROL_ADMIN)
+                        .hasAnyRole(ROL_JEFE_PRODUCCION, ROL_JEFE_LINEA, ROL_JEFE_PLANTA, ROL_ADMIN)
 
                         // PRODUCTOS TERMINADOS
                         .requestMatchers(HttpMethod.POST, RUTA_PRODUCTOS_TERMINADOS)
-                        .hasAnyRole(ROL_ADMIN, ROL_INGENIERO)
+                        .hasAnyRole(ROL_ADMIN, ROL_JEFE_PRODUCCION)
 
                         .requestMatchers(HttpMethod.PUT, RUTA_PRODUCTOS_TERMINADOS)
-                        .hasAnyRole(ROL_ADMIN, ROL_INGENIERO)
+                        .hasAnyRole(ROL_ADMIN, ROL_JEFE_PRODUCCION)
 
                         .requestMatchers(HttpMethod.PATCH, RUTA_PRODUCTOS_TERMINADOS)
-                        .hasAnyRole(ROL_ADMIN, ROL_INGENIERO)
+                        .hasAnyRole(ROL_ADMIN, ROL_JEFE_PRODUCCION)
 
                         .requestMatchers(HttpMethod.GET, RUTA_PRODUCTOS_TERMINADOS)
-                        .hasAnyRole(ROL_ADMIN, ROL_INGENIERO, ROL_JEFE_PLANTA, ROL_JEFE_LINEA)
+                        .hasAnyRole(ROL_ADMIN, ROL_JEFE_PRODUCCION, ROL_JEFE_PLANTA, ROL_JEFE_LINEA,
+                                ROL_ANALISTA_LACTEOS)
 
                         // Empaques
                         .requestMatchers(HttpMethod.POST, RUTA_EMPAQUES)
-                        .hasAnyRole(ROL_ADMIN, ROL_INGENIERO)
+                        .hasAnyRole(ROL_ADMIN, ROL_JEFE_PRODUCCION, ROL_JEFE_LINEA)
 
                         .requestMatchers(HttpMethod.PUT, RUTA_EMPAQUES)
-                        .hasAnyRole(ROL_ADMIN, ROL_INGENIERO)
+                        .hasAnyRole(ROL_ADMIN, ROL_JEFE_PRODUCCION, ROL_JEFE_LINEA)
 
                         .requestMatchers(HttpMethod.GET, RUTA_EMPAQUES)
-                        .hasAnyRole(ROL_ADMIN, ROL_INGENIERO, ROL_JEFE_PLANTA, ROL_JEFE_LINEA)
+                        .hasAnyRole(ROL_ADMIN, ROL_JEFE_PRODUCCION, ROL_JEFE_PLANTA, ROL_JEFE_LINEA,
+                                ROL_ANALISTA_LACTEOS)
 
                         // AUDITORIA
                         .requestMatchers(HttpMethod.GET, "/auditoria/**")
-                        .hasAnyRole(ROL_ADMIN, ROL_INGENIERO, ROL_JEFE_PLANTA)
+                        .hasAnyRole(ROL_ADMIN, ROL_JEFE_PRODUCCION, ROL_JEFE_PLANTA)
 
                         // DASHBOARD
                         .requestMatchers(HttpMethod.GET, "/dashboard/**")
-                        .hasAnyRole(ROL_ADMIN, ROL_INGENIERO, ROL_JEFE_PLANTA)
+                        .hasAnyRole(ROL_ADMIN, ROL_JEFE_PRODUCCION, ROL_JEFE_PLANTA, ROL_GERENCIA,
+                                ROL_ANALISTA_LACTEOS)
 
                         .requestMatchers("/me").authenticated()
 

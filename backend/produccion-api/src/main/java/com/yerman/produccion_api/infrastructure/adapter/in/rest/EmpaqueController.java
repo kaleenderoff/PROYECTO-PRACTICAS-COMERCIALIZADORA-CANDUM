@@ -23,7 +23,7 @@ public class EmpaqueController {
         this.gestionEmpaqueUseCase = gestionEmpaqueUseCase;
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN','INGENIERO')")
+    @PreAuthorize("hasAnyRole('ADMIN','JEFE_PRODUCCION','JEFE_LINEA')")
     @PostMapping
     public ResponseEntity<EmpaqueResponse> registrar(@RequestBody EmpaqueRequest request) {
         Empaque empaque = EmpaqueMapper.toDomain(request);
@@ -31,7 +31,7 @@ public class EmpaqueController {
         return ResponseEntity.status(HttpStatus.CREATED).body(EmpaqueMapper.toResponse(creado));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN','INGENIERO')")
+    @PreAuthorize("hasAnyRole('ADMIN','JEFE_PRODUCCION','JEFE_LINEA')")
     @PutMapping("/{id}")
     public ResponseEntity<EmpaqueResponse> actualizar(@PathVariable Long id,
             @RequestBody EmpaqueRequest request) {
@@ -40,7 +40,7 @@ public class EmpaqueController {
         return ResponseEntity.ok(EmpaqueMapper.toResponse(actualizado));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN','INGENIERO','JEFE_PLANTA','JEFE_LINEA')")
+    @PreAuthorize("hasAnyRole('ADMIN','JEFE_PRODUCCION','JEFE_PLANTA','JEFE_LINEA','ANALISTA_LACTEOS')")
     @GetMapping("/{id}")
     public ResponseEntity<EmpaqueResponse> obtenerPorId(@PathVariable Long id) {
         return gestionEmpaqueUseCase.obtenerPorId(id)
@@ -49,7 +49,7 @@ public class EmpaqueController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN','INGENIERO','JEFE_PLANTA','JEFE_LINEA')")
+    @PreAuthorize("hasAnyRole('ADMIN','JEFE_PRODUCCION','JEFE_PLANTA','JEFE_LINEA','ANALISTA_LACTEOS')")
     @GetMapping
     public ResponseEntity<List<EmpaqueResponse>> listarTodos() {
         List<EmpaqueResponse> response = gestionEmpaqueUseCase.listarTodos()
@@ -60,7 +60,7 @@ public class EmpaqueController {
         return ResponseEntity.ok(response);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN','INGENIERO','JEFE_PLANTA','JEFE_LINEA')")
+    @PreAuthorize("hasAnyRole('ADMIN','JEFE_PRODUCCION','JEFE_PLANTA','JEFE_LINEA','ANALISTA_LACTEOS')")
     @GetMapping("/detalle-produccion/{idDetalleProduccion}")
     public ResponseEntity<List<EmpaqueResponse>> listarPorDetalleProduccion(@PathVariable Long idDetalleProduccion) {
         List<EmpaqueResponse> response = gestionEmpaqueUseCase.listarPorDetalleProduccion(idDetalleProduccion)
@@ -71,7 +71,7 @@ public class EmpaqueController {
         return ResponseEntity.ok(response);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN','INGENIERO','JEFE_PLANTA','JEFE_LINEA')")
+    @PreAuthorize("hasAnyRole('ADMIN','JEFE_PRODUCCION','JEFE_PLANTA','JEFE_LINEA','ANALISTA_LACTEOS')")
     @GetMapping("/producto-terminado/{idProductoTerminado}")
     public ResponseEntity<List<EmpaqueResponse>> listarPorProductoTerminado(@PathVariable Long idProductoTerminado) {
         List<EmpaqueResponse> response = gestionEmpaqueUseCase.listarPorProductoTerminado(idProductoTerminado)
@@ -82,7 +82,7 @@ public class EmpaqueController {
         return ResponseEntity.ok(response);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN','INGENIERO','JEFE_PLANTA','JEFE_LINEA')")
+    @PreAuthorize("hasAnyRole('ADMIN','JEFE_PRODUCCION','JEFE_PLANTA','JEFE_LINEA','ANALISTA_LACTEOS')")
     @GetMapping("/lote/{loteEmpaque}")
     public ResponseEntity<List<EmpaqueResponse>> listarPorLoteEmpaque(@PathVariable String loteEmpaque) {
         List<EmpaqueResponse> response = gestionEmpaqueUseCase.listarPorLoteEmpaque(loteEmpaque)
@@ -93,7 +93,7 @@ public class EmpaqueController {
         return ResponseEntity.ok(response);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN','INGENIERO','JEFE_PLANTA','JEFE_LINEA')")
+    @PreAuthorize("hasAnyRole('ADMIN','JEFE_PRODUCCION','JEFE_PLANTA','JEFE_LINEA','ANALISTA_LACTEOS')")
     @GetMapping("/rango-fecha")
     public ResponseEntity<List<EmpaqueResponse>> listarPorRangoFecha(@RequestParam LocalDateTime fechaInicio,
             @RequestParam LocalDateTime fechaFin) {

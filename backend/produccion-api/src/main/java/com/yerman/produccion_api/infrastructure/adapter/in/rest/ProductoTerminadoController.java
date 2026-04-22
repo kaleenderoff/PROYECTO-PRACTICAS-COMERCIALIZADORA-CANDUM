@@ -25,7 +25,7 @@ public class ProductoTerminadoController {
     // ===============================
     // CREAR
     // ===============================
-    @PreAuthorize("hasAnyRole('ADMIN','INGENIERO')")
+    @PreAuthorize("hasAnyRole('ADMIN','JEFE_PRODUCCION')")
     @PostMapping
     public ResponseEntity<ProductoTerminadoResponse> crear(@RequestBody ProductoTerminadoRequest request) {
         ProductoTerminado productoTerminado = ProductoTerminadoMapper.toDomain(request);
@@ -36,7 +36,7 @@ public class ProductoTerminadoController {
     // ===============================
     // ACTUALIZAR
     // ===============================
-    @PreAuthorize("hasAnyRole('ADMIN','INGENIERO')")
+    @PreAuthorize("hasAnyRole('ADMIN','JEFE_PRODUCCION')")
     @PutMapping("/{id}")
     public ResponseEntity<ProductoTerminadoResponse> actualizar(
             @PathVariable Long id,
@@ -52,7 +52,7 @@ public class ProductoTerminadoController {
     // ===============================
     // OBTENER POR ID
     // ===============================
-    @PreAuthorize("hasAnyRole('ADMIN','INGENIERO','JEFE_PLANTA','JEFE_LINEA')")
+    @PreAuthorize("hasAnyRole('ADMIN','JEFE_PRODUCCION','JEFE_PLANTA','JEFE_LINEA','ANALISTA_LACTEOS')")
     @GetMapping("/{id}")
     public ResponseEntity<ProductoTerminadoResponse> obtenerPorId(@PathVariable Long id) {
         return gestionProductoTerminadoUseCase.obtenerPorId(id)
@@ -64,7 +64,7 @@ public class ProductoTerminadoController {
     // ===============================
     // OBTENER POR SKU
     // ===============================
-    @PreAuthorize("hasAnyRole('ADMIN','INGENIERO','JEFE_PLANTA','JEFE_LINEA')")
+    @PreAuthorize("hasAnyRole('ADMIN','JEFE_PRODUCCION','JEFE_PLANTA','JEFE_LINEA','ANALISTA_LACTEOS')")
     @GetMapping("/sku/{sku}")
     public ResponseEntity<ProductoTerminadoResponse> obtenerPorSku(@PathVariable String sku) {
         return gestionProductoTerminadoUseCase.obtenerPorSku(sku)
@@ -76,7 +76,7 @@ public class ProductoTerminadoController {
     // ===============================
     // LISTAR TODOS
     // ===============================
-    @PreAuthorize("hasAnyRole('ADMIN','INGENIERO','JEFE_PLANTA','JEFE_LINEA')")
+    @PreAuthorize("hasAnyRole('ADMIN','JEFE_PRODUCCION','JEFE_PLANTA','JEFE_LINEA','ANALISTA_LACTEOS')")
     @GetMapping
     public ResponseEntity<List<ProductoTerminadoResponse>> listarTodos() {
 
@@ -92,7 +92,7 @@ public class ProductoTerminadoController {
     // ===============================
     // LISTAR ACTIVOS
     // ===============================
-    @PreAuthorize("hasAnyRole('ADMIN','INGENIERO','JEFE_PLANTA','JEFE_LINEA')")
+    @PreAuthorize("hasAnyRole('ADMIN','JEFE_PRODUCCION','JEFE_PLANTA','JEFE_LINEA','ANALISTA_LACTEOS')")
     @GetMapping("/activos")
     public ResponseEntity<List<ProductoTerminadoResponse>> listarActivos() {
 
@@ -108,7 +108,7 @@ public class ProductoTerminadoController {
     // ===============================
     // CAMBIAR ESTADO (ACTIVO / INACTIVO)
     // ===============================
-    @PreAuthorize("hasAnyRole('ADMIN','INGENIERO')")
+    @PreAuthorize("hasAnyRole('ADMIN','JEFE_PRODUCCION')")
     @PatchMapping("/{id}/estado")
     public ResponseEntity<Void> cambiarEstado(
             @PathVariable Long id,
