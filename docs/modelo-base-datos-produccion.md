@@ -34,19 +34,21 @@ El sistema no debe comportarse como inventario oficial. El inventario formal, ka
 
 Desde `V14__cerrar_modelo_mvp_sin_legacy.sql`, las tablas legacy y las tablas de inventario operativo se retiran del esquema activo. La base queda enfocada en produccion, trazabilidad de ejecucion y consumo reportado.
 
+Desde `V15__ajustes_finales_modelo_mvp.sql`, se cierran los ajustes finales antes de congelar el modelo MVP: reglas `NOT NULL`, indices utiles, unicidad por SKU producido, validacion fechada y eliminacion de redundancias menores como `ejecucion_produccion.id_turno`.
+
 ## Flujo principal nuevo
 
 1. `programacion_produccion`
    Define que se va a producir por fecha, linea y turno.
 
-2. `programacion_produccion_detalle`
-   Lista los SKUs programados y sus cantidades. Representa el concepto de `ProgramacionSku`.
+2. `programacion_sku`
+   Lista los SKUs programados y sus unidades objetivo. Representa el detalle planeado de la programacion.
 
 3. `orden_produccion`
    Convierte una programacion en una orden ejecutable para el jefe de linea.
 
 4. `orden_produccion_detalle`
-   Define cada SKU a producir dentro de la orden, su lote, formula y vencimiento.
+   Define cada SKU a producir dentro de la orden y su cantidad programada. La trazabilidad de lote queda en el resultado real.
 
 5. `ejecucion_produccion`
    Guarda el inicio, pausas, cierre y estado operativo de la orden.
@@ -64,7 +66,7 @@ Desde `V14__cerrar_modelo_mvp_sin_legacy.sql`, las tablas legacy y las tablas de
    Guarda lo realmente producido: kilos, unidades, cajas, tiempos y rendimiento.
 
 10. `validacion_produccion`
-   Permite validaciones de calidad, produccion e inventario sobre cada detalle de orden.
+   Registra la validacion formal de Astrid sobre la ejecucion y la produccion real.
 
 11. `novedad_produccion`
    Registra paradas, mermas, problemas de calidad, equipo, personal o material.
@@ -81,7 +83,7 @@ Desde `V14__cerrar_modelo_mvp_sin_legacy.sql`, las tablas legacy y las tablas de
   Retirada del esquema activo en V14. El MVP no administra kardex.
 
 - `formula`
-  Formula principal asociada a un SKU.
+  Formula principal asociada a un producto base de `catalogo_producto`, no a una presentacion/SKU.
 
 - `formula_version`
   Versiones controladas de una formula.
@@ -93,21 +95,21 @@ Desde `V14__cerrar_modelo_mvp_sin_legacy.sql`, las tablas legacy y las tablas de
   Consumo real de insumos durante la ejecucion. Guarda lote de insumo, cantidad usada, unidad, responsable y observaciones. Es la base para reportes de consumo.
 
 - `consumo_insumo_orden`
-  Tabla creada en V11. Puede mantenerse como soporte tecnico, pero el lenguaje nuevo del negocio debe priorizar `registro_insumo`.
+  Retirada del esquema activo en V14. El MVP reporta consumo con `registro_insumo`.
 
 ## Nucleo lacteos
 
 - `recepcion_leche`
-  Registra recepcion de leche por proveedor, litros, temperatura, acidez, densidad y estado.
+  Registra recepcion de leche por proveedor, litros segun remision, litros reales, pesos, grasa, temperatura, placa, conductor y hora de llegada.
 
 - `descremado`
-  Registra el proceso de descremado dentro de una ejecucion de produccion.
+  Registra el proceso de descremado como flujo independiente de la ejecucion de produccion.
 
 - `descremado_recepcion`
   Relaciona las recepciones de leche usadas en un proceso de descremado.
 
 - `subproducto_produccion`
-  Guarda subproductos como crema, leche descremada, suero o merma, con cantidad y destino.
+  Guarda subproductos derivados del descremado, como crema u otros resultados asociados al proceso.
 
 ## Criterio de escalabilidad
 
@@ -152,7 +154,7 @@ Estas tablas quedan retiradas del esquema activo desde V14. No deben tener entid
 Se crea como nucleo nuevo:
 
 - `programacion_produccion`
-- `programacion_produccion_detalle`
+- `programacion_sku`
 - `orden_produccion`
 - `orden_produccion_detalle`
 - `ejecucion_produccion`
