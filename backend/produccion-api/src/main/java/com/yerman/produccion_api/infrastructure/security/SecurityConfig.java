@@ -64,6 +64,9 @@ public class SecurityConfig {
                         .requestMatchers("/usuarios/mi-password").authenticated()
                         .requestMatchers("/usuarios/**").hasRole(ROL_ADMIN)
 
+                        .requestMatchers(HttpMethod.GET, "/catalogos/**").authenticated()
+                        .requestMatchers("/catalogos/**").hasAnyRole(ROL_ADMIN, ROL_JEFE_PRODUCCION)
+
                         .requestMatchers(HttpMethod.POST, "/validaciones/**")
                         .hasAnyRole(ROL_JEFE_PRODUCCION, ROL_ADMIN)
 
