@@ -24,6 +24,14 @@ Se mantiene la base tecnica del proyecto:
 
 Se redisenia el nucleo del negocio. La nueva logica no debe usar como centro las tablas antiguas `produccion`, `detalle_produccion`, `consumo_insumo` ni `validacion`.
 
+Desde `V13__alinear_modelo_oficial_mvp.sql`, el modelo oficial del MVP queda definido como:
+
+- sistema de produccion
+- registro de consumo real por ejecucion
+- reporte/exportacion de consumo
+
+El sistema no debe comportarse como inventario oficial. El inventario formal, kardex, reservas, costos y saldos quedan en el software externo de inventario.
+
 ## Flujo principal nuevo
 
 1. `programacion_produccion`
@@ -65,10 +73,10 @@ Se redisenia el nucleo del negocio. La nueva logica no debe usar como centro las
   Catalogo de materias primas, empaques, aditivos u otros insumos.
 
 - `inventario_insumo`
-  Existencias por insumo, lote, vencimiento, ubicacion y estado.
+  Tabla tecnica creada antes de cerrar el alcance. No debe bloquear la operacion del MVP ni ser fuente oficial de stock.
 
 - `movimiento_inventario_insumo`
-  Kardex de entradas, salidas, ajustes, bloqueos y liberaciones.
+  Tabla tecnica creada antes de cerrar el alcance. No debe usarse como kardex oficial del MVP.
 
 - `formula`
   Formula principal asociada a un SKU.
@@ -80,7 +88,7 @@ Se redisenia el nucleo del negocio. La nueva logica no debe usar como centro las
   Insumos requeridos por version de formula.
 
 - `registro_insumo`
-  Consumo real de insumos durante la ejecucion. Puede vincular lote de inventario y movimiento de kardex.
+  Consumo real de insumos durante la ejecucion. Guarda lote de insumo, cantidad usada, unidad, responsable y observaciones. Es la base para reportes de consumo.
 
 - `consumo_insumo_orden`
   Tabla creada en V11. Puede mantenerse como soporte tecnico, pero el lenguaje nuevo del negocio debe priorizar `registro_insumo`.
@@ -120,8 +128,6 @@ Se queda:
 - `proveedor`
 - `turno`
 - `insumo`
-- `inventario_insumo`
-- `movimiento_inventario_insumo`
 
 Se congela como legado:
 
@@ -131,6 +137,11 @@ Se congela como legado:
 - `produccion`
 - `detalle_produccion`
 - `empaque`
+- `inventario_insumo`
+- `movimiento_inventario_insumo`
+- `receta_sku`
+- `receta_sku_detalle`
+- `consumo_insumo_orden`
 - `validacion`
 - `consumo_insumo`
 
