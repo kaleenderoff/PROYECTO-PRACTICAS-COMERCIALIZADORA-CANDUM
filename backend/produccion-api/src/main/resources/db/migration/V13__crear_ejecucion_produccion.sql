@@ -1,0 +1,30 @@
+CREATE TABLE ejecucion_produccion (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  id_orden BIGINT NOT NULL,
+  id_jefe_linea BIGINT NOT NULL,
+  hora_inicio TIME NULL,
+  hora_fin TIME NULL,
+  hora_hidrolisis TIME NULL,
+  hora_cocimiento TIME NULL,
+  num_baches_real INT NULL,
+  kg_bache_real DECIMAL(10,2) NULL,
+  kg_totales_reales DECIMAL(10,2) NULL,
+  kg_reproceso DECIMAL(10,2) NOT NULL DEFAULT 0,
+  es_reproceso TINYINT(1) NOT NULL DEFAULT 0,
+  temperatura_promedio DECIMAL(5,2) NULL,
+  tiempo_proceso_min INT NULL,
+  variables_proceso JSON NULL,
+  estado ENUM('PENDIENTE', 'EN_PROCESO', 'FINALIZADA', 'CON_NOVEDAD', 'REVISADA') NOT NULL DEFAULT 'PENDIENTE',
+  observaciones VARCHAR(500) NULL,
+  operario_fisico_nombre VARCHAR(100) NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_ejecucion_orden (id_orden),
+  KEY idx_ejecucion_jefe_linea (id_jefe_linea),
+  KEY idx_ejecucion_estado (estado),
+  CONSTRAINT fk_ejecucion_orden
+    FOREIGN KEY (id_orden) REFERENCES orden_produccion (id) ON DELETE CASCADE,
+  CONSTRAINT fk_ejecucion_jefe_linea
+    FOREIGN KEY (id_jefe_linea) REFERENCES usuario (id_usuario)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

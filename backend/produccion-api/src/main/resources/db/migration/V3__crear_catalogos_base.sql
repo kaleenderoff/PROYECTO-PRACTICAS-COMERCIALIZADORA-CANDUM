@@ -1,26 +1,3 @@
--- V9: catalogos base para el rediseño de produccion lacteos.
-
-CREATE TABLE proveedor (
-  id BIGINT NOT NULL AUTO_INCREMENT,
-  nombre VARCHAR(100) NOT NULL,
-  activo TINYINT(1) NOT NULL DEFAULT 1,
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
-  UNIQUE KEY uq_proveedor_nombre (nombre)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE marca (
-  id BIGINT NOT NULL AUTO_INCREMENT,
-  nombre VARCHAR(100) NOT NULL,
-  es_propia TINYINT(1) NOT NULL,
-  activo TINYINT(1) NOT NULL DEFAULT 1,
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
-  UNIQUE KEY uq_marca_nombre (nombre)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 CREATE TABLE catalogo_linea (
   id BIGINT NOT NULL AUTO_INCREMENT,
   nombre VARCHAR(100) NOT NULL,
@@ -31,15 +8,23 @@ CREATE TABLE catalogo_linea (
   UNIQUE KEY uq_catalogo_linea_nombre (nombre)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE catalogo_producto (
+CREATE TABLE marca (
   id BIGINT NOT NULL AUTO_INCREMENT,
-  nombre VARCHAR(150) NOT NULL,
-  id_linea BIGINT NOT NULL,
+  nombre VARCHAR(100) NOT NULL,
+  es_propia TINYINT(1) NOT NULL DEFAULT 1,
   activo TINYINT(1) NOT NULL DEFAULT 1,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
-  UNIQUE KEY uq_catalogo_producto_linea_nombre (id_linea, nombre),
-  CONSTRAINT fk_catalogo_producto_linea
-    FOREIGN KEY (id_linea) REFERENCES catalogo_linea (id)
+  UNIQUE KEY uq_marca_nombre (nombre)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE proveedor (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  nombre VARCHAR(100) NOT NULL,
+  activo TINYINT(1) NOT NULL DEFAULT 1,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_proveedor_nombre (nombre)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

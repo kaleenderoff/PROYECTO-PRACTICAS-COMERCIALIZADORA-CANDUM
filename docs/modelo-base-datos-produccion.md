@@ -1,6 +1,6 @@
 # Modelo de base de datos de produccion
 
-Este modelo reemplaza la logica operativa antigua sin borrar las migraciones historicas de Flyway. La nueva logica debe usar las tablas conectadas a los catalogos nuevos:
+Este modelo reemplaza la logica operativa antigua. Como el proyecto todavia esta en etapa de desarrollo, las migraciones se compactaron en una secuencia limpia y reconstruible desde cero. La nueva logica debe usar las tablas conectadas a los catalogos nuevos:
 
 - `catalogo_linea`
 - `catalogo_producto`
@@ -22,9 +22,30 @@ Se mantiene la base tecnica del proyecto:
 - Flyway
 - Docker y configuracion por perfiles
 
-Se redisenia el nucleo del negocio. La nueva logica no debe usar como centro las tablas antiguas `produccion`, `detalle_produccion`, `consumo_insumo` ni `validacion`.
+Se redisenia el nucleo del negocio. La nueva logica no crea ni usa como centro las tablas antiguas `produccion`, `detalle_produccion`, `consumo_insumo`, `validacion`, `producto`, `producto_terminado`, `linea_produccion` ni `empaque`.
 
-Desde `V13__alinear_modelo_oficial_mvp.sql`, el modelo oficial del MVP queda definido como:
+La secuencia oficial de Flyway queda ordenada de `V1` a `V18` por bloques funcionales:
+
+- `V1__crear_usuarios_y_auditoria.sql`
+- `V2__crear_turno.sql`
+- `V3__crear_catalogos_base.sql`
+- `V4__crear_catalogo_producto.sql`
+- `V5__crear_catalogo_sku.sql`
+- `V6__crear_insumo.sql`
+- `V7__crear_formula_y_version.sql`
+- `V8__crear_formula_detalle.sql`
+- `V9__crear_programacion_produccion.sql`
+- `V10__crear_programacion_sku.sql`
+- `V11__crear_orden_produccion.sql`
+- `V12__crear_orden_produccion_detalle.sql`
+- `V13__crear_ejecucion_produccion.sql`
+- `V14__crear_medicion_bache_y_novedad.sql`
+- `V15__crear_registro_insumo.sql`
+- `V16__crear_lote_y_produccion_real.sql`
+- `V17__crear_validacion_produccion.sql`
+- `V18__crear_lacteos_recepcion_descremado.sql`
+
+El modelo oficial del MVP queda definido como:
 
 - sistema de produccion
 - registro de consumo real por ejecucion
@@ -32,11 +53,7 @@ Desde `V13__alinear_modelo_oficial_mvp.sql`, el modelo oficial del MVP queda def
 
 El sistema no debe comportarse como inventario oficial. El inventario formal, kardex, reservas, costos y saldos quedan en el software externo de inventario.
 
-Desde `V14__cerrar_modelo_mvp_sin_legacy.sql`, las tablas legacy y las tablas de inventario operativo se retiran del esquema activo. La base queda enfocada en produccion, trazabilidad de ejecucion y consumo reportado.
-
-Desde `V15__ajustes_finales_modelo_mvp.sql`, se cierran los ajustes finales antes de congelar el modelo MVP: reglas `NOT NULL`, indices utiles, unicidad por SKU producido, validacion fechada y eliminacion de redundancias menores como `ejecucion_produccion.id_turno`.
-
-Desde `V16__congelar_modelo_logico_mvp.sql`, el modelo logico queda congelado para empezar entidades JPA y servicios: toda version de formula exige `id_creado_por` y todo lote exige `id_ejecucion`.
+La base queda enfocada en produccion, trazabilidad de ejecucion y consumo reportado. El modelo logico queda congelado para empezar entidades JPA y servicios: toda version de formula exige `id_creado_por` y todo lote exige `id_ejecucion`.
 
 ## Flujo principal nuevo
 
@@ -78,12 +95,6 @@ Desde `V16__congelar_modelo_logico_mvp.sql`, el modelo logico queda congelado pa
 - `insumo`
   Catalogo de materias primas, empaques, aditivos u otros insumos.
 
-- `inventario_insumo`
-  Retirada del esquema activo en V14. El MVP no administra stock.
-
-- `movimiento_inventario_insumo`
-  Retirada del esquema activo en V14. El MVP no administra kardex.
-
 - `formula`
   Formula principal asociada a un producto base de `catalogo_producto`, no a una presentacion/SKU.
 
@@ -95,9 +106,6 @@ Desde `V16__congelar_modelo_logico_mvp.sql`, el modelo logico queda congelado pa
 
 - `registro_insumo`
   Consumo real de insumos durante la ejecucion. Guarda lote de insumo, cantidad usada, unidad, responsable y observaciones. Es la base para reportes de consumo.
-
-- `consumo_insumo_orden`
-  Retirada del esquema activo en V14. El MVP reporta consumo con `registro_insumo`.
 
 ## Nucleo lacteos
 
@@ -119,7 +127,7 @@ El piloto inicia con `Lacteos`, pero las tablas no estan amarradas a lacteos dir
 
 ## Tablas antiguas
 
-Las tablas antiguas como `produccion`, `detalle_produccion`, `producto`, `linea_produccion`, `producto_terminado`, `empaque`, `validacion` y `consumo_insumo` quedan como parte de la historia de Flyway. La nueva logica del backend no debe conectarse a esas tablas.
+Las tablas antiguas como `produccion`, `detalle_produccion`, `producto`, `linea_produccion`, `producto_terminado`, `empaque`, `validacion` y `consumo_insumo` no forman parte de la secuencia limpia de Flyway. La nueva logica del backend no debe conectarse a esas tablas.
 
 ## Mapa practico
 
@@ -134,24 +142,6 @@ Se queda:
 - `proveedor`
 - `turno`
 - `insumo`
-
-Se congela como legado:
-
-- `linea_produccion`
-- `producto`
-- `producto_terminado`
-- `produccion`
-- `detalle_produccion`
-- `empaque`
-- `inventario_insumo`
-- `movimiento_inventario_insumo`
-- `receta_sku`
-- `receta_sku_detalle`
-- `consumo_insumo_orden`
-- `validacion`
-- `consumo_insumo`
-
-Estas tablas quedan retiradas del esquema activo desde V14. No deben tener entidades, repositorios ni endpoints nuevos.
 
 Se crea como nucleo nuevo:
 

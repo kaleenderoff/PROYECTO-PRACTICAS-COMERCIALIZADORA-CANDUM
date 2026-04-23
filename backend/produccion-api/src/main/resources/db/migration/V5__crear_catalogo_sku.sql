@@ -1,5 +1,3 @@
--- V10: catalogo de SKUs producido desde los formatos de lacteos.
-
 CREATE TABLE catalogo_sku (
   id BIGINT NOT NULL AUTO_INCREMENT,
   codigo_sku VARCHAR(30) NOT NULL,
@@ -7,17 +5,7 @@ CREATE TABLE catalogo_sku (
   id_producto BIGINT NOT NULL,
   id_marca BIGINT NOT NULL,
   peso_neto_gr INT NOT NULL,
-  tipo_envase ENUM(
-    'DISPENSADOR',
-    'DOYPACK',
-    'GARRAFA',
-    'BALDE',
-    'TAZA',
-    'TETERO',
-    'BIPACK',
-    'BOLSA',
-    'OTRO'
-  ) NOT NULL DEFAULT 'OTRO',
+  tipo_envase ENUM('DISPENSADOR', 'DOYPACK', 'GARRAFA', 'BALDE', 'TAZA', 'TETERO', 'BIPACK', 'BOLSA', 'OTRO') NOT NULL DEFAULT 'OTRO',
   unidades_por_caja INT NULL,
   es_export TINYINT(1) NOT NULL DEFAULT 0,
   activo TINYINT(1) NOT NULL DEFAULT 1,
