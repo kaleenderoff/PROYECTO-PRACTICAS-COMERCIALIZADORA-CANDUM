@@ -36,6 +36,8 @@ Desde `V14__cerrar_modelo_mvp_sin_legacy.sql`, las tablas legacy y las tablas de
 
 Desde `V15__ajustes_finales_modelo_mvp.sql`, se cierran los ajustes finales antes de congelar el modelo MVP: reglas `NOT NULL`, indices utiles, unicidad por SKU producido, validacion fechada y eliminacion de redundancias menores como `ejecucion_produccion.id_turno`.
 
+Desde `V16__congelar_modelo_logico_mvp.sql`, el modelo logico queda congelado para empezar entidades JPA y servicios: toda version de formula exige `id_creado_por` y todo lote exige `id_ejecucion`.
+
 ## Flujo principal nuevo
 
 1. `programacion_produccion`
@@ -54,7 +56,7 @@ Desde `V15__ajustes_finales_modelo_mvp.sql`, se cierran los ajustes finales ante
    Guarda el inicio, pausas, cierre y estado operativo de la orden.
 
 6. `lote_produccion`
-   Identifica los lotes producidos por SKU.
+   Identifica los lotes producidos por SKU. Todo lote debe quedar ligado a una ejecucion real.
 
 7. `medicion_bache`
    Guarda mediciones reales por bache: kilos, temperatura, pH, grados brix y tiempos.
@@ -86,7 +88,7 @@ Desde `V15__ajustes_finales_modelo_mvp.sql`, se cierran los ajustes finales ante
   Formula principal asociada a un producto base de `catalogo_producto`, no a una presentacion/SKU.
 
 - `formula_version`
-  Versiones controladas de una formula.
+  Versiones controladas de una formula. Toda version debe registrar el usuario que la crea.
 
 - `formula_detalle`
   Insumos requeridos por version de formula.
