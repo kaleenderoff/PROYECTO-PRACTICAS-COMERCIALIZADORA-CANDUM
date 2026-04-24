@@ -45,17 +45,14 @@ public class GestionUsuarioService implements GestionUsuarioUseCase {
         String segundoNombreNormalizado = normalizarTextoOpcional(usuario.getSegundoNombre());
         String primerApellidoNormalizado = normalizarTextoObligatorio(usuario.getPrimerApellido());
         String segundoApellidoNormalizado = normalizarTextoOpcional(usuario.getSegundoApellido());
-        String emailNormalizado = normalizarEmailOpcional(usuario.getEmail());
 
         validarCcUnica(ccNormalizada);
-        validarEmailUnicoSiAplica(emailNormalizado);
 
         usuario.setCc(ccNormalizada);
         usuario.setPrimerNombre(primerNombreNormalizado);
         usuario.setSegundoNombre(segundoNombreNormalizado);
         usuario.setPrimerApellido(primerApellidoNormalizado);
         usuario.setSegundoApellido(segundoApellidoNormalizado);
-        usuario.setEmail(emailNormalizado);
         usuario.setPasswordHash(passwordEncoder.encode(usuario.getPasswordHash()));
         usuario.setCreatedAt(LocalDateTime.now());
         usuario.setUpdatedAt(LocalDateTime.now());
@@ -77,14 +74,6 @@ public class GestionUsuarioService implements GestionUsuarioUseCase {
             throw new ReglaNegocioException("La cédula es obligatoria");
         }
         return usuarioRepositoryPort.buscarPorCc(cc.trim());
-    }
-
-    @Override
-    public Optional<Usuario> obtenerUsuarioPorEmail(String email) {
-        if (email == null || email.trim().isEmpty()) {
-            return Optional.empty();
-        }
-        return usuarioRepositoryPort.buscarPorEmail(email.trim().toLowerCase());
     }
 
     @Override
@@ -176,14 +165,6 @@ public class GestionUsuarioService implements GestionUsuarioUseCase {
         }
 
         existente.setSegundoApellido(normalizarTextoOpcional(usuario.getSegundoApellido()));
-
-        String emailNormalizado = normalizarEmailOpcional(usuario.getEmail());
-        if (emailNormalizado != null
-                && (existente.getEmail() == null || !emailNormalizado.equalsIgnoreCase(existente.getEmail()))
-                && usuarioRepositoryPort.existePorEmail(emailNormalizado)) {
-            throw new ReglaNegocioException("Ya existe un usuario con el email: " + emailNormalizado);
-        }
-        existente.setEmail(emailNormalizado);
 
         if (usuario.getRol() != null) {
             existente.setRol(usuario.getRol());
@@ -293,12 +274,6 @@ public class GestionUsuarioService implements GestionUsuarioUseCase {
         }
     }
 
-    private void validarEmailUnicoSiAplica(String email) {
-        if (email != null && usuarioRepositoryPort.existePorEmail(email)) {
-            throw new ReglaNegocioException("Ya existe un usuario con el email: " + email);
-        }
-    }
-
     private void validarParametrosPaginacion(int page, int size) {
         if (page < 0) {
             throw new ReglaNegocioException("El número de página no puede ser negativo");
@@ -317,14 +292,6 @@ public class GestionUsuarioService implements GestionUsuarioUseCase {
             return null;
         }
         String limpio = valor.trim();
-        return limpio.isEmpty() ? null : limpio;
-    }
-
-    private String normalizarEmailOpcional(String email) {
-        if (email == null) {
-            return null;
-        }
-        String limpio = email.trim().toLowerCase();
         return limpio.isEmpty() ? null : limpio;
     }
 }

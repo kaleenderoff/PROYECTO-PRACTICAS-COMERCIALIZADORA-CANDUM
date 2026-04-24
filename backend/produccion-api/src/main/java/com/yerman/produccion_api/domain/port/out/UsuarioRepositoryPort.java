@@ -15,8 +15,6 @@ public interface UsuarioRepositoryPort {
 
     Optional<Usuario> buscarPorCc(String cc);
 
-    Optional<Usuario> buscarPorEmail(String email);
-
     List<Usuario> buscarPorRolYActivo(Usuario.Rol rol);
 
     List<Usuario> listarTodos();
@@ -30,6 +28,4 @@ public interface UsuarioRepositoryPort {
     void eliminar(Long id);
 
     boolean existePorCc(String cc);
-
-    boolean existePorEmail(String email);
 }

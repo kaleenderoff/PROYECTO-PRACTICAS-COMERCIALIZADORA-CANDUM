@@ -14,11 +14,7 @@ public interface UsuarioJpaRepository extends JpaRepository<UsuarioEntity, Long>
 
     Optional<UsuarioEntity> findByCc(String cc);
 
-    Optional<UsuarioEntity> findByEmail(String email);
-
     boolean existsByCc(String cc);
-
-    boolean existsByEmail(String email);
 
     List<UsuarioEntity> findByActivoTrue();
 

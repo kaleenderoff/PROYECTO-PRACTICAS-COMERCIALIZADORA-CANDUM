@@ -49,6 +49,11 @@ public class CatalogoController {
                 .stream().map(this::toTurnoResponse).toList();
     }
 
+    @GetMapping("/turnos/{id}")
+    public TurnoResponse obtenerTurnoPorId(@PathVariable Long id) {
+        return toTurnoResponse(buscarTurno(id));
+    }
+
     @PostMapping("/turnos")
     @PreAuthorize("hasAnyRole('ADMIN','JEFE_PRODUCCION')")
     @Transactional
@@ -75,6 +80,11 @@ public class CatalogoController {
     public List<ProveedorResponse> listarProveedores(@RequestParam(defaultValue = "true") boolean activos) {
         return (activos ? proveedorRepository.findByActivoTrue() : proveedorRepository.findAll())
                 .stream().map(this::toProveedorResponse).toList();
+    }
+
+    @GetMapping("/proveedores/{id}")
+    public ProveedorResponse obtenerProveedorPorId(@PathVariable Long id) {
+        return toProveedorResponse(buscarProveedor(id));
     }
 
     @PostMapping("/proveedores")
@@ -105,6 +115,11 @@ public class CatalogoController {
                 .stream().map(this::toMarcaResponse).toList();
     }
 
+    @GetMapping("/marcas/{id}")
+    public MarcaResponse obtenerMarcaPorId(@PathVariable Long id) {
+        return toMarcaResponse(buscarMarca(id));
+    }
+
     @PostMapping("/marcas")
     @PreAuthorize("hasAnyRole('ADMIN','JEFE_PRODUCCION')")
     @Transactional
@@ -131,6 +146,11 @@ public class CatalogoController {
     public List<LineaResponse> listarLineas(@RequestParam(defaultValue = "true") boolean activos) {
         return (activos ? lineaRepository.findByActivoTrue() : lineaRepository.findAll())
                 .stream().map(this::toLineaResponse).toList();
+    }
+
+    @GetMapping("/lineas/{id}")
+    public LineaResponse obtenerLineaPorId(@PathVariable Long id) {
+        return toLineaResponse(buscarLinea(id));
     }
 
     @PostMapping("/lineas")
@@ -163,6 +183,11 @@ public class CatalogoController {
                 ? productoRepository.findByLineaId(idLinea)
                 : (activos ? productoRepository.findByActivoTrue() : productoRepository.findAll());
         return productos.stream().map(this::toProductoResponse).toList();
+    }
+
+    @GetMapping("/productos/{id}")
+    public ProductoResponse obtenerProductoPorId(@PathVariable Long id) {
+        return toProductoResponse(buscarProducto(id));
     }
 
     @PostMapping("/productos")

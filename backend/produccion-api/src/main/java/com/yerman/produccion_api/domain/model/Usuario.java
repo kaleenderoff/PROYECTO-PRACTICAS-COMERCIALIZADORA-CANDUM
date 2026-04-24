@@ -10,7 +10,6 @@ public class Usuario {
     private String segundoNombre;
     private String primerApellido;
     private String segundoApellido;
-    private String email;
     private String passwordHash;
     private Rol rol;
     private boolean activo;
@@ -36,7 +35,6 @@ public class Usuario {
             String segundoNombre,
             String primerApellido,
             String segundoApellido,
-            String email,
             String passwordHash,
             Rol rol,
             boolean activo,
@@ -48,7 +46,6 @@ public class Usuario {
         this.segundoNombre = segundoNombre;
         this.primerApellido = primerApellido;
         this.segundoApellido = segundoApellido;
-        this.email = email;
         this.passwordHash = passwordHash;
         this.rol = rol;
         this.activo = activo;
@@ -102,14 +99,6 @@ public class Usuario {
 
     public void setSegundoApellido(String segundoApellido) {
         this.segundoApellido = segundoApellido;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
     }
 
     public String getPasswordHash() {

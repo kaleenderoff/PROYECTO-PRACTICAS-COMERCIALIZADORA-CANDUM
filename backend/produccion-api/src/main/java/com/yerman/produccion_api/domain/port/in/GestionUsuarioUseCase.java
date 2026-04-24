@@ -15,8 +15,6 @@ public interface GestionUsuarioUseCase {
 
     Optional<Usuario> obtenerUsuarioPorCc(String cc);
 
-    Optional<Usuario> obtenerUsuarioPorEmail(String email);
-
     List<Usuario> listarUsuarios();
 
     List<Usuario> listarUsuariosActivos();

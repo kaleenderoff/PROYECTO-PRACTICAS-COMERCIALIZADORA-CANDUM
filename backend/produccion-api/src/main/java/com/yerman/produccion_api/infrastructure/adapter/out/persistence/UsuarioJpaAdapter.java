@@ -37,11 +37,6 @@ public class UsuarioJpaAdapter implements UsuarioRepositoryPort {
     }
 
     @Override
-    public Optional<Usuario> buscarPorEmail(String email) {
-        return repository.findByEmail(email).map(this::toDomain);
-    }
-
-    @Override
     public List<Usuario> buscarPorRolYActivo(Usuario.Rol rol) {
         return repository.findByRolAndActivoTrue(UsuarioEntity.Rol.valueOf(rol.name()))
                 .stream()
@@ -85,11 +80,6 @@ public class UsuarioJpaAdapter implements UsuarioRepositoryPort {
         return repository.existsByCc(cc);
     }
 
-    @Override
-    public boolean existePorEmail(String email) {
-        return repository.existsByEmail(email);
-    }
-
     private Usuario toDomain(UsuarioEntity entity) {
         Usuario usuario = new Usuario();
         usuario.setIdUsuario(entity.getIdUsuario());
@@ -98,7 +88,6 @@ public class UsuarioJpaAdapter implements UsuarioRepositoryPort {
         usuario.setSegundoNombre(entity.getSegundoNombre());
         usuario.setPrimerApellido(entity.getPrimerApellido());
         usuario.setSegundoApellido(entity.getSegundoApellido());
-        usuario.setEmail(entity.getEmail());
         usuario.setPasswordHash(entity.getPasswordHash());
         usuario.setRol(Usuario.Rol.valueOf(entity.getRol().name()));
         usuario.setActivo(entity.isActivo());
@@ -115,7 +104,6 @@ public class UsuarioJpaAdapter implements UsuarioRepositoryPort {
         entity.setSegundoNombre(usuario.getSegundoNombre());
         entity.setPrimerApellido(usuario.getPrimerApellido());
         entity.setSegundoApellido(usuario.getSegundoApellido());
-        entity.setEmail(usuario.getEmail());
         entity.setPasswordHash(usuario.getPasswordHash());
         entity.setRol(UsuarioEntity.Rol.valueOf(usuario.getRol().name()));
         entity.setActivo(usuario.isActivo());

@@ -16,7 +16,6 @@ public class UsuarioMapper {
         usuario.setSegundoNombre(request.getSegundoNombre());
         usuario.setPrimerApellido(request.getPrimerApellido());
         usuario.setSegundoApellido(request.getSegundoApellido());
-        usuario.setEmail(request.getEmail());
         usuario.setPasswordHash(request.getPassword());
         usuario.setRol(Usuario.Rol.valueOf(request.getRol().toUpperCase()));
 
@@ -31,8 +30,6 @@ public class UsuarioMapper {
         usuario.setPrimerNombre(request.getPrimerNombre());
         usuario.setSegundoNombre(request.getSegundoNombre());
         usuario.setPrimerApellido(request.getPrimerApellido());
-        usuario.setSegundoApellido(request.getSegundoApellido());
-        usuario.setEmail(request.getEmail());
         usuario.setRol(Usuario.Rol.valueOf(request.getRol().toUpperCase()));
         usuario.setActivo(request.isActivo());
 
@@ -48,7 +45,6 @@ public class UsuarioMapper {
                 usuario.getSegundoNombre(),
                 usuario.getPrimerApellido(),
                 usuario.getSegundoApellido(),
-                usuario.getEmail(),
                 usuario.getRol().name(),
                 usuario.isActivo());
     }

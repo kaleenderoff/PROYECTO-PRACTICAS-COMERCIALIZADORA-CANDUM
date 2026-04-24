@@ -8,7 +8,6 @@ public class UsuarioResponse {
     private String segundoNombre;
     private String primerApellido;
     private String segundoApellido;
-    private String email;
     private String rol;
     private boolean activo;
 
@@ -18,7 +17,6 @@ public class UsuarioResponse {
             String segundoNombre,
             String primerApellido,
             String segundoApellido,
-            String email,
             String rol,
             boolean activo) {
         this.idUsuario = idUsuario;
@@ -27,7 +25,6 @@ public class UsuarioResponse {
         this.segundoNombre = segundoNombre;
         this.primerApellido = primerApellido;
         this.segundoApellido = segundoApellido;
-        this.email = email;
         this.rol = rol;
         this.activo = activo;
     }
@@ -54,10 +51,6 @@ public class UsuarioResponse {
 
     public String getSegundoApellido() {
         return segundoApellido;
-    }
-
-    public String getEmail() {
-        return email;
     }
 
     public String getRol() {

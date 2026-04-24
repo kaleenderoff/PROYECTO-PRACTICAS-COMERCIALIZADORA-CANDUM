@@ -6,7 +6,6 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "usuario", uniqueConstraints = {
         @UniqueConstraint(name = "uq_usuario_cc", columnNames = "cc"),
-        @UniqueConstraint(name = "uq_usuario_email", columnNames = "email")
 })
 public class UsuarioEntity {
 
@@ -29,9 +28,6 @@ public class UsuarioEntity {
 
     @Column(name = "segundo_apellido", length = 100)
     private String segundoApellido;
-
-    @Column(name = "email", length = 150)
-    private String email;
 
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
@@ -119,14 +115,6 @@ public class UsuarioEntity {
 
     public void setSegundoApellido(String segundoApellido) {
         this.segundoApellido = segundoApellido;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
     }
 
     public String getPasswordHash() {
