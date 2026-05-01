@@ -37,6 +37,19 @@ public class GestionProduccionLacteaService implements GestionProduccionLacteaUs
     public Produccion registrarProduccion(Produccion produccion) {
         validarProduccion(produccion);
 
+        BigDecimal totalLitrosProduccion = produccion.getBatches()
+                .stream()
+                .map(ProduccionBatch::getLitrosConsumidos)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal saldoActual = movimientoLecheUseCase.obtenerSaldoActualPorTanque(produccion.getIdTanque());
+
+        if (saldoActual.compareTo(totalLitrosProduccion) < 0) {
+            throw new ReglaNegocioException(
+                    "No hay suficiente leche disponible en el tanque. Saldo actual: "
+                            + saldoActual + " L, requerido: " + totalLitrosProduccion + " L.");
+        }
+
         for (ProduccionBatch batch : produccion.getBatches()) {
             batch.setRendimiento(calcularRendimiento(batch));
 
