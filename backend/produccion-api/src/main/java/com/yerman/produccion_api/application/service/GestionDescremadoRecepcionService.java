@@ -3,7 +3,10 @@ package com.yerman.produccion_api.application.service;
 import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
 import com.yerman.produccion_api.application.exception.ReglaNegocioException;
 import com.yerman.produccion_api.domain.model.DescremadoRecepcion;
+import com.yerman.produccion_api.domain.model.RecepcionLeche;
+import com.yerman.produccion_api.domain.model.TipoMovimientoLeche;
 import com.yerman.produccion_api.domain.port.in.GestionDescremadoRecepcionUseCase;
+import com.yerman.produccion_api.domain.port.in.GestionMovimientoLecheUseCase;
 import com.yerman.produccion_api.domain.port.in.GestionRecepcionLecheUseCase;
 import com.yerman.produccion_api.domain.port.out.DescremadoRecepcionRepositoryPort;
 import jakarta.transaction.Transactional;
@@ -17,12 +20,15 @@ public class GestionDescremadoRecepcionService implements GestionDescremadoRecep
 
     private final DescremadoRecepcionRepositoryPort repository;
     private final GestionRecepcionLecheUseCase recepcionLecheUseCase;
+    private final GestionMovimientoLecheUseCase movimientoLecheUseCase;
 
     public GestionDescremadoRecepcionService(
             DescremadoRecepcionRepositoryPort repository,
-            GestionRecepcionLecheUseCase recepcionLecheUseCase) {
+            GestionRecepcionLecheUseCase recepcionLecheUseCase,
+            GestionMovimientoLecheUseCase movimientoLecheUseCase) {
         this.repository = repository;
         this.recepcionLecheUseCase = recepcionLecheUseCase;
+        this.movimientoLecheUseCase = movimientoLecheUseCase;
     }
 
     @Override
@@ -30,8 +36,16 @@ public class GestionDescremadoRecepcionService implements GestionDescremadoRecep
     public DescremadoRecepcion registrarDescremado(DescremadoRecepcion descremadoRecepcion) {
         validarDescremado(descremadoRecepcion);
 
-        // Valida que la recepción exista
-        recepcionLecheUseCase.obtenerPorId(descremadoRecepcion.getIdRecepcionLeche());
+        RecepcionLeche recepcion = recepcionLecheUseCase.obtenerPorId(
+                descremadoRecepcion.getIdRecepcionLeche());
+
+        movimientoLecheUseCase.registrarMovimiento(
+                recepcion.getIdTanque(),
+                TipoMovimientoLeche.SALIDA_DESCREME,
+                descremadoRecepcion.getLitrosDescremados(),
+                recepcion.getIdUsuario(),
+                construirReferencia(recepcion),
+                descremadoRecepcion.getObservaciones());
 
         return repository.guardar(descremadoRecepcion);
     }
@@ -71,5 +85,13 @@ public class GestionDescremadoRecepcionService implements GestionDescremadoRecep
                 && descremadoRecepcion.getCremaObtenidaKg().compareTo(BigDecimal.ZERO) < 0) {
             throw new ReglaNegocioException("La crema obtenida no puede ser negativa.");
         }
+    }
+
+    private String construirReferencia(RecepcionLeche recepcion) {
+        if (recepcion.getNumeroRemision() != null && !recepcion.getNumeroRemision().isBlank()) {
+            return "Descreme recepción - Remisión " + recepcion.getNumeroRemision();
+        }
+
+        return "Descreme recepción ID " + recepcion.getId();
     }
 }
