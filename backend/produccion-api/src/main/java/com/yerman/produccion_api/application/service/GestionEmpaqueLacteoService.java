@@ -36,12 +36,16 @@ public class GestionEmpaqueLacteoService implements GestionEmpaqueLacteoUseCase 
     @Override
     @Transactional
     public EmpaqueLacteo crear(EmpaqueLacteo empaqueLacteo) {
+        validarLote(empaqueLacteo);
+        validarUnidades(empaqueLacteo);
+        validarCajas(empaqueLacteo);
         validarBatchExiste(empaqueLacteo.getProduccionLacteaBatchId());
 
         ProductoTerminadoLacteo productoTerminado = productoTerminadoLacteoRepositoryPort
                 .obtenerPorId(empaqueLacteo.getProductoTerminadoLacteoId())
                 .orElseThrow(() -> new RecursoNoEncontradoException("Producto terminado lácteo no encontrado"));
 
+        validarRelacionBatchProducto(productoTerminado, empaqueLacteo);
         validarProductoDisponible(productoTerminado);
         validarKilosDisponibles(productoTerminado, empaqueLacteo);
         validarPesoTotal(empaqueLacteo);
@@ -111,6 +115,26 @@ public class GestionEmpaqueLacteoService implements GestionEmpaqueLacteoUseCase 
         return empaqueLacteoRepositoryPort.guardar(empaqueLacteo);
     }
 
+    private void validarLote(EmpaqueLacteo empaqueLacteo) {
+        if (empaqueLacteo.getLoteEmpaque() == null
+                || empaqueLacteo.getLoteEmpaque().isBlank()) {
+            throw new ReglaNegocioException("El lote de empaque es obligatorio");
+        }
+    }
+
+    private void validarUnidades(EmpaqueLacteo empaqueLacteo) {
+        if (empaqueLacteo.getUnidades() == null || empaqueLacteo.getUnidades() <= 0) {
+            throw new ReglaNegocioException("Las unidades deben ser mayores a cero");
+        }
+    }
+
+    private void validarCajas(EmpaqueLacteo empaqueLacteo) {
+        if (empaqueLacteo.getCajas() != null
+                && empaqueLacteo.getCajas().compareTo(BigDecimal.ZERO) < 0) {
+            throw new ReglaNegocioException("Las cajas no pueden ser negativas");
+        }
+    }
+
     private void validarBatchExiste(Long produccionLacteaBatchId) {
         if (produccionLacteaBatchId == null) {
             throw new ReglaNegocioException("Debe indicar el batch de producción láctea");
@@ -118,6 +142,18 @@ public class GestionEmpaqueLacteoService implements GestionEmpaqueLacteoUseCase 
 
         if (!produccionLacteaBatchRepositoryPort.existePorId(produccionLacteaBatchId)) {
             throw new RecursoNoEncontradoException("Batch de producción láctea no encontrado");
+        }
+    }
+
+    private void validarRelacionBatchProducto(
+            ProductoTerminadoLacteo productoTerminado,
+            EmpaqueLacteo empaqueLacteo) {
+
+        if (productoTerminado.getIdProduccionLacteaBatch() == null
+                || !productoTerminado.getIdProduccionLacteaBatch()
+                        .equals(empaqueLacteo.getProduccionLacteaBatchId())) {
+            throw new ReglaNegocioException(
+                    "El batch del empaque no corresponde al producto terminado");
         }
     }
 
@@ -135,6 +171,7 @@ public class GestionEmpaqueLacteoService implements GestionEmpaqueLacteoUseCase 
     private void validarKilosDisponibles(
             ProductoTerminadoLacteo productoTerminado,
             EmpaqueLacteo empaqueLacteo) {
+
         if (empaqueLacteo.getKilosUtilizados() == null
                 || empaqueLacteo.getKilosUtilizados().compareTo(BigDecimal.ZERO) <= 0) {
             throw new ReglaNegocioException("Los kilos utilizados deben ser mayores a cero");

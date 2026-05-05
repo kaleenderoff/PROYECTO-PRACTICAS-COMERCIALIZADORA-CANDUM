@@ -8,4 +8,6 @@ import java.util.List;
 public interface ProduccionLacteaBatchJpaRepository extends JpaRepository<ProduccionLacteaBatchEntity, Long> {
 
     List<ProduccionLacteaBatchEntity> findByProduccionId(Long idProduccion);
+
+    boolean existsByIdAndProduccionId(Long id, Long idProduccion);
 }

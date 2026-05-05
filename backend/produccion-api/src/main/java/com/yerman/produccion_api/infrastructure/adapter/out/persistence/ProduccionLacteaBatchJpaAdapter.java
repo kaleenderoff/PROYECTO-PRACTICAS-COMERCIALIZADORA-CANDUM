@@ -21,4 +21,13 @@ public class ProduccionLacteaBatchJpaAdapter implements ProduccionLacteaBatchRep
 
         return produccionLacteaBatchJpaRepository.existsById(id);
     }
+
+    @Override
+    public boolean existePorIdYProduccion(Long id, Long idProduccionLactea) {
+        if (id == null || idProduccionLactea == null) {
+            return false;
+        }
+
+        return produccionLacteaBatchJpaRepository.existsByIdAndProduccionId(id, idProduccionLactea);
+    }
 }
