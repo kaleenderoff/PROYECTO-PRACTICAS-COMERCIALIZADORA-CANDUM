@@ -7,6 +7,7 @@ public class EmpaqueLacteo {
 
     private Long id;
     private Long productoTerminadoLacteoId;
+    private Long produccionLacteaBatchId;
 
     private String loteEmpaque;
     private LocalDate fechaEmpaque;
@@ -23,20 +24,13 @@ public class EmpaqueLacteo {
     public EmpaqueLacteo() {
     }
 
-    public EmpaqueLacteo(
-            Long id,
-            Long productoTerminadoLacteoId,
-            String loteEmpaque,
-            LocalDate fechaEmpaque,
-            LocalDate fechaVencimiento,
-            BigDecimal kilosUtilizados,
-            Integer unidades,
-            BigDecimal cajas,
-            BigDecimal pesoTotalKg,
-            EstadoEmpaqueLacteo estado,
-            String observaciones) {
+    public EmpaqueLacteo(Long id, Long productoTerminadoLacteoId, Long produccionLacteaBatchId,
+            String loteEmpaque, LocalDate fechaEmpaque, LocalDate fechaVencimiento,
+            BigDecimal kilosUtilizados, Integer unidades, BigDecimal cajas,
+            BigDecimal pesoTotalKg, EstadoEmpaqueLacteo estado, String observaciones) {
         this.id = id;
         this.productoTerminadoLacteoId = productoTerminadoLacteoId;
+        this.produccionLacteaBatchId = produccionLacteaBatchId;
         this.loteEmpaque = loteEmpaque;
         this.fechaEmpaque = fechaEmpaque;
         this.fechaVencimiento = fechaVencimiento;
@@ -54,6 +48,10 @@ public class EmpaqueLacteo {
 
     public Long getProductoTerminadoLacteoId() {
         return productoTerminadoLacteoId;
+    }
+
+    public Long getProduccionLacteaBatchId() {
+        return produccionLacteaBatchId;
     }
 
     public String getLoteEmpaque() {
@@ -96,8 +94,12 @@ public class EmpaqueLacteo {
         this.id = id;
     }
 
-    public void setProductoTerminadoLacteoId(Long productoTerminadoLacteoId) {
-        this.productoTerminadoLacteoId = productoTerminadoLacteoId;
+    public void setProductoTerminadoLacteoId(Long id) {
+        this.productoTerminadoLacteoId = id;
+    }
+
+    public void setProduccionLacteaBatchId(Long id) {
+        this.produccionLacteaBatchId = id;
     }
 
     public void setLoteEmpaque(String loteEmpaque) {
