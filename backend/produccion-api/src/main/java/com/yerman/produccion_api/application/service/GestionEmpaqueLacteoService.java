@@ -7,6 +7,7 @@ import com.yerman.produccion_api.domain.model.EstadoEmpaqueLacteo;
 import com.yerman.produccion_api.domain.model.EstadoProductoTerminadoLacteo;
 import com.yerman.produccion_api.domain.model.ProductoTerminadoLacteo;
 import com.yerman.produccion_api.domain.port.in.GestionEmpaqueLacteoUseCase;
+import com.yerman.produccion_api.domain.port.out.CatalogoSkuRepositoryPort;
 import com.yerman.produccion_api.domain.port.out.EmpaqueLacteoRepositoryPort;
 import com.yerman.produccion_api.domain.port.out.ProduccionLacteaBatchRepositoryPort;
 import com.yerman.produccion_api.domain.port.out.ProductoTerminadoLacteoRepositoryPort;
@@ -23,14 +24,17 @@ public class GestionEmpaqueLacteoService implements GestionEmpaqueLacteoUseCase 
     private final EmpaqueLacteoRepositoryPort empaqueLacteoRepositoryPort;
     private final ProductoTerminadoLacteoRepositoryPort productoTerminadoLacteoRepositoryPort;
     private final ProduccionLacteaBatchRepositoryPort produccionLacteaBatchRepositoryPort;
+    private final CatalogoSkuRepositoryPort catalogoSkuRepositoryPort;
 
     public GestionEmpaqueLacteoService(
             EmpaqueLacteoRepositoryPort empaqueLacteoRepositoryPort,
             ProductoTerminadoLacteoRepositoryPort productoTerminadoLacteoRepositoryPort,
-            ProduccionLacteaBatchRepositoryPort produccionLacteaBatchRepositoryPort) {
+            ProduccionLacteaBatchRepositoryPort produccionLacteaBatchRepositoryPort,
+            CatalogoSkuRepositoryPort catalogoSkuRepositoryPort) {
         this.empaqueLacteoRepositoryPort = empaqueLacteoRepositoryPort;
         this.productoTerminadoLacteoRepositoryPort = productoTerminadoLacteoRepositoryPort;
         this.produccionLacteaBatchRepositoryPort = produccionLacteaBatchRepositoryPort;
+        this.catalogoSkuRepositoryPort = catalogoSkuRepositoryPort;
     }
 
     @Override
@@ -40,6 +44,7 @@ public class GestionEmpaqueLacteoService implements GestionEmpaqueLacteoUseCase 
         validarUnidades(empaqueLacteo);
         validarCajas(empaqueLacteo);
         validarBatchExiste(empaqueLacteo.getProduccionLacteaBatchId());
+        validarSkuExiste(empaqueLacteo.getSkuId());
 
         ProductoTerminadoLacteo productoTerminado = productoTerminadoLacteoRepositoryPort
                 .obtenerPorId(empaqueLacteo.getProductoTerminadoLacteoId())
@@ -142,6 +147,12 @@ public class GestionEmpaqueLacteoService implements GestionEmpaqueLacteoUseCase 
 
         if (!produccionLacteaBatchRepositoryPort.existePorId(produccionLacteaBatchId)) {
             throw new RecursoNoEncontradoException("Batch de producción láctea no encontrado");
+        }
+    }
+
+    private void validarSkuExiste(Long skuId) {
+        if (skuId != null && !catalogoSkuRepositoryPort.existePorId(skuId)) {
+            throw new RecursoNoEncontradoException("SKU no encontrado");
         }
     }
 

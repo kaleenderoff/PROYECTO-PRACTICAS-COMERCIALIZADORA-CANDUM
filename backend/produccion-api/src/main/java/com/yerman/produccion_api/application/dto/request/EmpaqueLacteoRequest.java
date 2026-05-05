@@ -13,6 +13,8 @@ public class EmpaqueLacteoRequest {
     @NotNull(message = "El batch es obligatorio")
     private Long produccionLacteaBatchId;
 
+    private Long skuId;
+
     @NotBlank
     private String loteEmpaque;
 
@@ -46,6 +48,10 @@ public class EmpaqueLacteoRequest {
 
     public Long getProduccionLacteaBatchId() {
         return produccionLacteaBatchId;
+    }
+
+    public Long getSkuId() {
+        return skuId;
     }
 
     public String getLoteEmpaque() {
@@ -86,6 +92,10 @@ public class EmpaqueLacteoRequest {
 
     public void setProduccionLacteaBatchId(Long v) {
         this.produccionLacteaBatchId = v;
+    }
+
+    public void setSkuId(Long skuId) {
+        this.skuId = skuId;
     }
 
     public void setLoteEmpaque(String v) {

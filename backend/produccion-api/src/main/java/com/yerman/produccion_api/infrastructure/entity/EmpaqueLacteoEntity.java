@@ -22,6 +22,10 @@ public class EmpaqueLacteoEntity {
     @JoinColumn(name = "id_produccion_lactea_batch", nullable = false)
     private ProduccionLacteaBatchEntity batch;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_sku")
+    private CatalogoSkuEntity sku;
+
     @Column(name = "lote_empaque", nullable = false, length = 80)
     private String loteEmpaque;
 
@@ -92,6 +96,10 @@ public class EmpaqueLacteoEntity {
         return batch;
     }
 
+    public CatalogoSkuEntity getSku() {
+        return sku;
+    }
+
     public String getLoteEmpaque() {
         return loteEmpaque;
     }
@@ -146,6 +154,10 @@ public class EmpaqueLacteoEntity {
 
     public void setBatch(ProduccionLacteaBatchEntity batch) {
         this.batch = batch;
+    }
+
+    public void setSku(CatalogoSkuEntity sku) {
+        this.sku = sku;
     }
 
     public void setLoteEmpaque(String loteEmpaque) {
