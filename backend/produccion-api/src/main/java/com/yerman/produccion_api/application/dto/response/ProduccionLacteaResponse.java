@@ -6,6 +6,7 @@ import java.util.List;
 public class ProduccionLacteaResponse {
 
     private Long id;
+    private Long idOrdenProduccion;
     private LocalDate fechaProduccion;
     private String producto;
     private Long idTanque;
@@ -13,10 +14,11 @@ public class ProduccionLacteaResponse {
     private String observaciones;
     private List<ProduccionLacteaBatchResponse> batches;
 
-    public ProduccionLacteaResponse(Long id, LocalDate fechaProduccion, String producto,
+    public ProduccionLacteaResponse(Long id, Long idOrdenProduccion, LocalDate fechaProduccion, String producto,
             Long idTanque, Long idUsuario, String observaciones,
             List<ProduccionLacteaBatchResponse> batches) {
         this.id = id;
+        this.idOrdenProduccion = idOrdenProduccion;
         this.fechaProduccion = fechaProduccion;
         this.producto = producto;
         this.idTanque = idTanque;
@@ -27,6 +29,10 @@ public class ProduccionLacteaResponse {
 
     public Long getId() {
         return id;
+    }
+
+    public Long getIdOrdenProduccion() {
+        return idOrdenProduccion;
     }
 
     public LocalDate getFechaProduccion() {

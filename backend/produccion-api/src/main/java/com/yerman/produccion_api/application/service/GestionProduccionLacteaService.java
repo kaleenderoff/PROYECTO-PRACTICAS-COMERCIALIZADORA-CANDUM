@@ -7,6 +7,7 @@ import com.yerman.produccion_api.domain.model.Produccion;
 import com.yerman.produccion_api.domain.model.ProduccionBatch;
 import com.yerman.produccion_api.domain.model.TipoMovimientoLeche;
 import com.yerman.produccion_api.domain.port.in.GestionMovimientoLecheUseCase;
+import com.yerman.produccion_api.domain.port.in.GestionOrdenProduccionUseCase;
 import com.yerman.produccion_api.domain.port.in.GestionProduccionLacteaUseCase;
 import com.yerman.produccion_api.domain.port.out.ProduccionLacteaRepositoryPort;
 import jakarta.transaction.Transactional;
@@ -24,12 +25,15 @@ public class GestionProduccionLacteaService implements GestionProduccionLacteaUs
 
     private final ProduccionLacteaRepositoryPort repository;
     private final GestionMovimientoLecheUseCase movimientoLecheUseCase;
+    private final GestionOrdenProduccionUseCase ordenProduccionUseCase;
 
     public GestionProduccionLacteaService(
             ProduccionLacteaRepositoryPort repository,
-            GestionMovimientoLecheUseCase movimientoLecheUseCase) {
+            GestionMovimientoLecheUseCase movimientoLecheUseCase,
+            GestionOrdenProduccionUseCase ordenProduccionUseCase) {
         this.repository = repository;
         this.movimientoLecheUseCase = movimientoLecheUseCase;
+        this.ordenProduccionUseCase = ordenProduccionUseCase;
     }
 
     @Override
@@ -91,6 +95,12 @@ public class GestionProduccionLacteaService implements GestionProduccionLacteaUs
 
         if (produccion.getFechaProduccion() == null) {
             throw new ReglaNegocioException("La fecha de producción es obligatoria.");
+        }
+
+        if (produccion.getIdOrdenProduccion() != null
+                && ordenProduccionUseCase.obtenerPorId(produccion.getIdOrdenProduccion()).isEmpty()) {
+            throw new RecursoNoEncontradoException(
+                    "No existe una orden de produccion con ID: " + produccion.getIdOrdenProduccion());
         }
 
         if (produccion.getProducto() == null || produccion.getProducto().isBlank()) {

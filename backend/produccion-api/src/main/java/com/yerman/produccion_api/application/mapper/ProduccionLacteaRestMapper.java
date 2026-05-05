@@ -23,6 +23,7 @@ public class ProduccionLacteaRestMapper {
                 .toList();
 
         Produccion produccion = new Produccion();
+        produccion.setIdOrdenProduccion(request.getIdOrdenProduccion());
         produccion.setFechaProduccion(request.getFechaProduccion());
         produccion.setProducto(request.getProducto());
         produccion.setIdTanque(request.getIdTanque());
@@ -50,6 +51,7 @@ public class ProduccionLacteaRestMapper {
 
         return new ProduccionLacteaResponse(
                 produccion.getId(),
+                produccion.getIdOrdenProduccion(),
                 produccion.getFechaProduccion(),
                 produccion.getProducto(),
                 produccion.getIdTanque(),

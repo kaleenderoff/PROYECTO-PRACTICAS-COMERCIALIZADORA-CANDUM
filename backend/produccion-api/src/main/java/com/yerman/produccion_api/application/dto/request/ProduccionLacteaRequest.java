@@ -13,6 +13,8 @@ public class ProduccionLacteaRequest {
     @NotNull
     private LocalDate fechaProduccion;
 
+    private Long idOrdenProduccion;
+
     @NotBlank
     @Size(max = 120)
     private String producto;
@@ -34,8 +36,16 @@ public class ProduccionLacteaRequest {
         return fechaProduccion;
     }
 
+    public Long getIdOrdenProduccion() {
+        return idOrdenProduccion;
+    }
+
     public void setFechaProduccion(LocalDate fechaProduccion) {
         this.fechaProduccion = fechaProduccion;
+    }
+
+    public void setIdOrdenProduccion(Long idOrdenProduccion) {
+        this.idOrdenProduccion = idOrdenProduccion;
     }
 
     public String getProducto() {

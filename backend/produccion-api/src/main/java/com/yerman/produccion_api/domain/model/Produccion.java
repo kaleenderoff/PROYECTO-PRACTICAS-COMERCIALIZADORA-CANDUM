@@ -6,6 +6,7 @@ import java.util.List;
 public class Produccion {
 
     private Long id;
+    private Long idOrdenProduccion;
     private LocalDate fechaProduccion;
     private String producto;
     private Long idTanque;
@@ -16,10 +17,11 @@ public class Produccion {
     public Produccion() {
     }
 
-    public Produccion(Long id, LocalDate fechaProduccion, String producto,
+    public Produccion(Long id, Long idOrdenProduccion, LocalDate fechaProduccion, String producto,
             Long idTanque, Long idUsuario, String observaciones,
             List<ProduccionBatch> batches) {
         this.id = id;
+        this.idOrdenProduccion = idOrdenProduccion;
         this.fechaProduccion = fechaProduccion;
         this.producto = producto;
         this.idTanque = idTanque;
@@ -30,6 +32,10 @@ public class Produccion {
 
     public Long getId() {
         return id;
+    }
+
+    public Long getIdOrdenProduccion() {
+        return idOrdenProduccion;
     }
 
     public LocalDate getFechaProduccion() {
@@ -58,6 +64,10 @@ public class Produccion {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public void setIdOrdenProduccion(Long idOrdenProduccion) {
+        this.idOrdenProduccion = idOrdenProduccion;
     }
 
     public void setFechaProduccion(LocalDate fechaProduccion) {

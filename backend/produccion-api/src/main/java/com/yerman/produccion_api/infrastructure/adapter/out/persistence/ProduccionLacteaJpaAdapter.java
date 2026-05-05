@@ -6,6 +6,7 @@ import com.yerman.produccion_api.domain.model.ProduccionBatch;
 import com.yerman.produccion_api.domain.port.out.ProduccionLacteaRepositoryPort;
 import com.yerman.produccion_api.infrastructure.entity.MarmitaEntity;
 import com.yerman.produccion_api.infrastructure.entity.MovimientoLecheEntity;
+import com.yerman.produccion_api.infrastructure.entity.OrdenProduccionEntity;
 import com.yerman.produccion_api.infrastructure.entity.ProduccionLacteaBatchEntity;
 import com.yerman.produccion_api.infrastructure.entity.ProduccionLacteaEntity;
 import com.yerman.produccion_api.infrastructure.entity.TanqueLecheEntity;
@@ -67,6 +68,12 @@ public class ProduccionLacteaJpaAdapter implements ProduccionLacteaRepositoryPor
         entity.setFechaProduccion(produccion.getFechaProduccion());
         entity.setProducto(produccion.getProducto());
         entity.setObservaciones(produccion.getObservaciones());
+
+        if (produccion.getIdOrdenProduccion() != null) {
+            entity.setOrdenProduccion(entityManager.getReference(
+                    OrdenProduccionEntity.class,
+                    produccion.getIdOrdenProduccion()));
+        }
 
         entity.setTanque(entityManager.getReference(
                 TanqueLecheEntity.class,

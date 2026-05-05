@@ -23,6 +23,7 @@ public class ProduccionLacteaMapper {
 
         Produccion produccion = new Produccion();
         produccion.setId(entity.getId());
+        produccion.setIdOrdenProduccion(entity.getOrdenProduccion() != null ? entity.getOrdenProduccion().getId() : null);
         produccion.setFechaProduccion(entity.getFechaProduccion());
         produccion.setProducto(entity.getProducto());
         produccion.setIdTanque(entity.getTanque().getId());

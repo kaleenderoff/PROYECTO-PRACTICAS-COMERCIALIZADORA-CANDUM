@@ -14,6 +14,10 @@ public class ProduccionLacteaEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_orden_produccion")
+    private OrdenProduccionEntity ordenProduccion;
+
     @Column(name = "fecha_produccion", nullable = false)
     private LocalDate fechaProduccion;
 
@@ -47,6 +51,10 @@ public class ProduccionLacteaEntity {
         return id;
     }
 
+    public OrdenProduccionEntity getOrdenProduccion() {
+        return ordenProduccion;
+    }
+
     public LocalDate getFechaProduccion() {
         return fechaProduccion;
     }
@@ -73,6 +81,10 @@ public class ProduccionLacteaEntity {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public void setOrdenProduccion(OrdenProduccionEntity ordenProduccion) {
+        this.ordenProduccion = ordenProduccion;
     }
 
     public void setFechaProduccion(LocalDate fechaProduccion) {
