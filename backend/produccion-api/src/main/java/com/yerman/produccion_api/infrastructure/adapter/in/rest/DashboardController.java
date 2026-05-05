@@ -1,8 +1,8 @@
 package com.yerman.produccion_api.infrastructure.adapter.in.rest;
 
 import com.yerman.produccion_api.application.dto.response.DashboardProduccionVsEmpaqueResponse;
+import com.yerman.produccion_api.application.dto.response.DashboardTrazabilidadLoteResponse;
 import com.yerman.produccion_api.domain.port.in.GestionDashboardUseCase;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -11,14 +11,20 @@ import java.util.List;
 @RequestMapping("/dashboard")
 public class DashboardController {
 
-    private final GestionDashboardUseCase gestionDashboardUseCase;
+    private final GestionDashboardUseCase service;
 
-    public DashboardController(GestionDashboardUseCase gestionDashboardUseCase) {
-        this.gestionDashboardUseCase = gestionDashboardUseCase;
+    public DashboardController(GestionDashboardUseCase service) {
+        this.service = service;
     }
 
     @GetMapping("/produccion-vs-empaque")
-    public ResponseEntity<List<DashboardProduccionVsEmpaqueResponse>> obtenerProduccionVsEmpaque() {
-        return ResponseEntity.ok(gestionDashboardUseCase.obtenerProduccionVsEmpaque());
+    public List<DashboardProduccionVsEmpaqueResponse> obtenerProduccionVsEmpaque() {
+        return service.obtenerProduccionVsEmpaque();
+    }
+
+    @GetMapping("/trazabilidad-por-lote/{lote}")
+    public DashboardTrazabilidadLoteResponse obtenerTrazabilidadPorLote(
+            @PathVariable String lote) {
+        return service.obtenerTrazabilidadPorLote(lote);
     }
 }
