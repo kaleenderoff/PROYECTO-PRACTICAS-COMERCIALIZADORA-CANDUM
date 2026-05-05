@@ -8,6 +8,7 @@ import com.yerman.produccion_api.domain.model.EstadoProductoTerminadoLacteo;
 import com.yerman.produccion_api.domain.model.ProductoTerminadoLacteo;
 import com.yerman.produccion_api.domain.port.in.GestionEmpaqueLacteoUseCase;
 import com.yerman.produccion_api.domain.port.out.EmpaqueLacteoRepositoryPort;
+import com.yerman.produccion_api.domain.port.out.ProduccionLacteaBatchRepositoryPort;
 import com.yerman.produccion_api.domain.port.out.ProductoTerminadoLacteoRepositoryPort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,17 +22,22 @@ public class GestionEmpaqueLacteoService implements GestionEmpaqueLacteoUseCase 
 
     private final EmpaqueLacteoRepositoryPort empaqueLacteoRepositoryPort;
     private final ProductoTerminadoLacteoRepositoryPort productoTerminadoLacteoRepositoryPort;
+    private final ProduccionLacteaBatchRepositoryPort produccionLacteaBatchRepositoryPort;
 
     public GestionEmpaqueLacteoService(
             EmpaqueLacteoRepositoryPort empaqueLacteoRepositoryPort,
-            ProductoTerminadoLacteoRepositoryPort productoTerminadoLacteoRepositoryPort) {
+            ProductoTerminadoLacteoRepositoryPort productoTerminadoLacteoRepositoryPort,
+            ProduccionLacteaBatchRepositoryPort produccionLacteaBatchRepositoryPort) {
         this.empaqueLacteoRepositoryPort = empaqueLacteoRepositoryPort;
         this.productoTerminadoLacteoRepositoryPort = productoTerminadoLacteoRepositoryPort;
+        this.produccionLacteaBatchRepositoryPort = produccionLacteaBatchRepositoryPort;
     }
 
     @Override
     @Transactional
     public EmpaqueLacteo crear(EmpaqueLacteo empaqueLacteo) {
+        validarBatchExiste(empaqueLacteo.getProduccionLacteaBatchId());
+
         ProductoTerminadoLacteo productoTerminado = productoTerminadoLacteoRepositoryPort
                 .obtenerPorId(empaqueLacteo.getProductoTerminadoLacteoId())
                 .orElseThrow(() -> new RecursoNoEncontradoException("Producto terminado lácteo no encontrado"));
@@ -97,11 +103,22 @@ public class GestionEmpaqueLacteoService implements GestionEmpaqueLacteoUseCase 
 
         productoTerminado.setKilosDisponibles(nuevoSaldo);
         productoTerminado.setEstado(calcularEstadoProductoTerminado(productoTerminado));
+
         productoTerminadoLacteoRepositoryPort.guardar(productoTerminado);
 
         empaqueLacteo.setEstado(EstadoEmpaqueLacteo.ANULADO);
 
         return empaqueLacteoRepositoryPort.guardar(empaqueLacteo);
+    }
+
+    private void validarBatchExiste(Long produccionLacteaBatchId) {
+        if (produccionLacteaBatchId == null) {
+            throw new ReglaNegocioException("Debe indicar el batch de producción láctea");
+        }
+
+        if (!produccionLacteaBatchRepositoryPort.existePorId(produccionLacteaBatchId)) {
+            throw new RecursoNoEncontradoException("Batch de producción láctea no encontrado");
+        }
     }
 
     private void validarProductoDisponible(ProductoTerminadoLacteo productoTerminado) {
@@ -115,7 +132,9 @@ public class GestionEmpaqueLacteoService implements GestionEmpaqueLacteoUseCase 
         }
     }
 
-    private void validarKilosDisponibles(ProductoTerminadoLacteo productoTerminado, EmpaqueLacteo empaqueLacteo) {
+    private void validarKilosDisponibles(
+            ProductoTerminadoLacteo productoTerminado,
+            EmpaqueLacteo empaqueLacteo) {
         if (empaqueLacteo.getKilosUtilizados() == null
                 || empaqueLacteo.getKilosUtilizados().compareTo(BigDecimal.ZERO) <= 0) {
             throw new ReglaNegocioException("Los kilos utilizados deben ser mayores a cero");

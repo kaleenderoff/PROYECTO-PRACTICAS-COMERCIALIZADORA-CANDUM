@@ -17,6 +17,7 @@ public class EmpaqueLacteoRestMapper {
         EmpaqueLacteo empaqueLacteo = new EmpaqueLacteo();
 
         empaqueLacteo.setProductoTerminadoLacteoId(request.getProductoTerminadoLacteoId());
+        empaqueLacteo.setProduccionLacteaBatchId(request.getProduccionLacteaBatchId());
         empaqueLacteo.setLoteEmpaque(request.getLoteEmpaque());
         empaqueLacteo.setFechaEmpaque(request.getFechaEmpaque());
         empaqueLacteo.setFechaVencimiento(request.getFechaVencimiento());
@@ -38,6 +39,7 @@ public class EmpaqueLacteoRestMapper {
 
         response.setId(domain.getId());
         response.setProductoTerminadoLacteoId(domain.getProductoTerminadoLacteoId());
+        response.setProduccionLacteaBatchId(domain.getProduccionLacteaBatchId());
         response.setLoteEmpaque(domain.getLoteEmpaque());
         response.setFechaEmpaque(domain.getFechaEmpaque());
         response.setFechaVencimiento(domain.getFechaVencimiento());

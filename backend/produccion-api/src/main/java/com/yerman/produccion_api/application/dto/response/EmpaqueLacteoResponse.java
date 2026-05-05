@@ -7,6 +7,7 @@ public class EmpaqueLacteoResponse {
 
     private Long id;
     private Long productoTerminadoLacteoId;
+    private Long produccionLacteaBatchId;
 
     private String loteEmpaque;
     private LocalDate fechaEmpaque;
@@ -23,37 +24,16 @@ public class EmpaqueLacteoResponse {
     public EmpaqueLacteoResponse() {
     }
 
-    public EmpaqueLacteoResponse(
-            Long id,
-            Long productoTerminadoLacteoId,
-            String loteEmpaque,
-            LocalDate fechaEmpaque,
-            LocalDate fechaVencimiento,
-            BigDecimal kilosUtilizados,
-            Integer unidades,
-            BigDecimal cajas,
-            BigDecimal pesoTotalKg,
-            String estado,
-            String observaciones) {
-        this.id = id;
-        this.productoTerminadoLacteoId = productoTerminadoLacteoId;
-        this.loteEmpaque = loteEmpaque;
-        this.fechaEmpaque = fechaEmpaque;
-        this.fechaVencimiento = fechaVencimiento;
-        this.kilosUtilizados = kilosUtilizados;
-        this.unidades = unidades;
-        this.cajas = cajas;
-        this.pesoTotalKg = pesoTotalKg;
-        this.estado = estado;
-        this.observaciones = observaciones;
-    }
-
     public Long getId() {
         return id;
     }
 
     public Long getProductoTerminadoLacteoId() {
         return productoTerminadoLacteoId;
+    }
+
+    public Long getProduccionLacteaBatchId() {
+        return produccionLacteaBatchId;
     }
 
     public String getLoteEmpaque() {
@@ -98,6 +78,10 @@ public class EmpaqueLacteoResponse {
 
     public void setProductoTerminadoLacteoId(Long productoTerminadoLacteoId) {
         this.productoTerminadoLacteoId = productoTerminadoLacteoId;
+    }
+
+    public void setProduccionLacteaBatchId(Long produccionLacteaBatchId) {
+        this.produccionLacteaBatchId = produccionLacteaBatchId;
     }
 
     public void setLoteEmpaque(String loteEmpaque) {

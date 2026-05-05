@@ -3,6 +3,7 @@ package com.yerman.produccion_api.application.mapper;
 import com.yerman.produccion_api.domain.model.EmpaqueLacteo;
 import com.yerman.produccion_api.domain.model.EstadoEmpaqueLacteo;
 import com.yerman.produccion_api.infrastructure.entity.EmpaqueLacteoEntity;
+import com.yerman.produccion_api.infrastructure.entity.ProduccionLacteaBatchEntity;
 import com.yerman.produccion_api.infrastructure.entity.ProductoTerminadoLacteoEntity;
 
 public class EmpaqueLacteoMapper {
@@ -21,6 +22,10 @@ public class EmpaqueLacteoMapper {
 
         if (entity.getProductoTerminadoLacteo() != null) {
             empaqueLacteo.setProductoTerminadoLacteoId(entity.getProductoTerminadoLacteo().getId());
+        }
+
+        if (entity.getBatch() != null) {
+            empaqueLacteo.setProduccionLacteaBatchId(entity.getBatch().getId());
         }
 
         empaqueLacteo.setLoteEmpaque(entity.getLoteEmpaque());
@@ -53,6 +58,12 @@ public class EmpaqueLacteoMapper {
             ProductoTerminadoLacteoEntity productoTerminadoLacteoEntity = new ProductoTerminadoLacteoEntity();
             productoTerminadoLacteoEntity.setId(domain.getProductoTerminadoLacteoId());
             entity.setProductoTerminadoLacteo(productoTerminadoLacteoEntity);
+        }
+
+        if (domain.getProduccionLacteaBatchId() != null) {
+            ProduccionLacteaBatchEntity batchEntity = new ProduccionLacteaBatchEntity();
+            batchEntity.setId(domain.getProduccionLacteaBatchId());
+            entity.setBatch(batchEntity);
         }
 
         entity.setLoteEmpaque(domain.getLoteEmpaque());
