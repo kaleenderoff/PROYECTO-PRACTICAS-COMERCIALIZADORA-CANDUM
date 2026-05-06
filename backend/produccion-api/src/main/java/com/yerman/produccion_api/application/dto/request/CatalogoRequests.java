@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
+import java.math.BigDecimal;
 import java.time.LocalTime;
 
 public final class CatalogoRequests {
@@ -49,6 +50,17 @@ public final class CatalogoRequests {
             String tipoEnvase,
             Integer unidadesPorCaja,
             Boolean esExport,
+            Boolean activo) {
+    }
+
+    public record InsumoRequest(
+            String codigo,
+            @NotBlank String nombre,
+            String descripcion,
+            String tipo,
+            @NotBlank String unidadMedida,
+            BigDecimal stockMinimo,
+            Long idProveedor,
             Boolean activo) {
     }
 }

@@ -1,5 +1,6 @@
 package com.yerman.produccion_api.application.dto.response;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
@@ -31,5 +32,10 @@ public final class CatalogoResponses {
     public record SkuResponse(Long id, String codigoSku, String descripcion, Long idProducto, String nombreProducto,
             Long idMarca, String nombreMarca, Integer pesoNetoGr, String tipoEnvase, Integer unidadesPorCaja,
             Boolean esExport, Boolean activo, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    }
+
+    public record InsumoResponse(Long id, String codigo, String nombre, String descripcion, String tipo,
+            String unidadMedida, BigDecimal stockMinimo, Long idProveedor, String nombreProveedor, Boolean activo,
+            LocalDateTime createdAt, LocalDateTime updatedAt) {
     }
 }

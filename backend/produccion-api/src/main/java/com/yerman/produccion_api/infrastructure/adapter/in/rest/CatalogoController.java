@@ -27,6 +27,7 @@ public class CatalogoController {
     private final CatalogoLineaJpaRepository lineaRepository;
     private final CatalogoProductoJpaRepository productoRepository;
     private final CatalogoSkuJpaRepository skuRepository;
+    private final InsumoJpaRepository insumoRepository;
 
     public CatalogoController(
             TurnoJpaRepository turnoRepository,
@@ -34,13 +35,15 @@ public class CatalogoController {
             MarcaJpaRepository marcaRepository,
             CatalogoLineaJpaRepository lineaRepository,
             CatalogoProductoJpaRepository productoRepository,
-            CatalogoSkuJpaRepository skuRepository) {
+            CatalogoSkuJpaRepository skuRepository,
+            InsumoJpaRepository insumoRepository) {
         this.turnoRepository = turnoRepository;
         this.proveedorRepository = proveedorRepository;
         this.marcaRepository = marcaRepository;
         this.lineaRepository = lineaRepository;
         this.productoRepository = productoRepository;
         this.skuRepository = skuRepository;
+        this.insumoRepository = insumoRepository;
     }
 
     @GetMapping("/turnos")
@@ -252,6 +255,44 @@ public class CatalogoController {
         return toSkuResponse(skuRepository.save(entity));
     }
 
+    @GetMapping("/insumos")
+    public List<InsumoResponse> listarInsumos(@RequestParam(defaultValue = "true") boolean activos) {
+        return (activos ? insumoRepository.findByActivoTrue() : insumoRepository.findAll())
+                .stream().map(this::toInsumoResponse).toList();
+    }
+
+    @GetMapping("/insumos/{id}")
+    public InsumoResponse obtenerInsumoPorId(@PathVariable Long id) {
+        return toInsumoResponse(buscarInsumo(id));
+    }
+
+    @PostMapping("/insumos")
+    @PreAuthorize("hasAnyRole('ADMIN','JEFE_PRODUCCION')")
+    @Transactional
+    public ResponseEntity<InsumoResponse> crearInsumo(@Valid @RequestBody InsumoRequest request) {
+        validarNombreNuevoInsumo(request.nombre());
+        validarCodigoNuevoInsumo(request.codigo());
+        InsumoEntity entity = new InsumoEntity();
+        aplicarInsumo(entity, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(toInsumoResponse(insumoRepository.save(entity)));
+    }
+
+    @PutMapping("/insumos/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','JEFE_PRODUCCION')")
+    @Transactional
+    public InsumoResponse actualizarInsumo(@PathVariable Long id, @Valid @RequestBody InsumoRequest request) {
+        InsumoEntity entity = buscarInsumo(id);
+        if (!entity.getNombre().equalsIgnoreCase(limpiar(request.nombre()))) {
+            validarNombreNuevoInsumo(request.nombre());
+        }
+        if (request.codigo() != null && !request.codigo().isBlank()
+                && (entity.getCodigo() == null || !entity.getCodigo().equalsIgnoreCase(limpiar(request.codigo())))) {
+            validarCodigoNuevoInsumo(request.codigo());
+        }
+        aplicarInsumo(entity, request);
+        return toInsumoResponse(insumoRepository.save(entity));
+    }
+
     private void aplicarTurno(TurnoEntity entity, TurnoRequest request) {
         entity.setNombre(limpiar(request.nombre()));
         entity.setHoraInicio(request.horaInicio());
@@ -293,6 +334,17 @@ public class CatalogoController {
         entity.setActivo(valorActivo(request.activo()));
     }
 
+    private void aplicarInsumo(InsumoEntity entity, InsumoRequest request) {
+        entity.setCodigo(limpiar(request.codigo()));
+        entity.setNombre(limpiar(request.nombre()));
+        entity.setDescripcion(limpiar(request.descripcion()));
+        entity.setTipo(parseTipoInsumo(request.tipo()));
+        entity.setUnidadMedida(limpiar(request.unidadMedida()));
+        entity.setStockMinimo(request.stockMinimo());
+        entity.setProveedor(request.idProveedor() != null ? buscarProveedor(request.idProveedor()) : null);
+        entity.setActivo(valorActivo(request.activo()));
+    }
+
     private TurnoEntity buscarTurno(Long id) {
         return turnoRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Turno no encontrado con id: " + id));
@@ -321,6 +373,11 @@ public class CatalogoController {
     private CatalogoSkuEntity buscarSku(Long id) {
         return skuRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("SKU no encontrado con id: " + id));
+    }
+
+    private InsumoEntity buscarInsumo(Long id) {
+        return insumoRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Insumo no encontrado con id: " + id));
     }
 
     private void validarNombreNuevoTurno(String nombre) {
@@ -359,6 +416,18 @@ public class CatalogoController {
         }
     }
 
+    private void validarNombreNuevoInsumo(String nombre) {
+        if (insumoRepository.existsByNombre(limpiar(nombre))) {
+            throw new RecursoDuplicadoException("Ya existe un insumo con nombre: " + nombre);
+        }
+    }
+
+    private void validarCodigoNuevoInsumo(String codigo) {
+        if (codigo != null && !codigo.isBlank() && insumoRepository.existsByCodigo(limpiar(codigo))) {
+            throw new RecursoDuplicadoException("Ya existe un insumo con codigo: " + codigo);
+        }
+    }
+
     private CatalogoSkuEntity.TipoEnvase parseTipoEnvase(String value) {
         if (value == null || value.trim().isEmpty()) {
             return CatalogoSkuEntity.TipoEnvase.OTRO;
@@ -367,6 +436,17 @@ public class CatalogoController {
             return CatalogoSkuEntity.TipoEnvase.valueOf(value.trim().toUpperCase());
         } catch (IllegalArgumentException ex) {
             throw new ReglaNegocioException("Tipo de envase invalido: " + value);
+        }
+    }
+
+    private InsumoEntity.TipoInsumo parseTipoInsumo(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return InsumoEntity.TipoInsumo.MATERIA_PRIMA;
+        }
+        try {
+            return InsumoEntity.TipoInsumo.valueOf(value.trim().toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new ReglaNegocioException("Tipo de insumo invalido: " + value);
         }
     }
 
@@ -408,6 +488,22 @@ public class CatalogoController {
                 entity.getProducto().getId(), entity.getProducto().getNombre(), entity.getMarca().getId(),
                 entity.getMarca().getNombre(), entity.getPesoNetoGr(), entity.getTipoEnvase().name(),
                 entity.getUnidadesPorCaja(), entity.getEsExport(), entity.getActivo(), entity.getCreatedAt(),
+                entity.getUpdatedAt());
+    }
+
+    private InsumoResponse toInsumoResponse(InsumoEntity entity) {
+        return new InsumoResponse(
+                entity.getId(),
+                entity.getCodigo(),
+                entity.getNombre(),
+                entity.getDescripcion(),
+                entity.getTipo().name(),
+                entity.getUnidadMedida(),
+                entity.getStockMinimo(),
+                entity.getProveedor() != null ? entity.getProveedor().getId() : null,
+                entity.getProveedor() != null ? entity.getProveedor().getNombre() : null,
+                entity.getActivo(),
+                entity.getCreatedAt(),
                 entity.getUpdatedAt());
     }
 }

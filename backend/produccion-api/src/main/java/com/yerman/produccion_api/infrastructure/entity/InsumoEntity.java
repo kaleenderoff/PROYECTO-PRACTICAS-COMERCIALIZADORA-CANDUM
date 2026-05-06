@@ -64,15 +64,71 @@ public class InsumoEntity {
         return nombre;
     }
 
+    public String getDescripcion() {
+        return descripcion;
+    }
+
+    public TipoInsumo getTipo() {
+        return tipo;
+    }
+
     public String getUnidadMedida() {
         return unidadMedida;
+    }
+
+    public BigDecimal getStockMinimo() {
+        return stockMinimo;
+    }
+
+    public ProveedorEntity getProveedor() {
+        return proveedor;
     }
 
     public Boolean getActivo() {
         return activo;
     }
 
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public void setCodigo(String codigo) {
+        this.codigo = codigo;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
+    }
+
+    public void setTipo(TipoInsumo tipo) {
+        this.tipo = tipo;
+    }
+
+    public void setUnidadMedida(String unidadMedida) {
+        this.unidadMedida = unidadMedida;
+    }
+
+    public void setStockMinimo(BigDecimal stockMinimo) {
+        this.stockMinimo = stockMinimo;
+    }
+
+    public void setProveedor(ProveedorEntity proveedor) {
+        this.proveedor = proveedor;
+    }
+
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
     }
 }
