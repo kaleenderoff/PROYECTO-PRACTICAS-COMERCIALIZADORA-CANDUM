@@ -79,7 +79,7 @@ public class GestionMovimientoLecheService implements GestionMovimientoLecheUseC
         }
 
         return switch (tipoMovimiento) {
-            case SALDO_INICIAL, ENTRADA_RECEPCION, AJUSTE_POSITIVO ->
+            case SALDO_INICIAL, ENTRADA_RECEPCION, ENTRADA_DESCREME, AJUSTE_POSITIVO ->
                 saldoActual.add(cantidadLitros);
 
             case SALIDA_PRODUCCION, SALIDA_DESCREME, AJUSTE_NEGATIVO -> {

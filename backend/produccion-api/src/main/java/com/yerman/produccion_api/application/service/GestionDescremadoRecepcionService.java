@@ -3,6 +3,7 @@ package com.yerman.produccion_api.application.service;
 import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
 import com.yerman.produccion_api.application.exception.ReglaNegocioException;
 import com.yerman.produccion_api.domain.model.DescremadoRecepcion;
+import com.yerman.produccion_api.domain.model.MovimientoLeche;
 import com.yerman.produccion_api.domain.model.RecepcionLeche;
 import com.yerman.produccion_api.domain.model.TipoMovimientoLeche;
 import com.yerman.produccion_api.domain.port.in.GestionDescremadoRecepcionUseCase;
@@ -39,13 +40,24 @@ public class GestionDescremadoRecepcionService implements GestionDescremadoRecep
         RecepcionLeche recepcion = recepcionLecheUseCase.obtenerPorId(
                 descremadoRecepcion.getIdRecepcionLeche());
 
-        movimientoLecheUseCase.registrarMovimiento(
+        MovimientoLeche movimientoSalida = movimientoLecheUseCase.registrarMovimiento(
                 recepcion.getIdTanque(),
                 TipoMovimientoLeche.SALIDA_DESCREME,
                 descremadoRecepcion.getLitrosDescremados(),
                 recepcion.getIdUsuario(),
-                construirReferencia(recepcion),
+                construirReferenciaSalida(recepcion),
                 descremadoRecepcion.getObservaciones());
+
+        MovimientoLeche movimientoEntrada = movimientoLecheUseCase.registrarMovimiento(
+                descremadoRecepcion.getIdTanqueDestino(),
+                TipoMovimientoLeche.ENTRADA_DESCREME,
+                descremadoRecepcion.getLitrosDescremados(),
+                recepcion.getIdUsuario(),
+                construirReferenciaEntrada(recepcion),
+                descremadoRecepcion.getObservaciones());
+
+        descremadoRecepcion.setIdMovimientoSalida(movimientoSalida.getId());
+        descremadoRecepcion.setIdMovimientoEntrada(movimientoEntrada.getId());
 
         return repository.guardar(descremadoRecepcion);
     }
@@ -54,7 +66,7 @@ public class GestionDescremadoRecepcionService implements GestionDescremadoRecep
     public DescremadoRecepcion obtenerPorId(Long id) {
         return repository.obtenerPorId(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
-                        "No se encontró el registro de descremado con ID: " + id));
+                        "No se encontro el registro de descremado con ID: " + id));
     }
 
     @Override
@@ -73,7 +85,11 @@ public class GestionDescremadoRecepcionService implements GestionDescremadoRecep
         }
 
         if (descremadoRecepcion.getIdRecepcionLeche() == null) {
-            throw new ReglaNegocioException("La recepción de leche es obligatoria.");
+            throw new ReglaNegocioException("La recepcion de leche es obligatoria.");
+        }
+
+        if (descremadoRecepcion.getIdTanqueDestino() == null) {
+            throw new ReglaNegocioException("El tanque destino de leche descremada es obligatorio.");
         }
 
         if (descremadoRecepcion.getLitrosDescremados() == null
@@ -85,13 +101,52 @@ public class GestionDescremadoRecepcionService implements GestionDescremadoRecep
                 && descremadoRecepcion.getCremaObtenidaKg().compareTo(BigDecimal.ZERO) < 0) {
             throw new ReglaNegocioException("La crema obtenida no puede ser negativa.");
         }
+
+        validarCremaEmpacada(descremadoRecepcion);
     }
 
-    private String construirReferencia(RecepcionLeche recepcion) {
-        if (recepcion.getNumeroRemision() != null && !recepcion.getNumeroRemision().isBlank()) {
-            return "Descreme recepción - Remisión " + recepcion.getNumeroRemision();
+    private void validarCremaEmpacada(DescremadoRecepcion descremadoRecepcion) {
+        boolean tieneCremaEmpacada = descremadoRecepcion.getIdSkuCrema() != null
+                || descremadoRecepcion.getUnidadesCrema() != null
+                || descremadoRecepcion.getKgPorUnidadCrema() != null
+                || (descremadoRecepcion.getLoteCrema() != null && !descremadoRecepcion.getLoteCrema().isBlank());
+
+        if (!tieneCremaEmpacada) {
+            return;
         }
 
-        return "Descreme recepción ID " + recepcion.getId();
+        if (descremadoRecepcion.getIdSkuCrema() == null) {
+            throw new ReglaNegocioException("La presentacion/SKU de crema es obligatoria si se registra crema empacada.");
+        }
+
+        if (descremadoRecepcion.getUnidadesCrema() == null || descremadoRecepcion.getUnidadesCrema() <= 0) {
+            throw new ReglaNegocioException("Las unidades de crema empacada deben ser mayores que cero.");
+        }
+
+        if (descremadoRecepcion.getKgPorUnidadCrema() == null
+                || descremadoRecepcion.getKgPorUnidadCrema().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ReglaNegocioException("Los kg por unidad de crema deben ser mayores que cero.");
+        }
+
+        if (descremadoRecepcion.getCremaObtenidaKg() == null
+                || descremadoRecepcion.getCremaObtenidaKg().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ReglaNegocioException("La crema obtenida en kg es obligatoria si se registra crema empacada.");
+        }
+    }
+
+    private String construirReferenciaSalida(RecepcionLeche recepcion) {
+        if (recepcion.getNumeroRemision() != null && !recepcion.getNumeroRemision().isBlank()) {
+            return "Salida descreme - Remision " + recepcion.getNumeroRemision();
+        }
+
+        return "Salida descreme - Recepcion ID " + recepcion.getId();
+    }
+
+    private String construirReferenciaEntrada(RecepcionLeche recepcion) {
+        if (recepcion.getNumeroRemision() != null && !recepcion.getNumeroRemision().isBlank()) {
+            return "Entrada leche descremada - Remision " + recepcion.getNumeroRemision();
+        }
+
+        return "Entrada leche descremada - Recepcion ID " + recepcion.getId();
     }
 }
