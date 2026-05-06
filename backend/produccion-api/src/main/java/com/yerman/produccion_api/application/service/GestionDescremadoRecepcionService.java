@@ -40,6 +40,8 @@ public class GestionDescremadoRecepcionService implements GestionDescremadoRecep
         RecepcionLeche recepcion = recepcionLecheUseCase.obtenerPorId(
                 descremadoRecepcion.getIdRecepcionLeche());
 
+        validarSaldoDisponibleParaDescremado(recepcion, descremadoRecepcion);
+
         MovimientoLeche movimientoSalida = movimientoLecheUseCase.registrarMovimiento(
                 recepcion.getIdTanque(),
                 TipoMovimientoLeche.SALIDA_DESCREME,
@@ -103,6 +105,19 @@ public class GestionDescremadoRecepcionService implements GestionDescremadoRecep
         }
 
         validarCremaEmpacada(descremadoRecepcion);
+    }
+
+    private void validarSaldoDisponibleParaDescremado(
+            RecepcionLeche recepcion,
+            DescremadoRecepcion descremadoRecepcion) {
+        BigDecimal saldoActual = movimientoLecheUseCase.obtenerSaldoActualPorTanque(recepcion.getIdTanque());
+        if (saldoActual.compareTo(descremadoRecepcion.getLitrosDescremados()) < 0) {
+            throw new ReglaNegocioException(
+                    "No hay suficiente leche disponible para descremar. Tanque recepcion ID: "
+                            + recepcion.getIdTanque()
+                            + ", saldo actual: " + saldoActual
+                            + " L, requerido: " + descremadoRecepcion.getLitrosDescremados() + " L.");
+        }
     }
 
     private void validarCremaEmpacada(DescremadoRecepcion descremadoRecepcion) {

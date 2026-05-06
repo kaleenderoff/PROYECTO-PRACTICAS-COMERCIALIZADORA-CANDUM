@@ -75,7 +75,7 @@ public class GlobalExceptionHandler {
                         RuntimeException ex,
                         HttpServletRequest request) {
 
-                log.warn("Regla de negocio / solicitud inválida en {} {}: {}",
+                log.warn("Regla de negocio / solicitud invalida en {} {}: {}",
                                 request.getMethod(), request.getRequestURI(), ex.getMessage());
 
                 return buildResponse(HttpStatus.BAD_REQUEST, BAD_REQUEST, ex.getMessage(), request);
@@ -95,17 +95,23 @@ public class GlobalExceptionHandler {
                         dbMessage = dbMessage.toLowerCase();
 
                         if (dbMessage.contains("cc") || dbMessage.contains("uk_usuario_cc")) {
-                                message = "Ya existe un usuario con esa cédula";
-                        } else if (dbMessage.contains("email")) {
-                                message = "Ya existe un usuario con ese email";
-                        } else if (dbMessage.contains("uq_producto")) {
+                                message = "Ya existe un usuario con esa cedula";
+                        } else if (dbMessage.contains("uq_catalogo_producto")) {
                                 message = "Ya existe un producto con esos datos";
+                        } else if (dbMessage.contains("uq_catalogo_sku_codigo")) {
+                                message = "Ya existe un SKU con ese codigo";
                         } else if (dbMessage.contains("uq_insumo_nombre")) {
                                 message = "Ya existe un insumo con ese nombre";
-                        } else if (dbMessage.contains("uq_validacion_detalle")) {
-                                message = "Ya existe una validación para el detalle de producción indicado";
-                        } else if (dbMessage.contains("linea_produccion")) {
-                                message = "La línea de producción asociada no es válida";
+                        } else if (dbMessage.contains("uq_insumo_codigo")) {
+                                message = "Ya existe un insumo con ese codigo";
+                        } else if (dbMessage.contains("uq_tanque_leche_nombre")) {
+                                message = "Ya existe un tanque de leche con ese nombre";
+                        } else if (dbMessage.contains("uq_programacion_linea_turno_fecha_producto")) {
+                                message = "Ya existe una programacion para esa fecha, linea, turno y producto";
+                        } else if (dbMessage.contains("uq_orden_numero")) {
+                                message = "Ya existe una orden de produccion con ese numero";
+                        } else if (dbMessage.contains("catalogo_linea")) {
+                                message = "La linea asociada no es valida";
                         }
                 }
 
@@ -123,7 +129,7 @@ public class GlobalExceptionHandler {
                 return buildResponse(
                                 HttpStatus.BAD_REQUEST,
                                 BAD_REQUEST,
-                                "El cuerpo de la solicitud contiene tipos de datos inválidos",
+                                "El cuerpo de la solicitud contiene tipos de datos invalidos",
                                 request);
         }
 
@@ -138,7 +144,7 @@ public class GlobalExceptionHandler {
                 return buildResponse(
                                 HttpStatus.INTERNAL_SERVER_ERROR,
                                 INTERNAL_ERROR,
-                                "Ocurrió un error inesperado en el servidor",
+                                "Ocurrio un error inesperado en el servidor",
                                 request);
         }
 

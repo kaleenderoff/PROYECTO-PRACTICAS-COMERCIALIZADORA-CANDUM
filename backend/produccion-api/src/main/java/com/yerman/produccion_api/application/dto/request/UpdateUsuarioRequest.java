@@ -1,14 +1,13 @@
 package com.yerman.produccion_api.application.dto.request;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class UpdateUsuarioRequest {
 
-    @NotBlank(message = "La cédula es obligatoria")
-    @Pattern(regexp = "^[0-9]{6,20}$", message = "La cédula debe contener solo números y tener entre 6 y 20 dígitos")
+    @NotBlank(message = "La cedula es obligatoria")
+    @Pattern(regexp = "^[0-9]{6,20}$", message = "La cedula debe contener solo numeros y tener entre 6 y 20 digitos")
     private String cc;
 
     @NotBlank(message = "El primer nombre es obligatorio")
@@ -25,12 +24,8 @@ public class UpdateUsuarioRequest {
     @Size(max = 100, message = "El segundo apellido no puede superar los 100 caracteres")
     private String segundoApellido;
 
-    @Email(message = "El email no tiene un formato válido")
-    @Size(max = 150, message = "El email no puede superar los 150 caracteres")
-    private String email;
-
     @NotBlank(message = "El rol es obligatorio")
-    @Pattern(regexp = "JEFE_PRODUCCION|JEFE_LINEA|AUXILIAR_CALIDAD|ANALISTA_LACTEOS|JEFE_PLANTA|GERENCIA|ADMIN", message = "Rol inválido")
+    @Pattern(regexp = "JEFE_PRODUCCION|JEFE_LINEA|AUXILIAR_CALIDAD|ANALISTA_LACTEOS|JEFE_PLANTA|GERENCIA|ADMIN", message = "Rol invalido")
     private String rol;
 
     private boolean activo;
@@ -73,14 +68,6 @@ public class UpdateUsuarioRequest {
 
     public void setSegundoApellido(String segundoApellido) {
         this.segundoApellido = segundoApellido;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
     }
 
     public String getRol() {

@@ -2,9 +2,11 @@ package com.yerman.produccion_api.application.service;
 
 import com.yerman.produccion_api.application.exception.ReglaNegocioException;
 import com.yerman.produccion_api.domain.model.MovimientoLeche;
+import com.yerman.produccion_api.domain.model.SaldoTanqueLeche;
 import com.yerman.produccion_api.domain.model.TipoMovimientoLeche;
 import com.yerman.produccion_api.domain.port.in.GestionMovimientoLecheUseCase;
 import com.yerman.produccion_api.domain.port.out.MovimientoLecheRepositoryPort;
+import com.yerman.produccion_api.domain.port.out.TanqueLecheRepositoryPort;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -16,9 +18,13 @@ import java.util.List;
 public class GestionMovimientoLecheService implements GestionMovimientoLecheUseCase {
 
     private final MovimientoLecheRepositoryPort movimientoRepository;
+    private final TanqueLecheRepositoryPort tanqueRepository;
 
-    public GestionMovimientoLecheService(MovimientoLecheRepositoryPort movimientoRepository) {
+    public GestionMovimientoLecheService(
+            MovimientoLecheRepositoryPort movimientoRepository,
+            TanqueLecheRepositoryPort tanqueRepository) {
         this.movimientoRepository = movimientoRepository;
+        this.tanqueRepository = tanqueRepository;
     }
 
     @Override
@@ -31,6 +37,7 @@ public class GestionMovimientoLecheService implements GestionMovimientoLecheUseC
             String observaciones) {
 
         validarCantidad(cantidadLitros);
+        validarTanqueActivo(idTanque);
 
         BigDecimal saldoActual = movimientoRepository.obtenerSaldoActualPorTanque(idTanque);
         BigDecimal nuevoSaldo = calcularNuevoSaldo(saldoActual, tipoMovimiento, cantidadLitros);
@@ -50,11 +57,13 @@ public class GestionMovimientoLecheService implements GestionMovimientoLecheUseC
 
     @Override
     public BigDecimal obtenerSaldoActualPorTanque(Long idTanque) {
+        validarTanqueExistente(idTanque);
         return movimientoRepository.obtenerSaldoActualPorTanque(idTanque);
     }
 
     @Override
     public List<MovimientoLeche> listarPorTanque(Long idTanque) {
+        validarTanqueExistente(idTanque);
         return movimientoRepository.listarPorTanque(idTanque);
     }
 
@@ -66,6 +75,22 @@ public class GestionMovimientoLecheService implements GestionMovimientoLecheUseC
     private void validarCantidad(BigDecimal cantidadLitros) {
         if (cantidadLitros == null || cantidadLitros.compareTo(BigDecimal.ZERO) <= 0) {
             throw new ReglaNegocioException("La cantidad de litros debe ser mayor que cero.");
+        }
+    }
+
+    private SaldoTanqueLeche validarTanqueExistente(Long idTanque) {
+        if (idTanque == null) {
+            throw new ReglaNegocioException("El tanque de leche es obligatorio.");
+        }
+
+        return tanqueRepository.obtenerSaldo(idTanque)
+                .orElseThrow(() -> new ReglaNegocioException("No existe un tanque de leche con ID: " + idTanque));
+    }
+
+    private void validarTanqueActivo(Long idTanque) {
+        SaldoTanqueLeche tanque = validarTanqueExistente(idTanque);
+        if (!Boolean.TRUE.equals(tanque.getActivo())) {
+            throw new ReglaNegocioException("El tanque de leche no esta activo: " + tanque.getNombre());
         }
     }
 
