@@ -4,6 +4,7 @@ import com.yerman.produccion_api.domain.model.EstadoProductoTerminadoLacteo;
 import com.yerman.produccion_api.infrastructure.entity.ProductoTerminadoLacteoEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface ProductoTerminadoLacteoJpaRepository extends JpaRepository<ProductoTerminadoLacteoEntity, Long> {
@@ -11,4 +12,7 @@ public interface ProductoTerminadoLacteoJpaRepository extends JpaRepository<Prod
     List<ProductoTerminadoLacteoEntity> findByEstadoOrderByIdDesc(EstadoProductoTerminadoLacteo estado);
 
     List<ProductoTerminadoLacteoEntity> findByProductoContainingIgnoreCaseOrderByIdDesc(String producto);
+
+    List<ProductoTerminadoLacteoEntity> findByProduccionLacteaBatch_Produccion_FechaProduccionOrderByIdDesc(
+            LocalDate fechaProduccion);
 }
