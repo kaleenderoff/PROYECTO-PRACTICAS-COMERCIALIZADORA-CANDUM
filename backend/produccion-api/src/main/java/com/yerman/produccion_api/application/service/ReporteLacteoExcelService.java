@@ -2,6 +2,10 @@ package com.yerman.produccion_api.application.service;
 
 import com.yerman.produccion_api.application.dto.response.ReporteConsumoInsumosLacteoResponse;
 import com.yerman.produccion_api.application.dto.response.ReporteConsumoInsumosLacteoResponse.DetalleConsumoInsumoResponse;
+import com.yerman.produccion_api.application.dto.response.ReporteRecepcionDescremadoLacteoResponse;
+import com.yerman.produccion_api.application.dto.response.ReporteRecepcionDescremadoLacteoResponse.DescremadoRecepcionDetalleResponse;
+import com.yerman.produccion_api.application.dto.response.ReporteRecepcionDescremadoLacteoResponse.PesajeRecepcionResponse;
+import com.yerman.produccion_api.application.dto.response.ReporteRecepcionDescremadoLacteoResponse.RecepcionDescremadoDetalleResponse;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Row;
@@ -36,6 +40,25 @@ public class ReporteLacteoExcelService {
             return out.toByteArray();
         } catch (Exception e) {
             throw new RuntimeException("Error generando Excel de consumo de insumos lacteos", e);
+        }
+    }
+
+    public byte[] generarExcelRecepcionDescremado(LocalDate fecha) {
+        ReporteRecepcionDescremadoLacteoResponse reporte = reporteLacteoService.consultarRecepcionDescremado(fecha);
+
+        try (XSSFWorkbook workbook = new XSSFWorkbook()) {
+            CellStyle headerStyle = crearHeaderStyle(workbook);
+
+            crearHojaResumenRecepcionDescremado(workbook, headerStyle, reporte);
+            crearHojaRecepciones(workbook, headerStyle, reporte);
+            crearHojaDescremados(workbook, headerStyle, reporte);
+            crearHojaPesajes(workbook, headerStyle, reporte);
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            workbook.write(out);
+            return out.toByteArray();
+        } catch (Exception e) {
+            throw new RuntimeException("Error generando Excel de recepcion y descremado lacteo", e);
         }
     }
 
@@ -129,6 +152,176 @@ public class ReporteLacteoExcelService {
         }
 
         autoSize(sheet, headers.length);
+    }
+
+    private void crearHojaResumenRecepcionDescremado(
+            XSSFWorkbook workbook,
+            CellStyle headerStyle,
+            ReporteRecepcionDescremadoLacteoResponse reporte) {
+        Sheet sheet = workbook.createSheet("Resumen");
+
+        Row title = sheet.createRow(0);
+        title.createCell(0).setCellValue("Reporte recepcion y descremado lacteo");
+        title.getCell(0).setCellStyle(headerStyle);
+
+        Row fecha = sheet.createRow(2);
+        fecha.createCell(0).setCellValue("Fecha");
+        fecha.createCell(1).setCellValue(reporte.fecha().toString());
+
+        Row header = sheet.createRow(4);
+        String[] headers = {
+                "Recepciones",
+                "Proveedores",
+                "Descremados",
+                "Litros recibidos",
+                "Litros remision",
+                "Litros descremados",
+                "Crema obtenida kg",
+                "Unidades crema"
+        };
+        crearHeader(header, headers);
+        aplicarEstilo(header, headerStyle, headers.length);
+
+        Row values = sheet.createRow(5);
+        values.createCell(0).setCellValue(reporte.totales().recepciones());
+        values.createCell(1).setCellValue(reporte.totales().proveedores());
+        values.createCell(2).setCellValue(reporte.totales().descremados());
+        values.createCell(3).setCellValue(numero(reporte.totales().litrosRecibidos()));
+        values.createCell(4).setCellValue(numero(reporte.totales().litrosRemision()));
+        values.createCell(5).setCellValue(numero(reporte.totales().litrosDescremados()));
+        values.createCell(6).setCellValue(numero(reporte.totales().cremaObtenidaKg()));
+        values.createCell(7).setCellValue(reporte.totales().unidadesCrema());
+
+        autoSize(sheet, headers.length);
+    }
+
+    private void crearHojaRecepciones(
+            XSSFWorkbook workbook,
+            CellStyle headerStyle,
+            ReporteRecepcionDescremadoLacteoResponse reporte) {
+        Sheet sheet = workbook.createSheet("Recepciones");
+        String[] headers = {
+                "Id recepcion",
+                "Fecha",
+                "Proveedor",
+                "Tipo materia prima",
+                "Litros recibidos",
+                "Litros remision",
+                "Numero remision",
+                "Tanque recepcion",
+                "Recibido por",
+                "Observaciones"
+        };
+        Row header = sheet.createRow(0);
+        crearHeader(header, headers);
+        aplicarEstilo(header, headerStyle, headers.length);
+
+        int rowIndex = 1;
+        for (RecepcionDescremadoDetalleResponse item : reporte.detalles()) {
+            Row row = sheet.createRow(rowIndex++);
+            row.createCell(0).setCellValue(item.idRecepcion());
+            row.createCell(1).setCellValue(item.fechaRecepcion().toString());
+            row.createCell(2).setCellValue(item.proveedor());
+            row.createCell(3).setCellValue(item.tipoMateriaPrima());
+            row.createCell(4).setCellValue(numero(item.litrosRecibidos()));
+            row.createCell(5).setCellValue(numero(item.litrosRemision()));
+            row.createCell(6).setCellValue(texto(item.numeroRemision()));
+            row.createCell(7).setCellValue(item.tanqueRecepcion());
+            row.createCell(8).setCellValue(texto(item.recibidoPor()));
+            row.createCell(9).setCellValue(texto(item.observacionesRecepcion()));
+        }
+
+        autoSize(sheet, headers.length);
+    }
+
+    private void crearHojaDescremados(
+            XSSFWorkbook workbook,
+            CellStyle headerStyle,
+            ReporteRecepcionDescremadoLacteoResponse reporte) {
+        Sheet sheet = workbook.createSheet("Descremados");
+        String[] headers = {
+                "Id recepcion",
+                "Proveedor",
+                "Id descremado",
+                "Litros descremados",
+                "Crema obtenida kg",
+                "SKU crema",
+                "Unidades crema",
+                "Kg por unidad crema",
+                "Lote crema",
+                "Tanque destino",
+                "Movimiento salida",
+                "Movimiento entrada",
+                "Observaciones"
+        };
+        Row header = sheet.createRow(0);
+        crearHeader(header, headers);
+        aplicarEstilo(header, headerStyle, headers.length);
+
+        int rowIndex = 1;
+        for (RecepcionDescremadoDetalleResponse recepcion : reporte.detalles()) {
+            for (DescremadoRecepcionDetalleResponse item : recepcion.descremados()) {
+                Row row = sheet.createRow(rowIndex++);
+                row.createCell(0).setCellValue(recepcion.idRecepcion());
+                row.createCell(1).setCellValue(recepcion.proveedor());
+                row.createCell(2).setCellValue(item.idDescremado());
+                row.createCell(3).setCellValue(numero(item.litrosDescremados()));
+                row.createCell(4).setCellValue(numero(item.cremaObtenidaKg()));
+                row.createCell(5).setCellValue(texto(item.skuCrema()));
+                row.createCell(6).setCellValue(item.unidadesCrema() != null ? item.unidadesCrema() : 0);
+                row.createCell(7).setCellValue(numero(item.kgPorUnidadCrema()));
+                row.createCell(8).setCellValue(texto(item.loteCrema()));
+                row.createCell(9).setCellValue(texto(item.tanqueDestino()));
+                row.createCell(10).setCellValue(item.movimientoSalida() != null ? item.movimientoSalida().id() : 0);
+                row.createCell(11).setCellValue(item.movimientoEntrada() != null ? item.movimientoEntrada().id() : 0);
+                row.createCell(12).setCellValue(texto(item.observaciones()));
+            }
+        }
+
+        autoSize(sheet, headers.length);
+    }
+
+    private void crearHojaPesajes(
+            XSSFWorkbook workbook,
+            CellStyle headerStyle,
+            ReporteRecepcionDescremadoLacteoResponse reporte) {
+        Sheet sheet = workbook.createSheet("Pesajes");
+        String[] headers = {
+                "Id recepcion",
+                "Proveedor",
+                "Id pesaje",
+                "Numero pesaje",
+                "Peso bruto kg",
+                "Tara kg",
+                "Peso neto kg",
+                "Observaciones"
+        };
+        Row header = sheet.createRow(0);
+        crearHeader(header, headers);
+        aplicarEstilo(header, headerStyle, headers.length);
+
+        int rowIndex = 1;
+        for (RecepcionDescremadoDetalleResponse recepcion : reporte.detalles()) {
+            for (PesajeRecepcionResponse item : recepcion.pesajes()) {
+                Row row = sheet.createRow(rowIndex++);
+                row.createCell(0).setCellValue(recepcion.idRecepcion());
+                row.createCell(1).setCellValue(recepcion.proveedor());
+                row.createCell(2).setCellValue(item.id());
+                row.createCell(3).setCellValue(item.numeroPesaje());
+                row.createCell(4).setCellValue(numero(item.pesoBrutoKg()));
+                row.createCell(5).setCellValue(numero(item.taraKg()));
+                row.createCell(6).setCellValue(numero(item.pesoNetoKg()));
+                row.createCell(7).setCellValue(texto(item.observaciones()));
+            }
+        }
+
+        autoSize(sheet, headers.length);
+    }
+
+    private void crearHeader(Row row, String[] headers) {
+        for (int i = 0; i < headers.length; i++) {
+            row.createCell(i).setCellValue(headers[i]);
+        }
     }
 
     private CellStyle crearHeaderStyle(XSSFWorkbook workbook) {

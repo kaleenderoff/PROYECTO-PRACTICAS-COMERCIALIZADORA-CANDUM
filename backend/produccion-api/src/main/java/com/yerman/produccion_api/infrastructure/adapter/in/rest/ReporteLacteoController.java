@@ -51,4 +51,17 @@ public class ReporteLacteoController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
         return reporteLacteoService.consultarRecepcionDescremado(fecha);
     }
+
+    @GetMapping("/recepcion-descremado/excel")
+    public ResponseEntity<byte[]> descargarExcelRecepcionDescremado(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
+        LocalDate fechaConsulta = fecha != null ? fecha : LocalDate.now();
+        byte[] excel = reporteLacteoExcelService.generarExcelRecepcionDescremado(fechaConsulta);
+
+        return ResponseEntity.ok()
+                .header("Content-Disposition",
+                        "attachment; filename=recepcion_descremado_lacteos_" + fechaConsulta + ".xlsx")
+                .header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                .body(excel);
+    }
 }
