@@ -1,0 +1,81 @@
+<div class="container-fluid">
+
+    <div class="row mb-4 mt-3">
+        <div class="col">
+            <h2 class="fw-bold">Dashboard Producción Yerman</h2>
+            <p class="text-muted mb-0">Producción vs empaque lácteo</p>
+        </div>
+    </div>
+
+    <div *ngIf="cargando" class="alert alert-info">
+        Cargando información...
+    </div>
+
+    <div *ngIf="error" class="alert alert-danger">
+        {{ error }}
+    </div>
+
+    <div class="row g-4 mb-4">
+
+        <div class="col-md-4">
+            <div class="card shadow border-0">
+                <div class="card-body">
+                    <h6 class="text-muted">Total producido</h6>
+                    <h3>{{ totalProducido | number:'1.2-2' }} kg</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow border-0">
+                <div class="card-body">
+                    <h6 class="text-muted">Total empacado</h6>
+                    <h3>{{ totalEmpacado | number:'1.2-2' }} kg</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow border-0">
+                <div class="card-body">
+                    <h6 class="text-muted">Pendiente por empacar</h6>
+                    <h3>{{ totalDiferencia | number:'1.2-2' }} kg</h3>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card shadow border-0">
+        <div class="card-header bg-white fw-bold">
+            Producción vs Empaque
+        </div>
+
+        <div class="card-body table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Total producido</th>
+                        <th>Total empacado</th>
+                        <th>Diferencia</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr *ngFor="let item of datos">
+                        <td>{{ item.fecha }}</td>
+                        <td>{{ item.totalProducido | number:'1.2-2' }} kg</td>
+                        <td>{{ item.totalEmpaquetado | number:'1.2-2' }} kg</td>
+                        <td>{{ item.diferencia | number:'1.2-2' }} kg</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div *ngIf="!cargando && datos.length === 0" class="text-muted text-center py-3">
+                No hay datos disponibles.
+            </div>
+        </div>
+    </div>
+
+</div>
