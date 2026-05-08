@@ -46,13 +46,12 @@ public class UsuarioEntity {
     private LocalDateTime updatedAt;
 
     public enum Rol {
+        ADMIN,
+        DUENO_EMPRESA,
+        JEFE_PLANTA,
         JEFE_PRODUCCION,
         JEFE_LINEA,
-        AUXILIAR_CALIDAD,
-        ANALISTA_LACTEOS,
-        JEFE_PLANTA,
-        GERENCIA,
-        ADMIN
+        AUXILIAR_CALIDAD
     }
 
     @PrePersist

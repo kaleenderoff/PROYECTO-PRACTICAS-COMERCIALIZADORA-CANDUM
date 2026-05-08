@@ -1,0 +1,106 @@
+<div class="container-fluid">
+
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="fw-bold">
+                {{ editando ? 'Editar usuario' : 'Nuevo usuario' }}
+            </h2>
+            <p class="text-muted mb-0">
+                Información del usuario y rol dentro del sistema
+            </p>
+        </div>
+    </div>
+
+    <div *ngIf="error" class="alert alert-danger">
+        {{ error }}
+    </div>
+
+    <div class="card shadow border-0">
+        <div class="card-body">
+            <form [formGroup]="form" (ngSubmit)="guardar()" autocomplete="off">
+
+                <h5 class="fw-bold mb-3">Datos de identificación</h5>
+
+                <div class="row g-3 mb-4">
+
+                    <div class="col-md-4">
+                        <label class="form-label">Cédula</label>
+                        <input type="text" class="form-control" formControlName="cc" autocomplete="off">
+                    </div>
+
+                </div>
+
+                <h5 class="fw-bold mb-3">Datos personales</h5>
+
+                <div class="row g-3 mb-4">
+
+                    <div class="col-md-3">
+                        <label class="form-label">Primer nombre</label>
+                        <input type="text" class="form-control" formControlName="primerNombre" autocomplete="off">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Segundo nombre</label>
+                        <input type="text" class="form-control" formControlName="segundoNombre" autocomplete="off">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Primer apellido</label>
+                        <input type="text" class="form-control" formControlName="primerApellido" autocomplete="off">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Segundo apellido</label>
+                        <input type="text" class="form-control" formControlName="segundoApellido" autocomplete="off">
+                    </div>
+
+                </div>
+
+                <h5 class="fw-bold mb-3">Acceso al sistema</h5>
+
+                <div class="row g-3">
+
+                    <div class="col-md-4">
+                        <label class="form-label">Rol</label>
+                        <select class="form-select" formControlName="rol">
+                            <option value="">Seleccione un rol</option>
+                            <option *ngFor="let rol of roles" [value]="rol">
+                                {{ rol }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4" *ngIf="!editando">
+                        <label class="form-label">Contraseña</label>
+                        <input type="password" class="form-control" formControlName="password"
+                            autocomplete="new-password">
+                    </div>
+
+                    <div class="col-md-4 d-flex align-items-end" *ngIf="editando">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" formControlName="activo" id="activo">
+
+                            <label class="form-check-label" for="activo">
+                                Usuario activo
+                            </label>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                    <button class="btn btn-primary" type="submit" [disabled]="cargando">
+                        {{ cargando ? 'Guardando...' : 'Guardar usuario' }}
+                    </button>
+
+                    <a class="btn btn-secondary" routerLink="/usuarios">
+                        Cancelar
+                    </a>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>

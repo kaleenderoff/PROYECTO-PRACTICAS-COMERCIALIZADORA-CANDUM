@@ -8,6 +8,7 @@ import com.yerman.produccion_api.application.dto.response.MeResponse;
 import com.yerman.produccion_api.application.dto.response.PageResponse;
 import com.yerman.produccion_api.application.dto.response.UsuarioResponse;
 import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
+import com.yerman.produccion_api.application.exception.ReglaNegocioException;
 import com.yerman.produccion_api.application.mapper.UsuarioMapper;
 import com.yerman.produccion_api.domain.model.Usuario;
 import com.yerman.produccion_api.domain.port.in.GestionUsuarioUseCase;
@@ -98,7 +99,18 @@ public class UsuarioController {
 
     @PatchMapping("/usuarios/{id}/desactivar")
     public ResponseEntity<Void> desactivarUsuario(@PathVariable Long id) {
+
+        Usuario usuario = gestionUsuarioUseCase.obtenerUsuarioPorId(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Usuario no encontrado con id: " + id));
+
+        if ("ADMIN".equals(usuario.getRol().name())) {
+            throw new ReglaNegocioException(
+                    "No se puede desactivar un usuario ADMIN");
+        }
+
         gestionUsuarioUseCase.desactivarUsuario(id);
+
         return ResponseEntity.noContent().build();
     }
 

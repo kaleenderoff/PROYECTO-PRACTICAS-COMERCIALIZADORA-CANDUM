@@ -29,7 +29,7 @@ public class CreateUsuarioRequest {
     private String password;
 
     @NotBlank(message = "El rol es obligatorio")
-    @Pattern(regexp = "JEFE_PRODUCCION|JEFE_LINEA|AUXILIAR_CALIDAD|ANALISTA_LACTEOS|JEFE_PLANTA|GERENCIA|ADMIN", message = "Rol inválido")
+    @Pattern(regexp = "ADMIN|DUENO_EMPRESA|JEFE_PLANTA|JEFE_PRODUCCION|JEFE_LINEA|AUXILIAR_CALIDAD", message = "Rol invalido")
     private String rol;
 
     // Getters y Setters

@@ -44,8 +44,41 @@ export class AuthService {
     return localStorage.getItem(this.tokenKey);
   }
 
+  getUsuario(): any {
+    const data = localStorage.getItem(this.userKey);
+    return data ? JSON.parse(data) : null;
+  }
+
+  getRol(): string {
+    return this.getUsuario()?.rol || '';
+  }
+
   isAuthenticated(): boolean {
     return !!this.getToken();
+  }
+
+  isAdmin(): boolean {
+    return this.getRol() === 'ADMIN';
+  }
+
+  isDuenoEmpresa(): boolean {
+    return this.getRol() === 'DUENO_EMPRESA';
+  }
+
+  isJefePlanta(): boolean {
+    return this.getRol() === 'JEFE_PLANTA';
+  }
+
+  isJefeProduccion(): boolean {
+    return this.getRol() === 'JEFE_PRODUCCION';
+  }
+
+  isJefeLinea(): boolean {
+    return this.getRol() === 'JEFE_LINEA';
+  }
+
+  isAuxiliarCalidad(): boolean {
+    return this.getRol() === 'AUXILIAR_CALIDAD';
   }
 
   logout(): void {

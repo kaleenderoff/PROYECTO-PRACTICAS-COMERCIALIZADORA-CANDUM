@@ -1,0 +1,88 @@
+<div class="container-fluid">
+
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="fw-bold">Registrar recepción de leche</h2>
+            <p class="text-muted mb-0">Ingreso de leche cruda al sistema</p>
+        </div>
+    </div>
+
+    <div *ngIf="error" class="alert alert-danger">
+        {{ error }}
+    </div>
+
+    <div class="card shadow border-0">
+        <div class="card-body">
+
+            <form [formGroup]="form" (ngSubmit)="guardar()">
+
+                <div class="row g-3">
+
+                    <div class="col-md-4">
+                        <label class="form-label">Fecha recepción</label>
+                        <input type="date" class="form-control" formControlName="fechaRecepcion">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Tipo materia prima</label>
+                        <input type="text" class="form-control" formControlName="tipoMateriaPrima">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Proveedor</label>
+                        <input type="text" class="form-control" formControlName="proveedor">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Litros recibidos</label>
+                        <input type="number" class="form-control" formControlName="cantidadRecibidaLitros">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Litros remisión</label>
+                        <input type="number" class="form-control" formControlName="cantidadRemisionLitros">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Número remisión</label>
+                        <input type="text" class="form-control" formControlName="numeroRemision">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">ID tanque</label>
+                        <input type="number" class="form-control" formControlName="idTanque">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">ID usuario</label>
+                        <input type="number" class="form-control" formControlName="idUsuario">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Recibido por</label>
+                        <input type="text" class="form-control" formControlName="recibidoPor">
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label">Observaciones</label>
+                        <textarea class="form-control" rows="3" formControlName="observaciones"></textarea>
+                    </div>
+
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                    <button class="btn btn-primary" type="submit" [disabled]="cargando">
+                        {{ cargando ? 'Guardando...' : 'Guardar recepción' }}
+                    </button>
+
+                    <button class="btn btn-secondary" type="button" routerLink="/recepcion-leche">
+                        Cancelar
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>

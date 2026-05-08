@@ -25,7 +25,7 @@ public class UpdateUsuarioRequest {
     private String segundoApellido;
 
     @NotBlank(message = "El rol es obligatorio")
-    @Pattern(regexp = "JEFE_PRODUCCION|JEFE_LINEA|AUXILIAR_CALIDAD|ANALISTA_LACTEOS|JEFE_PLANTA|GERENCIA|ADMIN", message = "Rol invalido")
+    @Pattern(regexp = "ADMIN|DUENO_EMPRESA|JEFE_PLANTA|JEFE_PRODUCCION|JEFE_LINEA|AUXILIAR_CALIDAD", message = "Rol invalido")
     private String rol;
 
     private boolean activo;

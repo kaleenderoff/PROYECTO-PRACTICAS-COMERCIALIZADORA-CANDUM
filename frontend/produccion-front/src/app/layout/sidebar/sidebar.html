@@ -1,1 +1,24 @@
-<p>sidebar works!</p>
+<div class="sidebar">
+
+    <div class="logo">
+        Producción Yerman
+    </div>
+
+    <nav>
+
+        <a *ngIf="authService.isAdmin()" routerLink="/usuarios" routerLinkActive="active">
+            Usuarios
+        </a>
+
+        <a routerLink="/dashboard" routerLinkActive="active">
+            Dashboard
+        </a>
+
+        <a *ngIf="authService.isAdmin() || authService.isDuenoEmpresa() || authService.isJefePlanta() || authService.isJefeLinea()"
+            routerLink="/recepcion-leche" routerLinkActive="active">
+            Recepción leche
+        </a>
+
+    </nav>
+
+</div>
