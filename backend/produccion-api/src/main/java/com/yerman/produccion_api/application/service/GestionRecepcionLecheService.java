@@ -2,11 +2,8 @@ package com.yerman.produccion_api.application.service;
 
 import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
 import com.yerman.produccion_api.application.exception.ReglaNegocioException;
-import com.yerman.produccion_api.domain.model.MovimientoLeche;
 import com.yerman.produccion_api.domain.model.RecepcionLeche;
 import com.yerman.produccion_api.domain.model.RecepcionLechePesaje;
-import com.yerman.produccion_api.domain.model.TipoMovimientoLeche;
-import com.yerman.produccion_api.domain.port.in.GestionMovimientoLecheUseCase;
 import com.yerman.produccion_api.domain.port.in.GestionRecepcionLecheUseCase;
 import com.yerman.produccion_api.domain.port.out.RecepcionLecheRepositoryPort;
 import jakarta.transaction.Transactional;
@@ -22,13 +19,10 @@ public class GestionRecepcionLecheService implements GestionRecepcionLecheUseCas
     private static final String TIPO_MATERIA_PRIMA_DEFAULT = "LECHE CRUDA";
 
     private final RecepcionLecheRepositoryPort recepcionRepository;
-    private final GestionMovimientoLecheUseCase movimientoLecheUseCase;
 
     public GestionRecepcionLecheService(
-            RecepcionLecheRepositoryPort recepcionRepository,
-            GestionMovimientoLecheUseCase movimientoLecheUseCase) {
+            RecepcionLecheRepositoryPort recepcionRepository) {
         this.recepcionRepository = recepcionRepository;
-        this.movimientoLecheUseCase = movimientoLecheUseCase;
     }
 
     @Override
@@ -46,15 +40,8 @@ public class GestionRecepcionLecheService implements GestionRecepcionLecheUseCas
             recepcionLeche.setCantidadRecibidaLitros(cantidadCalculada);
         }
 
-        MovimientoLeche movimiento = movimientoLecheUseCase.registrarMovimiento(
-                recepcionLeche.getIdTanque(),
-                TipoMovimientoLeche.ENTRADA_RECEPCION,
-                recepcionLeche.getCantidadRecibidaLitros(),
-                recepcionLeche.getIdUsuario(),
-                construirReferencia(recepcionLeche),
-                recepcionLeche.getObservaciones());
-
-        recepcionLeche.setIdMovimientoLeche(movimiento.getId());
+        recepcionLeche.setIdTanque(null);
+        recepcionLeche.setIdMovimientoLeche(null);
 
         return recepcionRepository.guardar(recepcionLeche);
     }
@@ -62,8 +49,8 @@ public class GestionRecepcionLecheService implements GestionRecepcionLecheUseCas
     @Override
     public RecepcionLeche obtenerPorId(Long id) {
         return recepcionRepository.obtenerPorId(id)
-                .orElseThrow(
-                        () -> new RecursoNoEncontradoException("No se encontró la recepción de leche con ID: " + id));
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No se encontró la recepción de leche con ID: " + id));
     }
 
     @Override
@@ -92,10 +79,6 @@ public class GestionRecepcionLecheService implements GestionRecepcionLecheUseCas
 
         if (recepcionLeche.getProveedor() == null || recepcionLeche.getProveedor().isBlank()) {
             throw new ReglaNegocioException("El proveedor es obligatorio.");
-        }
-
-        if (recepcionLeche.getIdTanque() == null) {
-            throw new ReglaNegocioException("El tanque destino es obligatorio.");
         }
 
         if (recepcionLeche.getIdUsuario() == null) {
@@ -147,13 +130,5 @@ public class GestionRecepcionLecheService implements GestionRecepcionLecheUseCas
         return pesajes.stream()
                 .map(RecepcionLechePesaje::getPesoNetoKg)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
-    private String construirReferencia(RecepcionLeche recepcionLeche) {
-        if (recepcionLeche.getNumeroRemision() != null && !recepcionLeche.getNumeroRemision().isBlank()) {
-            return "Recepción leche - Remisión " + recepcionLeche.getNumeroRemision();
-        }
-
-        return "Recepción leche - " + recepcionLeche.getProveedor();
     }
 }

@@ -14,4 +14,8 @@ public interface ProgramacionSkuRepositoryPort {
     List<ProgramacionSku> listarPorProgramacion(Long idProgramacion);
 
     boolean existePorProgramacionYSku(Long idProgramacion, Long idSku);
+
+    ProgramacionSku actualizar(Long id, ProgramacionSku programacionSku);
+
+    void eliminar(Long id);
 }

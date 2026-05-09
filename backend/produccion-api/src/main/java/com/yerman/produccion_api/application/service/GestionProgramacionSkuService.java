@@ -1,7 +1,6 @@
 package com.yerman.produccion_api.application.service;
 
 import com.yerman.produccion_api.application.exception.RecursoDuplicadoException;
-import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
 import com.yerman.produccion_api.application.exception.ReglaNegocioException;
 import com.yerman.produccion_api.domain.model.ProgramacionSku;
 import com.yerman.produccion_api.domain.port.in.GestionProgramacionSkuUseCase;
@@ -24,11 +23,24 @@ public class GestionProgramacionSkuService implements GestionProgramacionSkuUseC
     public ProgramacionSku agregarSku(ProgramacionSku programacionSku) {
         validar(programacionSku);
 
-        if (repositoryPort.existePorProgramacionYSku(programacionSku.getIdProgramacion(), programacionSku.getIdSku())) {
+        if (repositoryPort.existePorProgramacionYSku(
+                programacionSku.getIdProgramacion(),
+                programacionSku.getIdSku())) {
             throw new RecursoDuplicadoException("El SKU ya está agregado a esta programación");
         }
 
         return repositoryPort.guardar(programacionSku);
+    }
+
+    @Override
+    public ProgramacionSku actualizarSku(Long id, ProgramacionSku programacionSku) {
+        validar(programacionSku);
+        return repositoryPort.actualizar(id, programacionSku);
+    }
+
+    @Override
+    public void eliminarSku(Long id) {
+        repositoryPort.eliminar(id);
     }
 
     @Override

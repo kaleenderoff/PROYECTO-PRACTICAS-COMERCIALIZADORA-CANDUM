@@ -1,0 +1,89 @@
+<div class="container-fluid">
+
+    <div class="row mb-4 align-items-center">
+        <div class="col">
+            <h2 class="fw-bold">Descremado de leche</h2>
+            <p class="text-muted mb-0">
+                Registro de leche descremada y crema obtenida
+            </p>
+        </div>
+
+        <div class="col-auto">
+            <a class="btn btn-primary" routerLink="/descremado/nuevo">
+                Nuevo descremado
+            </a>
+        </div>
+    </div>
+
+    <div *ngIf="cargando" class="alert alert-info">
+        Cargando registros...
+    </div>
+
+    <div *ngIf="error" class="alert alert-danger">
+        {{ error }}
+    </div>
+
+    <div class="card shadow border-0">
+        <div class="card-header bg-white fw-bold">
+            Registros de descremado
+        </div>
+
+        <div class="card-body table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Recepción</th>
+                        <th>Tanque destino</th>
+                        <th>Litros descremados</th>
+                        <th>Crema obtenida</th>
+                        <th>Unidades crema</th>
+                        <th>Lote crema</th>
+                        <th>Observaciones</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr *ngFor="let item of descremados; let i = index">
+
+                        <td>{{ i + 1 }}</td>
+
+                        <td>
+                            {{ obtenerRecepcion(item.idRecepcionLeche) }}
+                        </td>
+
+                        <td>
+                            {{ obtenerTanque(item.idTanqueDestino) }}
+                        </td>
+
+                        <td>
+                            {{ item.litrosDescremados | number:'1.2-2' }} L
+                        </td>
+
+                        <td>
+                            {{ item.cremaObtenidaKg | number:'1.2-2' }} kg
+                        </td>
+
+                        <td>
+                            {{ item.unidadesCrema || '-' }}
+                        </td>
+
+                        <td>
+                            {{ item.loteCrema || '-' }}
+                        </td>
+
+                        <td>
+                            {{ item.observaciones || '-' }}
+                        </td>
+
+                    </tr>
+                </tbody>
+            </table>
+
+            <div *ngIf="!cargando && descremados.length === 0" class="text-muted text-center py-3">
+                No hay registros de descremado.
+            </div>
+        </div>
+    </div>
+
+</div>

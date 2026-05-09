@@ -7,6 +7,8 @@ import com.yerman.produccion_api.domain.model.ProgramacionProduccion;
 import com.yerman.produccion_api.domain.port.in.GestionProgramacionProduccionUseCase;
 import com.yerman.produccion_api.domain.port.out.ProgramacionProduccionRepositoryPort;
 import com.yerman.produccion_api.infrastructure.adapter.out.persistence.ProgramacionProduccionJpaAdapter;
+import com.yerman.produccion_api.infrastructure.entity.FormulaVersionEntity;
+import com.yerman.produccion_api.infrastructure.repository.FormulaVersionJpaRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -19,12 +21,15 @@ public class GestionProgramacionProduccionService implements GestionProgramacion
 
     private final ProgramacionProduccionRepositoryPort repositoryPort;
     private final ProgramacionProduccionJpaAdapter repositoryAdapter;
+    private final FormulaVersionJpaRepository formulaVersionRepository;
 
     public GestionProgramacionProduccionService(
             ProgramacionProduccionRepositoryPort repositoryPort,
-            ProgramacionProduccionJpaAdapter repositoryAdapter) {
+            ProgramacionProduccionJpaAdapter repositoryAdapter,
+            FormulaVersionJpaRepository formulaVersionRepository) {
         this.repositoryPort = repositoryPort;
         this.repositoryAdapter = repositoryAdapter;
+        this.formulaVersionRepository = formulaVersionRepository;
     }
 
     @Override
@@ -41,6 +46,14 @@ public class GestionProgramacionProduccionService implements GestionProgramacion
             throw new ReglaNegocioException("Ya existe una programación para esa fecha, línea, turno y producto");
         }
 
+        FormulaVersionEntity formulaVigente = formulaVersionRepository
+                .findFirstByFormulaProductoIdAndEstadoOrderByFechaInicioVigenciaDesc(
+                        programacion.getIdProducto(),
+                        FormulaVersionEntity.EstadoFormula.VIGENTE)
+                .orElseThrow(() -> new ReglaNegocioException(
+                        "No existe una fórmula vigente para el producto seleccionado. Primero debe crear y marcar una fórmula como vigente."));
+
+        programacion.setIdFormulaVersion(formulaVigente.getId());
         programacion.setCodigoProgramacion(generarCodigo());
         programacion.setEstado(EstadoProgramacionProduccion.BORRADOR);
 
@@ -88,9 +101,6 @@ public class GestionProgramacionProduccionService implements GestionProgramacion
         }
         if (programacion.getIdTurno() == null) {
             throw new ReglaNegocioException("El turno es obligatorio");
-        }
-        if (programacion.getIdFormulaVersion() == null) {
-            throw new ReglaNegocioException("La versión de fórmula es obligatoria");
         }
         if (programacion.getIdJefeProduccion() == null) {
             throw new ReglaNegocioException("El jefe de producción es obligatorio");

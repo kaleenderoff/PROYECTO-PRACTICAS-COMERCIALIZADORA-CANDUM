@@ -79,9 +79,13 @@ public class RecepcionLecheJpaAdapter implements RecepcionLecheRepositoryPort {
         entity.setCantidadRemisionLitros(recepcionLeche.getCantidadRemisionLitros());
         entity.setObservaciones(recepcionLeche.getObservaciones());
 
-        entity.setTanque(entityManager.getReference(
-                TanqueLecheEntity.class,
-                recepcionLeche.getIdTanque()));
+        if (recepcionLeche.getIdTanque() != null) {
+            entity.setTanque(entityManager.getReference(
+                    TanqueLecheEntity.class,
+                    recepcionLeche.getIdTanque()));
+        } else {
+            entity.setTanque(null);
+        }
 
         entity.setUsuario(entityManager.getReference(
                 UsuarioEntity.class,
@@ -91,6 +95,8 @@ public class RecepcionLecheJpaAdapter implements RecepcionLecheRepositoryPort {
             entity.setMovimientoLeche(entityManager.getReference(
                     MovimientoLecheEntity.class,
                     recepcionLeche.getIdMovimientoLeche()));
+        } else {
+            entity.setMovimientoLeche(null);
         }
 
         if (recepcionLeche.getPesajes() != null) {

@@ -7,6 +7,10 @@
         </div>
     </div>
 
+    <div *ngIf="cargandoDatos" class="alert alert-info">
+        Cargando tanques...
+    </div>
+
     <div *ngIf="error" class="alert alert-danger">
         {{ error }}
     </div>
@@ -21,21 +25,54 @@
                     <div class="col-md-4">
                         <label class="form-label">Fecha recepción</label>
                         <input type="date" class="form-control" formControlName="fechaRecepcion">
+
+                        <small class="text-danger"
+                            *ngIf="form.get('fechaRecepcion')?.invalid && form.get('fechaRecepcion')?.touched">
+                            La fecha es obligatoria.
+                        </small>
                     </div>
 
                     <div class="col-md-4">
                         <label class="form-label">Tipo materia prima</label>
-                        <input type="text" class="form-control" formControlName="tipoMateriaPrima">
+                        <select class="form-select" formControlName="tipoMateriaPrima">
+
+                            <option *ngFor="let tipo of tiposMateriaPrima" [value]="tipo">
+
+                                {{ tipo }}
+
+                            </option>
+
+                        </select>
                     </div>
 
                     <div class="col-md-4">
                         <label class="form-label">Proveedor</label>
-                        <input type="text" class="form-control" formControlName="proveedor">
+                        <select class="form-select" formControlName="proveedor">
+
+                            <option value="">Seleccione proveedor</option>
+
+                            <option *ngFor="let proveedor of proveedores" [value]="proveedor.nombre">
+
+                                {{ proveedor.nombre }}
+
+                            </option>
+
+                        </select>
+
+                        <small class="text-danger"
+                            *ngIf="form.get('proveedor')?.invalid && form.get('proveedor')?.touched">
+                            El proveedor es obligatorio.
+                        </small>
                     </div>
 
                     <div class="col-md-4">
                         <label class="form-label">Litros recibidos</label>
                         <input type="number" class="form-control" formControlName="cantidadRecibidaLitros">
+
+                        <small class="text-danger"
+                            *ngIf="form.get('cantidadRecibidaLitros')?.invalid && form.get('cantidadRecibidaLitros')?.touched">
+                            Ingrese una cantidad válida.
+                        </small>
                     </div>
 
                     <div class="col-md-4">
@@ -48,17 +85,7 @@
                         <input type="text" class="form-control" formControlName="numeroRemision">
                     </div>
 
-                    <div class="col-md-4">
-                        <label class="form-label">ID tanque</label>
-                        <input type="number" class="form-control" formControlName="idTanque">
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label">ID usuario</label>
-                        <input type="number" class="form-control" formControlName="idUsuario">
-                    </div>
-
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label class="form-label">Recibido por</label>
                         <input type="text" class="form-control" formControlName="recibidoPor">
                     </div>
@@ -71,7 +98,7 @@
                 </div>
 
                 <div class="mt-4 d-flex gap-2">
-                    <button class="btn btn-primary" type="submit" [disabled]="cargando">
+                    <button class="btn btn-primary" type="submit" [disabled]="cargando || cargandoDatos">
                         {{ cargando ? 'Guardando...' : 'Guardar recepción' }}
                     </button>
 

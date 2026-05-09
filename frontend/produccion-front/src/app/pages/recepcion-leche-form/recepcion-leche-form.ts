@@ -1,9 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
-import { RecepcionLecheService } from '../../core/services/recepcion-leche';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+
+import {
+  RecepcionLecheService,
+  Proveedor
+} from '../../core/services/recepcion-leche';
 
 @Component({
   selector: 'app-recepcion-leche-form',
@@ -11,10 +14,16 @@ import { RouterLink } from '@angular/router';
   templateUrl: './recepcion-leche-form.html',
   styleUrl: './recepcion-leche-form.scss',
 })
-export class RecepcionLecheForm {
-
+export class RecepcionLecheForm implements OnInit {
   cargando = false;
+  cargandoDatos = false;
   error = '';
+
+  proveedores: Proveedor[] = [];
+
+  tiposMateriaPrima = [
+    'LECHE CRUDA'
+  ];
 
   form;
 
@@ -25,15 +34,34 @@ export class RecepcionLecheForm {
   ) {
     this.form = this.fb.group({
       fechaRecepcion: ['', Validators.required],
-      tipoMateriaPrima: ['LECHE CRUDA'],
+      tipoMateriaPrima: ['LECHE CRUDA', Validators.required],
       proveedor: ['', Validators.required],
       cantidadRecibidaLitros: [0, [Validators.required, Validators.min(0.001)]],
       recibidoPor: [''],
-      idTanque: [1, Validators.required],
-      idUsuario: [1, Validators.required],
       numeroRemision: [''],
-      cantidadRemisionLitros: [0, [Validators.required, Validators.min(0.001)]],
+      cantidadRemisionLitros: [0],
       observaciones: ['']
+    });
+  }
+
+  ngOnInit(): void {
+    this.cargarDatosIniciales();
+  }
+
+  cargarDatosIniciales(): void {
+    this.cargandoDatos = true;
+    this.error = '';
+
+    this.service.listarProveedores().subscribe({
+      next: (data) => {
+        this.proveedores = data.filter(proveedor => proveedor.activo);
+        this.cargandoDatos = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.error = 'No se pudieron cargar los proveedores.';
+        this.cargandoDatos = false;
+      }
     });
   }
 
@@ -53,12 +81,11 @@ export class RecepcionLecheForm {
       tipoMateriaPrima: value.tipoMateriaPrima!,
       proveedor: value.proveedor!,
       cantidadRecibidaLitros: Number(value.cantidadRecibidaLitros),
-      recibidoPor: value.recibidoPor || '',
-      idTanque: Number(value.idTanque),
-      idUsuario: Number(value.idUsuario),
-      numeroRemision: value.numeroRemision || '',
-      cantidadRemisionLitros: Number(value.cantidadRemisionLitros),
-      observaciones: value.observaciones || '',
+      recibidoPor: value.recibidoPor || undefined,
+      idUsuario: 1,
+      numeroRemision: value.numeroRemision || undefined,
+      cantidadRemisionLitros: Number(value.cantidadRemisionLitros) || undefined,
+      observaciones: value.observaciones || undefined,
       pesajes: []
     };
 
@@ -67,7 +94,8 @@ export class RecepcionLecheForm {
         this.cargando = false;
         this.router.navigate(['/recepcion-leche']);
       },
-      error: () => {
+      error: (err) => {
+        console.error(err);
         this.cargando = false;
         this.error = 'No se pudo registrar la recepción de leche.';
       }

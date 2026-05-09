@@ -17,6 +17,18 @@ import { UsuarioForm } from './pages/usuario-form/usuario-form';
 
 import { UsuarioResetPassword } from './pages/usuario-reset-password/usuario-reset-password';
 
+import { Descremado } from './pages/descremado/descremado';
+
+import { DescremadoForm } from './pages/descremado-form/descremado-form';
+
+import { ProduccionLactea } from './pages/produccion-lactea/produccion-lactea';
+
+import { ProduccionLacteaForm } from './pages/produccion-lactea-form/produccion-lactea-form';
+
+import { OrdenProduccion } from './pages/orden-produccion/orden-produccion';
+
+import { OrdenProduccionForm } from './pages/orden-produccion-form/orden-produccion-form';
+
 export const routes: Routes = [
 
     {
@@ -74,7 +86,39 @@ export const routes: Routes = [
                 path: 'usuarios/:id/reset-password',
                 component: UsuarioResetPassword,
                 canActivate: [authGuard]
-            }
+            },
+
+            {
+                path: 'descremado',
+                component: Descremado,
+                canActivate: [authGuard]
+            },
+            {
+                path: 'descremado/nuevo',
+                component: DescremadoForm,
+                canActivate: [authGuard]
+            },
+
+            {
+                path: 'produccion-lactea',
+                component: ProduccionLactea,
+                canActivate: [authGuard]
+            },
+
+            {
+                path: 'produccion-lactea/nueva',
+                component: ProduccionLacteaForm,
+                canActivate: [authGuard]
+            },
+
+            {
+                path: 'orden-produccion',
+                component: OrdenProduccion
+            },
+            {
+                path: 'orden-produccion/nueva',
+                component: OrdenProduccionForm
+            },
 
         ]
     },

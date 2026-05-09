@@ -40,15 +40,7 @@ public class GestionDescremadoRecepcionService implements GestionDescremadoRecep
         RecepcionLeche recepcion = recepcionLecheUseCase.obtenerPorId(
                 descremadoRecepcion.getIdRecepcionLeche());
 
-        validarSaldoDisponibleParaDescremado(recepcion, descremadoRecepcion);
-
-        MovimientoLeche movimientoSalida = movimientoLecheUseCase.registrarMovimiento(
-                recepcion.getIdTanque(),
-                TipoMovimientoLeche.SALIDA_DESCREME,
-                descremadoRecepcion.getLitrosDescremados(),
-                recepcion.getIdUsuario(),
-                construirReferenciaSalida(recepcion),
-                descremadoRecepcion.getObservaciones());
+        validarDisponibleEnRecepcion(recepcion, descremadoRecepcion);
 
         MovimientoLeche movimientoEntrada = movimientoLecheUseCase.registrarMovimiento(
                 descremadoRecepcion.getIdTanqueDestino(),
@@ -58,7 +50,7 @@ public class GestionDescremadoRecepcionService implements GestionDescremadoRecep
                 construirReferenciaEntrada(recepcion),
                 descremadoRecepcion.getObservaciones());
 
-        descremadoRecepcion.setIdMovimientoSalida(movimientoSalida.getId());
+        descremadoRecepcion.setIdMovimientoSalida(null);
         descremadoRecepcion.setIdMovimientoEntrada(movimientoEntrada.getId());
 
         return repository.guardar(descremadoRecepcion);
@@ -107,15 +99,29 @@ public class GestionDescremadoRecepcionService implements GestionDescremadoRecep
         validarCremaEmpacada(descremadoRecepcion);
     }
 
-    private void validarSaldoDisponibleParaDescremado(
+    private void validarDisponibleEnRecepcion(
             RecepcionLeche recepcion,
             DescremadoRecepcion descremadoRecepcion) {
-        BigDecimal saldoActual = movimientoLecheUseCase.obtenerSaldoActualPorTanque(recepcion.getIdTanque());
-        if (saldoActual.compareTo(descremadoRecepcion.getLitrosDescremados()) < 0) {
+
+        BigDecimal litrosRecibidos = recepcion.getCantidadRecibidaLitros() != null
+                ? recepcion.getCantidadRecibidaLitros()
+                : BigDecimal.ZERO;
+
+        BigDecimal litrosYaDescremados = repository.listarPorRecepcion(recepcion.getId())
+                .stream()
+                .map(DescremadoRecepcion::getLitrosDescremados)
+                .filter(valor -> valor != null)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal disponible = litrosRecibidos.subtract(litrosYaDescremados);
+
+        if (disponible.compareTo(descremadoRecepcion.getLitrosDescremados()) < 0) {
             throw new ReglaNegocioException(
-                    "No hay suficiente leche disponible para descremar. Tanque recepcion ID: "
-                            + recepcion.getIdTanque()
-                            + ", saldo actual: " + saldoActual
+                    "No hay suficiente leche disponible en la recepcion para descremar. Recepcion ID: "
+                            + recepcion.getId()
+                            + ", recibido: " + litrosRecibidos
+                            + " L, ya descremado: " + litrosYaDescremados
+                            + " L, disponible: " + disponible
                             + " L, requerido: " + descremadoRecepcion.getLitrosDescremados() + " L.");
         }
     }
@@ -131,7 +137,8 @@ public class GestionDescremadoRecepcionService implements GestionDescremadoRecep
         }
 
         if (descremadoRecepcion.getIdSkuCrema() == null) {
-            throw new ReglaNegocioException("La presentacion/SKU de crema es obligatoria si se registra crema empacada.");
+            throw new ReglaNegocioException(
+                    "La presentacion/SKU de crema es obligatoria si se registra crema empacada.");
         }
 
         if (descremadoRecepcion.getUnidadesCrema() == null || descremadoRecepcion.getUnidadesCrema() <= 0) {
@@ -147,14 +154,6 @@ public class GestionDescremadoRecepcionService implements GestionDescremadoRecep
                 || descremadoRecepcion.getCremaObtenidaKg().compareTo(BigDecimal.ZERO) <= 0) {
             throw new ReglaNegocioException("La crema obtenida en kg es obligatoria si se registra crema empacada.");
         }
-    }
-
-    private String construirReferenciaSalida(RecepcionLeche recepcion) {
-        if (recepcion.getNumeroRemision() != null && !recepcion.getNumeroRemision().isBlank()) {
-            return "Salida descreme - Remision " + recepcion.getNumeroRemision();
-        }
-
-        return "Salida descreme - Recepcion ID " + recepcion.getId();
     }
 
     private String construirReferenciaEntrada(RecepcionLeche recepcion) {

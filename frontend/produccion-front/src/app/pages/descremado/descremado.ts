@@ -1,0 +1,93 @@
+import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { RouterLink } from '@angular/router';
+
+import {
+  DescremadoRecepcion,
+  DescremadoService
+} from '../../core/services/descremado';
+
+import {
+  RecepcionLeche,
+  RecepcionLecheService,
+  SaldoTanqueLeche
+} from '../../core/services/recepcion-leche';
+
+@Component({
+  selector: 'app-descremado',
+  imports: [CommonModule, RouterLink],
+  templateUrl: './descremado.html',
+  styleUrl: './descremado.scss',
+})
+export class Descremado implements OnInit {
+
+  descremados: DescremadoRecepcion[] = [];
+  recepciones: RecepcionLeche[] = [];
+  tanques: SaldoTanqueLeche[] = [];
+
+  cargando = false;
+  error = '';
+
+  constructor(
+    private descremadoService: DescremadoService,
+    private recepcionLecheService: RecepcionLecheService
+  ) { }
+
+  ngOnInit(): void {
+    this.cargarDatos();
+  }
+
+  cargarDatos(): void {
+    this.cargando = true;
+    this.error = '';
+
+    this.recepcionLecheService.listarRecepciones().subscribe({
+      next: (recepciones) => {
+        this.recepciones = recepciones;
+
+        this.recepcionLecheService.listarSaldosTanques().subscribe({
+          next: (tanques) => {
+            this.tanques = tanques;
+
+            this.descremadoService.listar().subscribe({
+              next: (data) => {
+                this.descremados = data;
+                this.cargando = false;
+              },
+              error: (err) => {
+                console.error(err);
+                this.error = 'No se pudieron cargar los descremados.';
+                this.cargando = false;
+              }
+            });
+          }
+        });
+      },
+      error: (err) => {
+        console.error(err);
+        this.error = 'No se pudieron cargar los datos.';
+        this.cargando = false;
+      }
+    });
+  }
+
+  obtenerRecepcion(idRecepcion: number): string {
+    const recepcion = this.recepciones.find(r => r.id === idRecepcion);
+
+    if (!recepcion) {
+      return 'Recepción no encontrada';
+    }
+
+    return `${recepcion.fechaRecepcion} - ${recepcion.proveedor}`;
+  }
+
+  obtenerTanque(idTanque?: number): string {
+    if (!idTanque) {
+      return '-';
+    }
+
+    const tanque = this.tanques.find(t => t.idTanque === idTanque);
+
+    return tanque?.nombre || `Tanque ${idTanque}`;
+  }
+}

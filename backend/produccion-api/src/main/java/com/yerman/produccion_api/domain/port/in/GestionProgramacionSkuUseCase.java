@@ -12,4 +12,8 @@ public interface GestionProgramacionSkuUseCase {
     Optional<ProgramacionSku> obtenerPorId(Long id);
 
     List<ProgramacionSku> listarPorProgramacion(Long idProgramacion);
+
+    ProgramacionSku actualizarSku(Long id, ProgramacionSku programacionSku);
+
+    void eliminarSku(Long id);
 }

@@ -5,15 +5,13 @@
         <div class="col">
             <h2 class="fw-bold">Recepción de leche</h2>
             <p class="text-muted mb-0">
-                Control de entradas y saldos de tanque
+                Registro de leche cruda recibida en planta
             </p>
         </div>
 
         <div class="col-auto">
             <a class="btn btn-primary" routerLink="/recepcion-leche/nueva">
-
                 Nueva recepción
-
             </a>
         </div>
 
@@ -27,19 +25,6 @@
         {{ error }}
     </div>
 
-    <div class="row g-4 mb-4">
-        <div class="col-md-4" *ngFor="let saldo of saldos">
-            <div class="card shadow border-0">
-                <div class="card-body">
-                    <h6 class="text-muted">
-                        {{ saldo.nombre || ('Tanque #' + saldo.idTanque) }}
-                    </h6>
-                    <h3>{{ saldo.saldoLitros | number:'1.2-2' }} L</h3>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="card shadow border-0">
         <div class="card-header bg-white fw-bold">
             Recepciones registradas
@@ -49,22 +34,22 @@
             <table class="table table-hover align-middle">
                 <thead>
                     <tr>
-                        <th>ID</th>
+                        <th>#</th>
                         <th>Fecha</th>
                         <th>Proveedor</th>
-                        <th>Litros remisión</th>
                         <th>Litros recibidos</th>
+                        <th>Remisión</th>
                         <th>Observaciones</th>
                     </tr>
                 </thead>
 
                 <tbody>
-                    <tr *ngFor="let item of recepciones">
-                        <td>{{ item.id }}</td>
+                    <tr *ngFor="let item of recepciones; let i = index">
+                        <td>{{ i + 1 }}</td>
                         <td>{{ item.fechaRecepcion }}</td>
                         <td>{{ item.proveedor }}</td>
-                        <td>{{ item.cantidadRemisionLitros | number:'1.2-2' }} L</td>
                         <td>{{ item.cantidadRecibidaLitros | number:'1.2-2' }} L</td>
+                        <td>{{ item.numeroRemision || '-' }}</td>
                         <td>{{ item.observaciones || '-' }}</td>
                     </tr>
                 </tbody>

@@ -31,7 +31,7 @@ public class RecepcionLecheEntity {
     private String recibidoPor;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_tanque", nullable = false)
+    @JoinColumn(name = "id_tanque")
     private TanqueLecheEntity tanque;
 
     @ManyToOne(fetch = FetchType.LAZY)

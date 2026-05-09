@@ -29,9 +29,6 @@ public class RecepcionLecheRequest {
     private String recibidoPor;
 
     @NotNull
-    private Long idTanque;
-
-    @NotNull
     private Long idUsuario;
 
     @Size(max = 60)
@@ -84,14 +81,6 @@ public class RecepcionLecheRequest {
 
     public void setRecibidoPor(String recibidoPor) {
         this.recibidoPor = recibidoPor;
-    }
-
-    public Long getIdTanque() {
-        return idTanque;
-    }
-
-    public void setIdTanque(Long idTanque) {
-        this.idTanque = idTanque;
     }
 
     public Long getIdUsuario() {

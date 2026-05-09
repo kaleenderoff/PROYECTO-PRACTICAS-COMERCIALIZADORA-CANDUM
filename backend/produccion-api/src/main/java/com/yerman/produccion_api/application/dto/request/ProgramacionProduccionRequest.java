@@ -33,8 +33,6 @@ public class ProgramacionProduccionRequest {
     @PositiveOrZero(message = "Los kg por bache no pueden ser negativos")
     private BigDecimal kgBachePlan;
 
-    @NotNull(message = "La versión de fórmula es obligatoria")
-    @Positive(message = "El id de la versión de fórmula debe ser mayor que cero")
     private Long idFormulaVersion;
 
     @NotNull(message = "El jefe de producción es obligatorio")

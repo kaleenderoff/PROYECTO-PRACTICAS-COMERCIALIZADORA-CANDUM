@@ -1,0 +1,151 @@
+<div class="container-fluid">
+
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="fw-bold">Registrar producción láctea</h2>
+            <p class="text-muted mb-0">
+                Registro de producción por batches y marmitas
+            </p>
+        </div>
+    </div>
+
+    <div *ngIf="cargandoDatos" class="alert alert-info">
+        Cargando datos iniciales...
+    </div>
+
+    <div *ngIf="error" class="alert alert-danger">
+        {{ error }}
+    </div>
+
+    <div class="card shadow border-0">
+        <div class="card-body">
+
+            <form [formGroup]="form" (ngSubmit)="guardar()">
+
+                <div class="row g-3">
+
+                    <div class="col-md-4">
+                        <label class="form-label">Fecha producción</label>
+                        <input type="date" class="form-control" formControlName="fechaProduccion">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Producto</label>
+
+                        <select class="form-select" formControlName="producto">
+                            <option value="">Seleccione producto</option>
+
+                            <option *ngFor="let producto of productosLacteos" [value]="producto">
+                                {{ producto }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Tanque de leche</label>
+
+                        <select class="form-select" formControlName="idTanque">
+                            <option [ngValue]="null">Seleccione un tanque</option>
+
+                            <option *ngFor="let tanque of tanques" [value]="tanque.idTanque">
+                                {{ tanque.nombre }} -
+                                {{ tanque.saldoLitros | number:'1.2-2' }} L disponibles
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label">Observaciones generales</label>
+                        <textarea class="form-control" rows="2" formControlName="observaciones"></textarea>
+                    </div>
+
+                </div>
+
+                <hr class="my-4">
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="fw-bold mb-0">Batches / Marmitas</h5>
+                        <small class="text-muted">
+                            Registra cada batch producido en una marmita.
+                        </small>
+                    </div>
+
+                    <button class="btn btn-outline-primary" type="button" (click)="agregarBatch()">
+                        Agregar batch
+                    </button>
+                </div>
+
+                <div formArrayName="batches">
+
+                    <div class="card border mb-3" *ngFor="let batch of batches.controls; let i = index"
+                        [formGroupName]="i">
+
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <strong>Batch {{ i + 1 }}</strong>
+
+                            <button class="btn btn-sm btn-outline-danger" type="button" *ngIf="batches.length > 1"
+                                (click)="eliminarBatch(i)">
+                                Eliminar
+                            </button>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="row g-3">
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Número batch</label>
+                                    <input type="number" class="form-control" formControlName="numeroBatch" readonly>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Marmita</label>
+
+                                    <select class="form-select" formControlName="idMarmita">
+                                        <option [ngValue]="null">Seleccione marmita</option>
+
+                                        <option *ngFor="let marmita of marmitas" [value]="marmita.id">
+                                            {{ marmita.nombre }}
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Litros consumidos</label>
+                                    <input type="number" class="form-control" formControlName="litrosConsumidos">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Kilos producidos</label>
+                                    <input type="number" class="form-control" formControlName="kilosProducidos">
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label">Observaciones batch</label>
+                                    <textarea class="form-control" rows="2" formControlName="observaciones">
+                  </textarea>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                    <button class="btn btn-primary" type="submit" [disabled]="cargando || cargandoDatos">
+                        {{ cargando ? 'Guardando...' : 'Guardar producción' }}
+                    </button>
+
+                    <button class="btn btn-secondary" type="button" routerLink="/produccion-lactea">
+                        Cancelar
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>

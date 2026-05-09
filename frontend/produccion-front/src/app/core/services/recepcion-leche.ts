@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface RecepcionLeche {
   id: number;
@@ -12,7 +13,7 @@ export interface RecepcionLeche {
   idTanque: number;
   idUsuario: number;
   numeroRemision?: string;
-  cantidadRemisionLitros: number;
+  cantidadRemisionLitros?: number;
   observaciones?: string;
 }
 
@@ -21,18 +22,18 @@ export interface RecepcionLecheRequest {
   tipoMateriaPrima: string;
   proveedor: string;
   cantidadRecibidaLitros: number;
-  recibidoPor: string;
-  idTanque: number;
-  idUsuario: number;
-  numeroRemision: string;
-  cantidadRemisionLitros: number;
-  observaciones: string;
-  pesajes: {
-    numeroPesaje: number;
-    pesoBrutoKg: number;
-    taraKg: number;
-    observaciones: string;
-  }[];
+  recibidoPor?: string;
+  numeroRemision?: string;
+  cantidadRemisionLitros?: number;
+  observaciones?: string;
+  pesajes: RecepcionLechePesajeRequest[];
+}
+
+export interface RecepcionLechePesajeRequest {
+  numeroPesaje: number;
+  pesoBrutoKg: number;
+  taraKg: number;
+  observaciones?: string;
 }
 
 export interface SaldoTanqueLeche {
@@ -43,12 +44,17 @@ export interface SaldoTanqueLeche {
   activo: boolean;
 }
 
+export interface Proveedor {
+  id: number;
+  nombre: string;
+  activo: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class RecepcionLecheService {
-
-  private readonly apiUrl = 'http://localhost:8082/api';
+  private readonly apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) { }
 
@@ -62,5 +68,9 @@ export class RecepcionLecheService {
 
   registrarRecepcion(request: RecepcionLecheRequest): Observable<RecepcionLeche> {
     return this.http.post<RecepcionLeche>(`${this.apiUrl}/recepciones-leche`, request);
+  }
+
+  listarProveedores(): Observable<Proveedor[]> {
+    return this.http.get<Proveedor[]>(`${this.apiUrl}/catalogos/proveedores`);
   }
 }
