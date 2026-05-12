@@ -1,0 +1,209 @@
+<div class="container-fluid py-4">
+
+    <h1 class="h2 mb-1">
+        Gestión de Insumos
+    </h1>
+
+    <p class="text-muted mb-4">
+        Administración de materias primas y aditivos.
+    </p>
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <h2 class="h4 mb-3">
+                {{ modoEdicion ? 'Editar insumo' : 'Crear insumo' }}
+            </h2>
+
+            <div class="alert alert-success" *ngIf="mensajeOk">
+                {{ mensajeOk }}
+            </div>
+
+            <div class="alert alert-danger" *ngIf="mensajeError">
+                {{ mensajeError }}
+            </div>
+
+            <div class="row g-3">
+
+                <div class="col-md-5">
+
+                    <label class="form-label">
+                        Nombre
+                    </label>
+
+                    <input class="form-control" [(ngModel)]="nuevoInsumo.nombre">
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <label class="form-label">
+                        Tipo
+                    </label>
+
+                    <select class="form-select" [(ngModel)]="nuevoInsumo.tipo">
+                        <option value="MATERIA_PRIMA">
+                            Materia prima
+                        </option>
+
+                        <option value="MATERIAL_EMPAQUE">
+                            Material de empaque
+                        </option>
+
+                        <option value="ADITIVO">
+                            Aditivo
+                        </option>
+
+                        <option value="OTRO">
+                            Otro
+                        </option>
+                    </select>
+
+                </div>
+
+                <div class="col-md-2">
+
+                    <label class="form-label">
+                        Unidad
+                    </label>
+
+                    <select class="form-select" [(ngModel)]="nuevoInsumo.unidadMedida">
+                        <option value="kg">
+                            kg
+                        </option>
+
+                        <option value="g">
+                            g
+                        </option>
+
+                        <option value="lt">
+                            lt
+                        </option>
+
+                        <option value="ml">
+                            ml
+                        </option>
+
+                        <option value="unidad">
+                            unidad
+                        </option>
+                    </select>
+
+                </div>
+
+                <div class="col-md-2">
+
+                    <label class="form-label">
+                        Activo
+                    </label>
+
+                    <select class="form-select" [(ngModel)]="nuevoInsumo.activo">
+                        <option [ngValue]="true">
+                            Sí
+                        </option>
+
+                        <option [ngValue]="false">
+                            No
+                        </option>
+                    </select>
+
+                </div>
+
+                <div class="col-md-12 d-flex gap-2">
+
+                    <button class="btn btn-success" type="button" (click)="guardarInsumo()">
+                        {{ modoEdicion ? 'Actualizar' : 'Crear' }}
+                    </button>
+
+                    <button class="btn btn-secondary" type="button" *ngIf="modoEdicion" (click)="cancelarEdicion()">
+                        Cancelar
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="card shadow-sm">
+
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+
+                <h2 class="h4 mb-0">
+                    Insumos registrados
+                </h2>
+
+                <input class="form-control w-auto" placeholder="Buscar..." [(ngModel)]="filtro">
+
+            </div>
+
+            <table class="table table-bordered align-middle">
+
+                <thead class="table-light">
+
+                    <tr>
+                        <th>#</th>
+                        <th>Nombre</th>
+                        <th>Tipo</th>
+                        <th>Unidad</th>
+                        <th>Activo</th>
+                        <th>Acciones</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr *ngFor="let insumo of insumosFiltrados; let i = index">
+
+                        <td>
+                            {{ i + 1 }}
+                        </td>
+
+                        <td>
+                            {{ insumo.nombre }}
+                        </td>
+
+                        <td>
+                            {{ insumo.tipo }}
+                        </td>
+
+                        <td>
+                            {{ insumo.unidadMedida }}
+                        </td>
+
+                        <td>
+                            <span class="badge" [class.bg-success]="insumo.activo"
+                                [class.bg-secondary]="!insumo.activo">
+                                {{ insumo.activo ? 'SI' : 'NO' }}
+                            </span>
+                        </td>
+
+                        <td>
+                            <button class="btn btn-outline-primary btn-sm" type="button" (click)="editarInsumo(insumo)">
+                                Editar
+                            </button>
+                        </td>
+
+                    </tr>
+
+                    <tr *ngIf="insumosFiltrados.length === 0">
+                        <td colspan="6" class="text-center text-muted">
+                            No hay insumos para mostrar.
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>

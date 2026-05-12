@@ -54,6 +54,12 @@ export class UsuarioService {
     return this.http.get<Usuario[]>(`${this.apiUrl}/todos`);
   }
 
+  listarPorRol(rol: string): Observable<Usuario[]> {
+    return this.http.get<Usuario[]>(
+      `${this.apiUrl}/rol/${rol}`
+    );
+  }
+
   crear(request: CrearUsuarioRequest): Observable<Usuario> {
     return this.http.post<Usuario>(this.apiUrl, request);
   }
@@ -63,14 +69,23 @@ export class UsuarioService {
   }
 
   resetPassword(id: number, request: ResetPasswordRequest): Observable<void> {
-    return this.http.patch<void>(`${this.apiUrl}/${id}/reset-password`, request);
+    return this.http.patch<void>(
+      `${this.apiUrl}/${id}/reset-password`,
+      request
+    );
   }
 
   activar(id: number): Observable<void> {
-    return this.http.patch<void>(`${this.apiUrl}/${id}/activar`, {});
+    return this.http.patch<void>(
+      `${this.apiUrl}/${id}/activar`,
+      {}
+    );
   }
 
   desactivar(id: number): Observable<void> {
-    return this.http.patch<void>(`${this.apiUrl}/${id}/desactivar`, {});
+    return this.http.patch<void>(
+      `${this.apiUrl}/${id}/desactivar`,
+      {}
+    );
   }
 }

@@ -5,34 +5,35 @@ import java.time.LocalDate;
 import java.util.List;
 
 public record FormulaProduccionResponse(
-        Long idFormulaVersion,
-        Long idFormula,
-        String nombreFormula,
-        Long idProducto,
-        String nombreProducto,
-        String version,
-        LocalDate fechaInicioVigencia,
-        LocalDate fechaFinVigencia,
-        BigDecimal kgBatchTotal,
-        BigDecimal reduccionEvaporacionPct,
-        BigDecimal rendimientoTeoricoPct,
-        BigDecimal brixObjetivoMin,
-        BigDecimal brixObjetivoMax,
-        String estado,
-        String aprobadoPor,
-        String documentoAprobacion,
-        String observacionesTecnicas,
-        List<FormulaDetalleResponse> detalles) {
+                Long idFormulaVersion,
+                Long idFormula,
+                String nombreFormula,
+                Long idProducto,
+                String nombreProducto,
+                String version,
+                LocalDate fechaInicioVigencia,
+                LocalDate fechaFinVigencia,
+                BigDecimal kgBatchTotal,
+                BigDecimal reduccionEvaporacionPct,
+                BigDecimal rendimientoTeoricoPct,
+                BigDecimal brixObjetivoMin,
+                BigDecimal brixObjetivoMax,
+                String estado,
+                String aprobadoPor,
+                String documentoAprobacion,
+                String observacionesTecnicas,
+                List<FormulaDetalleResponse> detalles) {
 
-    public record FormulaDetalleResponse(
-            Long idDetalle,
-            Long idInsumo,
-            String codigoInsumo,
-            String nombreInsumo,
-            String unidadMedida,
-            BigDecimal cantidadKg,
-            BigDecimal porcentaje,
-            Boolean esCritico,
-            Integer ordenAdicion) {
-    }
+        public record FormulaDetalleResponse(
+                        Long idDetalle,
+                        Long idInsumo,
+                        String codigoInsumo,
+                        String nombreInsumo,
+                        String unidadMedida,
+                        BigDecimal cantidadKg,
+                        BigDecimal porcentaje,
+                        String tipoCalculo,
+                        Boolean esCritico,
+                        Integer ordenAdicion) {
+        }
 }

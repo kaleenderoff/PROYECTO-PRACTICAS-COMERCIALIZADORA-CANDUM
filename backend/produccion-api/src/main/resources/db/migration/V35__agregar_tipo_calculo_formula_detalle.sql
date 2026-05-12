@@ -1,0 +1,4 @@
+ALTER TABLE formula_detalle
+ADD COLUMN tipo_calculo ENUM('FIJO', 'PORCENTAJE_BATCH')
+    NOT NULL DEFAULT 'PORCENTAJE_BATCH'
+    AFTER porcentaje;

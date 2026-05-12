@@ -39,33 +39,63 @@ public class GestionProduccionLacteaService implements GestionProduccionLacteaUs
     @Override
     @Transactional
     public Produccion registrarProduccion(Produccion produccion) {
+
         validarProduccion(produccion);
+
+        if (produccion.getIdOrdenProduccion() != null) {
+
+            ordenProduccionUseCase.obtenerPorId(
+                    produccion.getIdOrdenProduccion()).ifPresent(orden -> {
+
+                        if (orden
+                                .getEstado() == com.yerman.produccion_api.domain.model.EstadoOrdenProduccion.PROGRAMADA) {
+
+                            ordenProduccionUseCase.iniciar(
+                                    orden.getId(),
+                                    produccion.getIdUsuario());
+                        }
+                    });
+        }
 
         BigDecimal totalLitrosProduccion = produccion.getBatches()
                 .stream()
                 .map(ProduccionBatch::getLitrosConsumidos)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal saldoActual = movimientoLecheUseCase.obtenerSaldoActualPorTanque(produccion.getIdTanque());
+        BigDecimal saldoActual = movimientoLecheUseCase.obtenerSaldoActualPorTanque(
+                produccion.getIdTanque());
 
         if (saldoActual.compareTo(totalLitrosProduccion) < 0) {
+
             throw new ReglaNegocioException(
                     "No hay suficiente leche disponible en el tanque. Saldo actual: "
-                            + saldoActual + " L, requerido: " + totalLitrosProduccion + " L.");
+                            + saldoActual
+                            + " L, requerido: "
+                            + totalLitrosProduccion
+                            + " L.");
         }
 
         for (ProduccionBatch batch : produccion.getBatches()) {
-            batch.setRendimiento(calcularRendimiento(batch));
+
+            batch.setRendimiento(
+                    calcularRendimiento(batch));
 
             MovimientoLeche movimiento = movimientoLecheUseCase.registrarMovimiento(
+
                     produccion.getIdTanque(),
+
                     TipoMovimientoLeche.SALIDA_PRODUCCION,
+
                     batch.getLitrosConsumidos(),
+
                     produccion.getIdUsuario(),
+
                     construirReferencia(produccion, batch),
+
                     construirObservacion(produccion, batch));
 
-            batch.setIdMovimientoLeche(movimiento.getId());
+            batch.setIdMovimientoLeche(
+                    movimiento.getId());
         }
 
         return repository.guardar(produccion);

@@ -1,0 +1,107 @@
+.programacion-page {
+    padding: 24px;
+}
+
+h2 {
+    margin: 0;
+    font-size: 28px;
+}
+
+.subtitle {
+    margin-top: 4px;
+    color: #666;
+}
+
+.card {
+    margin-top: 20px;
+    padding: 20px;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 240px;
+    gap: 16px;
+}
+
+label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-weight: 600;
+}
+
+input {
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+button {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    background: #1f6feb;
+    color: white;
+    cursor: pointer;
+}
+
+button.danger {
+    background: #d1242f;
+}
+
+table {
+    width: 100%;
+    margin-top: 16px;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+th {
+    background: #f3f4f6;
+}
+
+td.editable {
+    background: #fff3cd;
+}
+
+td.editable input {
+    background: #fff3cd;
+    font-weight: 600;
+}
+
+.totals-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+}
+
+.totals-grid div {
+    padding: 16px;
+    border-radius: 10px;
+    background: #f9fafb;
+}
+
+.totals-grid span {
+    display: block;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.totals-grid strong {
+    font-size: 22px;
+}

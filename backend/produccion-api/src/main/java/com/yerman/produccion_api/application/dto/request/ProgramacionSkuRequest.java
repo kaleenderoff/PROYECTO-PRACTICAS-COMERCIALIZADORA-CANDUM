@@ -6,8 +6,6 @@ import jakarta.validation.constraints.Size;
 
 public class ProgramacionSkuRequest {
 
-    @NotNull(message = "La programación es obligatoria")
-    @Positive(message = "El id de la programación debe ser mayor que cero")
     private Long idProgramacion;
 
     @NotNull(message = "El SKU es obligatorio")

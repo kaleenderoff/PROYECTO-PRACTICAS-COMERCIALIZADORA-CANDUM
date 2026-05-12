@@ -22,7 +22,6 @@ public class ProduccionLacteaRequest {
     @NotNull
     private Long idTanque;
 
-    @NotNull
     private Long idUsuario;
 
     @Size(max = 500)

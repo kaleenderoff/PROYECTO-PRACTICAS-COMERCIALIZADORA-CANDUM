@@ -1,0 +1,466 @@
+<div class="container-fluid py-4">
+
+    <h1 class="h2 mb-1">
+        Gestión de Fórmulas
+    </h1>
+
+    <p class="text-muted mb-4">
+        Administración de fórmulas, versiones e ingredientes por producto.
+    </p>
+
+    <!-- PRODUCTO -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+
+            <h2 class="h4 mb-3">
+                Producto
+            </h2>
+
+            <select class="form-select" [(ngModel)]="idProducto" (ngModelChange)="onProductoChange()">
+                <option [ngValue]="null">
+                    Seleccione producto
+                </option>
+
+                <option *ngFor="let producto of productos" [ngValue]="producto.id">
+                    {{ producto.nombre }}
+                </option>
+            </select>
+
+        </div>
+    </div>
+
+    <!-- CREAR FORMULA -->
+    <div class="card shadow-sm mb-4" *ngIf="idProducto">
+        <div class="card-body">
+
+            <h2 class="h4 mb-3">
+                Crear fórmula
+            </h2>
+
+            <div class="row g-3">
+
+                <div class="col-md-8">
+                    <input class="form-control" placeholder="Nombre de la fórmula" [(ngModel)]="nuevaFormula.nombre">
+                </div>
+
+                <div class="col-md-4">
+                    <button class="btn btn-primary w-100" type="button" (click)="crearFormula()">
+                        Crear fórmula
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- FORMULAS -->
+    <div class="card shadow-sm mb-4" *ngIf="formulas.length > 0">
+        <div class="card-body">
+
+            <h2 class="h4 mb-3">
+                Fórmula
+            </h2>
+
+            <select class="form-select" [(ngModel)]="idFormula" (ngModelChange)="onFormulaChange()">
+                <option [ngValue]="null">
+                    Seleccione fórmula
+                </option>
+
+                <option *ngFor="let formula of formulas" [ngValue]="formula.idFormula">
+                    {{ formula.nombreFormula }}
+                </option>
+            </select>
+
+        </div>
+    </div>
+
+    <!-- CREAR VERSION -->
+    <div class="card shadow-sm mb-4" *ngIf="idFormula">
+        <div class="card-body">
+
+            <h2 class="h4 mb-3">
+                Crear versión
+            </h2>
+
+            <div class="row g-3">
+
+                <div class="col-md-2">
+                    <label class="form-label">
+                        Versión
+                    </label>
+
+                    <input class="form-control" [(ngModel)]="nuevaVersion.version">
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">
+                        Fecha inicio
+                    </label>
+
+                    <input type="date" class="form-control" [(ngModel)]="nuevaVersion.fechaInicioVigencia">
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">
+                        Kg batch
+                    </label>
+
+                    <input type="number" class="form-control" [(ngModel)]="nuevaVersion.kgBatchTotal">
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">
+                        Rendimiento %
+                    </label>
+
+                    <input type="number" class="form-control" [(ngModel)]="nuevaVersion.rendimientoTeoricoPct">
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">
+                        Reducción %
+                    </label>
+
+                    <input type="number" class="form-control" [(ngModel)]="nuevaVersion.reduccionEvaporacionPct">
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">
+                        Brix min
+                    </label>
+
+                    <input type="number" class="form-control" [(ngModel)]="nuevaVersion.brixObjetivoMin">
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">
+                        Brix max
+                    </label>
+
+                    <input type="number" class="form-control" [(ngModel)]="nuevaVersion.brixObjetivoMax">
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">
+                        Aprobado por
+                    </label>
+
+                    <input class="form-control" [(ngModel)]="nuevaVersion.aprobadoPor">
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">
+                        Documento aprobación
+                    </label>
+
+                    <input class="form-control" [(ngModel)]="nuevaVersion.documentoAprobacion">
+                </div>
+
+                <div class="col-md-12">
+                    <label class="form-label">
+                        Observaciones técnicas
+                    </label>
+
+                    <textarea class="form-control" [(ngModel)]="nuevaVersion.observacionesTecnicas"></textarea>
+                </div>
+
+                <div class="col-md-12">
+                    <button class="btn btn-primary" type="button" (click)="crearVersion()">
+                        Crear versión
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- VERSION -->
+    <div class="card shadow-sm mb-4" *ngIf="versiones.length > 0">
+        <div class="card-body">
+
+            <h2 class="h4 mb-3">
+                Versión
+            </h2>
+
+            <select class="form-select" [(ngModel)]="idFormulaVersion" (ngModelChange)="onVersionChange()">
+                <option [ngValue]="null">
+                    Seleccione versión
+                </option>
+
+                <option *ngFor="let version of versiones" [ngValue]="version.idFormulaVersion">
+                    {{ version.version }} - {{ version.estado }}
+                </option>
+            </select>
+
+        </div>
+    </div>
+
+    <!-- INGREDIENTES -->
+    <div class="card shadow-sm mb-4" *ngIf="formulaSeleccionada">
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+
+                <h2 class="h4 mb-0">
+                    Ingredientes
+                </h2>
+
+                <button class="btn btn-success" type="button" (click)="marcarVigente()"
+                    [disabled]="formulaSeleccionada.estado === 'VIGENTE'">
+                    Marcar como vigente
+                </button>
+
+            </div>
+
+            <div class="mb-3 text-muted">
+                Kg batch base:
+                <strong>{{ obtenerKgBatchBase() }}</strong>
+            </div>
+
+            <div class="alert alert-warning" *ngIf="formulaSeleccionada && !puedeEditarFormula()">
+                Esta versión está {{ formulaSeleccionada.estado }}.
+                Para modificar ingredientes, crea una nueva versión.
+            </div>
+
+            <div class="alert alert-danger" *ngIf="mensajeError">
+                {{ mensajeError }}
+            </div>
+
+            <div class="alert alert-success" *ngIf="mensajeOk">
+                {{ mensajeOk }}
+            </div>
+
+            <div class="row g-3 mb-4">
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Insumo
+                    </label>
+
+                    <select class="form-select" [(ngModel)]="nuevoDetalle.idInsumo">
+                        <option [ngValue]="0">
+                            Seleccione insumo
+                        </option>
+
+                        <option *ngFor="let insumo of insumos" [ngValue]="insumo.id">
+                            {{ insumo.nombre }}
+                        </option>
+                    </select>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <label class="form-label">
+                        Tipo de cálculo
+                    </label>
+
+                    <select class="form-select" [(ngModel)]="nuevoDetalle.tipoCalculo"
+                        (ngModelChange)="onTipoCalculoChange()">
+
+                        <option value="PORCENTAJE_BATCH">
+                            Dinámico (% del batch)
+                        </option>
+
+                        <option value="FIJO">
+                            Fijo (kg constante)
+                        </option>
+
+                    </select>
+
+                    <small class="text-muted" *ngIf="nuevoDetalle.tipoCalculo === 'PORCENTAJE_BATCH'">
+                        Se recalcula automáticamente con el tamaño del batch.
+                    </small>
+
+                    <small class="text-muted" *ngIf="nuevoDetalle.tipoCalculo === 'FIJO'">
+                        La cantidad permanece constante.
+                    </small>
+
+                </div>
+
+                <ng-container *ngIf="nuevoDetalle.tipoCalculo === 'PORCENTAJE_BATCH'">
+
+                    <div class="col-md-2">
+
+                        <label class="form-label">
+                            % del batch
+                        </label>
+
+                        <input type="number" class="form-control" [(ngModel)]="nuevoDetalle.porcentaje"
+                            (ngModelChange)="calcularPorcentaje()">
+
+                    </div>
+
+                    <div class="col-md-2">
+
+                        <label class="form-label">
+                            Cantidad kg
+                        </label>
+
+                        <input type="number" class="form-control bg-light" [(ngModel)]="nuevoDetalle.cantidadKg"
+                            readonly>
+
+                        <small class="text-muted">
+                            {{ calcularCantidadGramos() }} g
+                        </small>
+
+                    </div>
+
+                </ng-container>
+
+                <ng-container *ngIf="nuevoDetalle.tipoCalculo === 'FIJO'">
+
+                    <div class="col-md-2">
+
+                        <label class="form-label">
+                            Cantidad kg
+                        </label>
+
+                        <input type="number" class="form-control" [(ngModel)]="nuevoDetalle.cantidadKg"
+                            (ngModelChange)="calcularPorcentaje()">
+
+                        <small class="text-muted">
+                            {{ calcularCantidadGramos() }} g
+                        </small>
+
+                    </div>
+
+                    <div class="col-md-2">
+
+                        <label class="form-label">
+                            % informativo
+                        </label>
+
+                        <input type="number" class="form-control bg-light" [(ngModel)]="nuevoDetalle.porcentaje"
+                            readonly>
+
+                    </div>
+
+                </ng-container>
+
+                <div class="col-md-1">
+
+                    <label class="form-label">
+                        Orden
+                    </label>
+
+                    <input type="number" class="form-control" [(ngModel)]="nuevoDetalle.ordenAdicion">
+
+                </div>
+
+                <div class="col-md-2 d-flex align-items-end">
+
+                    <div class="form-check">
+
+                        <input class="form-check-input" type="checkbox" [(ngModel)]="nuevoDetalle.esCritico">
+
+                        <label class="form-check-label">
+                            Crítico
+                        </label>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-12">
+
+                    <button class="btn btn-primary" type="button" (click)="agregarDetalle()"
+                        [disabled]="!puedeEditarFormula()">
+                        Agregar ingrediente
+                    </button>
+
+                </div>
+
+            </div>
+
+            <table class="table table-bordered align-middle">
+
+                <thead class="table-light">
+
+                    <tr>
+                        <th>Orden</th>
+                        <th>Insumo</th>
+                        <th>Tipo</th>
+                        <th>%</th>
+                        <th>Cantidad kg</th>
+                        <th>Cantidad g</th>
+                        <th>Unidad</th>
+                        <th>Crítico</th>
+                        <th></th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr *ngFor="let detalle of formulaSeleccionada.detalles">
+
+                        <td>
+                            {{ detalle.ordenAdicion }}
+                        </td>
+
+                        <td>
+                            {{ detalle.nombreInsumo }}
+                        </td>
+
+                        <td>
+                            <span class="badge" [class.bg-primary]="detalle.tipoCalculo === 'PORCENTAJE_BATCH'"
+                                [class.bg-secondary]="detalle.tipoCalculo === 'FIJO'">
+                                {{ detalle.tipoCalculo === 'FIJO' ? 'Fijo' : 'Dinámico' }}
+                            </span>
+                        </td>
+
+                        <td>
+                            {{ detalle.porcentaje }}
+                        </td>
+
+                        <td>
+                            {{ detalle.cantidadKg }}
+                        </td>
+
+                        <td>
+                            {{ calcularGramosDetalle(detalle) }}
+                        </td>
+
+                        <td>
+                            {{ detalle.unidadMedida }}
+                        </td>
+
+                        <td>
+                            {{ detalle.esCritico ? 'SI' : 'NO' }}
+                        </td>
+
+                        <td>
+
+                            <button class="btn btn-danger btn-sm" type="button" (click)="eliminarDetalle(detalle)"
+                                [disabled]="!puedeEditarFormula()">
+                                Eliminar
+                            </button>
+
+                        </td>
+
+                    </tr>
+
+                    <tr class="fw-bold table-light">
+                        <td>TOTAL</td>
+                        <td></td>
+                        <td></td>
+                        <td>{{ calcularTotalPorcentaje() }}%</td>
+                        <td>{{ calcularTotalKg() }}</td>
+                        <td>{{ calcularTotalGramos() }}</td>
+                        <td>kg/g</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+    </div>
+
+</div>

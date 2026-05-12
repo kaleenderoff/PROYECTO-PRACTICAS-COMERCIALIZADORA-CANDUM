@@ -9,5 +9,7 @@ public interface ProgramacionSkuJpaRepository extends JpaRepository<Programacion
 
     List<ProgramacionSkuEntity> findByProgramacionIdOrderByIdAsc(Long idProgramacion);
 
-    boolean existsByProgramacionIdAndSkuId(Long idProgramacion, Long idSku);
+    boolean existsByProgramacionIdAndSkuId(
+            Long idProgramacion,
+            Long idSku);
 }

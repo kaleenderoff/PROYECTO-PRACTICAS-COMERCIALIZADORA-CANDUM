@@ -2,9 +2,9 @@
 
     <div class="row mb-4">
         <div class="col">
-            <h2 class="fw-bold">Registrar producción láctea</h2>
+            <h2 class="fw-bold">Registrar ejecución de producción</h2>
             <p class="text-muted mb-0">
-                Registro de producción por batches y marmitas
+                Registro operativo de producción por batches y marmitas
             </p>
         </div>
     </div>
@@ -67,7 +67,7 @@
                     <div>
                         <h5 class="fw-bold mb-0">Batches / Marmitas</h5>
                         <small class="text-muted">
-                            Registra cada batch producido en una marmita.
+                            Registra cada batch ejecutado en una marmita.
                         </small>
                     </div>
 
@@ -122,8 +122,7 @@
 
                                 <div class="col-md-12">
                                     <label class="form-label">Observaciones batch</label>
-                                    <textarea class="form-control" rows="2" formControlName="observaciones">
-                  </textarea>
+                                    <textarea class="form-control" rows="2" formControlName="observaciones"></textarea>
                                 </div>
 
                             </div>
@@ -135,10 +134,12 @@
 
                 <div class="mt-4 d-flex gap-2">
                     <button class="btn btn-primary" type="submit" [disabled]="cargando || cargandoDatos">
-                        {{ cargando ? 'Guardando...' : 'Guardar producción' }}
+
+                        {{ cargando ? 'Guardando...' : 'Guardar ejecución' }}
+
                     </button>
 
-                    <button class="btn btn-secondary" type="button" routerLink="/produccion-lactea">
+                    <button class="btn btn-secondary" type="button" routerLink="/ejecucion-produccion">
                         Cancelar
                     </button>
                 </div>

@@ -1,5 +1,6 @@
 package com.yerman.produccion_api.application.dto.request;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -8,6 +9,7 @@ import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 public class ProgramacionProduccionRequest {
 
@@ -35,12 +37,23 @@ public class ProgramacionProduccionRequest {
 
     private Long idFormulaVersion;
 
-    @NotNull(message = "El jefe de producción es obligatorio")
-    @Positive(message = "El id del jefe de producción debe ser mayor que cero")
+    /*
+     * Se asigna automáticamente desde el usuario autenticado.
+     */
     private Long idJefeProduccion;
+
+    /*
+     * Jefe de línea responsable de ejecutar la orden.
+     */
+    @NotNull(message = "Debe seleccionar un jefe de línea")
+    @Positive(message = "El jefe de línea debe ser válido")
+    private Long idJefeLineaEjecutor;
 
     @Size(max = 500, message = "Las observaciones no pueden superar 500 caracteres")
     private String observaciones;
+
+    @Valid
+    private List<ProgramacionSkuRequest> skus;
 
     public LocalDate getFechaProduccion() {
         return fechaProduccion;
@@ -106,11 +119,27 @@ public class ProgramacionProduccionRequest {
         this.idJefeProduccion = idJefeProduccion;
     }
 
+    public Long getIdJefeLineaEjecutor() {
+        return idJefeLineaEjecutor;
+    }
+
+    public void setIdJefeLineaEjecutor(Long idJefeLineaEjecutor) {
+        this.idJefeLineaEjecutor = idJefeLineaEjecutor;
+    }
+
     public String getObservaciones() {
         return observaciones;
     }
 
     public void setObservaciones(String observaciones) {
         this.observaciones = observaciones;
+    }
+
+    public List<ProgramacionSkuRequest> getSkus() {
+        return skus;
+    }
+
+    public void setSkus(List<ProgramacionSkuRequest> skus) {
+        this.skus = skus;
     }
 }

@@ -1,0 +1,384 @@
+<div class="container-fluid py-4">
+
+    <div class="mb-4">
+        <h1 class="h2 mb-1">
+            Programación de Producción
+        </h1>
+
+        <p class="text-muted">
+            Programación tipo Excel con cálculo automático.
+        </p>
+    </div>
+
+    <!-- CABECERA -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+
+            <h2 class="h3 mb-4">
+                Cabecera
+            </h2>
+
+            <div class="row">
+
+                <div class="col-md-3 mb-3">
+                    <label class="form-label fw-semibold">
+                        Fecha producción
+                    </label>
+
+                    <input type="date" class="form-control" [(ngModel)]="fechaProduccion">
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <label class="form-label fw-semibold">
+                        Producto
+                    </label>
+
+                    <select class="form-select" [(ngModel)]="idProducto" (ngModelChange)="onProductoChange()">
+                        <option [ngValue]="null">
+                            Seleccione producto
+                        </option>
+
+                        <option *ngFor="let producto of productos" [ngValue]="producto.id">
+                            {{ producto.nombre }}
+                        </option>
+                    </select>
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <label class="form-label fw-semibold">
+                        Línea
+                    </label>
+
+                    <input class="form-control bg-light" [value]="obtenerNombreLinea()" readonly>
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <label class="form-label fw-semibold">
+                        Turno
+                    </label>
+
+                    <select class="form-select" [(ngModel)]="idTurno">
+                        <option [ngValue]="null">
+                            Seleccione turno
+                        </option>
+
+                        <option *ngFor="let turno of turnos" [ngValue]="turno.id">
+                            {{ turno.nombre }}
+                        </option>
+                    </select>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label class="form-label fw-semibold">
+                        Jefe de línea responsable
+                    </label>
+
+                    <select class="form-select" [(ngModel)]="idJefeLineaEjecutor">
+                        <option [ngValue]="null">
+                            Seleccione jefe de línea
+                        </option>
+
+                        <option *ngFor="let jefe of jefesLinea" [ngValue]="jefe.idUsuario">
+                            {{ jefe.primerNombre }}
+                            {{ jefe.primerApellido }}
+                            - {{ jefe.cc }}
+                        </option>
+                    </select>
+                </div>
+
+                <div class="col-md-8 mb-3">
+                    <label class="form-label fw-semibold">
+                        Observaciones operativas
+                    </label>
+
+                    <textarea class="form-control" rows="2" [(ngModel)]="observaciones"
+                        placeholder="Ej: producción prioritaria, prueba, ajuste por pedido, observaciones del jefe de producción..."></textarea>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- FORMULA VIGENTE -->
+    <div class="card shadow-sm mb-4" *ngIf="formulaVigente">
+
+        <div class="card-body">
+
+            <h2 class="h3 mb-1">
+                Fórmula vigente
+            </h2>
+
+            <small class="text-muted">
+                {{ formulaVigente.nombreFormula }}
+                - Versión
+                {{ formulaVigente.version }}
+            </small>
+
+            <div class="row my-4">
+
+                <div class="col-md-3">
+                    <div class="border rounded p-3 bg-light">
+                        <small class="text-muted d-block">
+                            Kg batch entrada
+                        </small>
+
+                        <strong>
+                            {{ formulaVigente.kgBatchTotal }}
+                        </strong>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="border rounded p-3 bg-light">
+                        <small class="text-muted d-block">
+                            Rendimiento teórico %
+                        </small>
+
+                        <strong>
+                            {{ formulaVigente.rendimientoTeoricoPct }}
+                        </strong>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="border rounded p-3 bg-light">
+                        <small class="text-muted d-block">
+                            Reducción evaporación %
+                        </small>
+
+                        <strong>
+                            {{ formulaVigente.reduccionEvaporacionPct }}
+                        </strong>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="border rounded p-3 bg-light">
+                        <small class="text-muted d-block">
+                            Brix objetivo
+                        </small>
+
+                        <strong>
+                            {{ formulaVigente.brixObjetivoMin }}
+                            -
+                            {{ formulaVigente.brixObjetivoMax }}
+                        </strong>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="table-responsive">
+
+                <table class="table table-bordered align-middle">
+
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Ingrediente</th>
+                            <th>Tipo cálculo</th>
+                            <th>%</th>
+                            <th>Cantidad kg</th>
+                            <th>Unidad</th>
+                            <th>Crítico</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        <tr *ngFor="let detalle of formulaVigente.detalles; let i = index">
+
+                            <td>
+                                {{ i + 1 }}
+                            </td>
+
+                            <td>
+                                {{ detalle.nombreInsumo }}
+                            </td>
+
+                            <td>
+                                <span class="badge" [class.bg-primary]="detalle.tipoCalculo === 'PORCENTAJE_BATCH'"
+                                    [class.bg-secondary]="detalle.tipoCalculo === 'FIJO'">
+                                    {{ detalle.tipoCalculo === 'FIJO' ? 'Fijo' : 'Dinámico' }}
+                                </span>
+                            </td>
+
+                            <td>
+                                {{ detalle.porcentaje }}
+                            </td>
+
+                            <td>
+                                {{ detalle.cantidadKg }}
+                            </td>
+
+                            <td>
+                                {{ detalle.unidadMedida }}
+                            </td>
+
+                            <td>
+                                <span class="badge" [class.bg-danger]="detalle.esCritico"
+                                    [class.bg-secondary]="!detalle.esCritico">
+                                    {{ detalle.esCritico ? 'SI' : 'NO' }}
+                                </span>
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- PLAN PRODUCCION -->
+    <div class="card shadow-sm">
+
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+
+                <h2 class="h3 mb-0">
+                    SKUs a producir
+                </h2>
+
+                <button class="btn btn-primary" type="button" (click)="agregarFila()" [disabled]="!idProducto">
+                    Agregar SKU
+                </button>
+
+            </div>
+
+            <div class="table-responsive">
+
+                <table class="table table-bordered align-middle">
+
+                    <thead class="table-light">
+                        <tr>
+                            <th>SKU</th>
+                            <th>Unidades</th>
+                            <th>Descripción</th>
+                            <th>Peso unidad</th>
+                            <th>Kg PT</th>
+                            <th>Kg entrada requeridos</th>
+                            <th>Batches teóricos</th>
+                            <th>Batches operativos</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        <tr *ngFor="let sku of skus; let i = index">
+
+                            <td style="min-width: 280px;">
+
+                                <select class="form-select" [(ngModel)]="sku.idSku">
+
+                                    <option [ngValue]="0">
+                                        Seleccione SKU
+                                    </option>
+
+                                    <option *ngFor="let item of skusDisponibles" [ngValue]="item.id">
+                                        {{ item.descripcion }}
+                                        -
+                                        {{ item.pesoNetoGr }}g
+                                    </option>
+
+                                </select>
+
+                            </td>
+
+                            <td style="width: 180px;">
+                                <input type="number" class="form-control bg-warning-subtle" [(ngModel)]="sku.unidades">
+                            </td>
+
+                            <td>
+                                {{ obtenerSku(sku.idSku)?.descripcion || '-' }}
+                            </td>
+
+                            <td>
+                                {{ obtenerSku(sku.idSku)?.pesoNetoGr || '-' }} g
+                            </td>
+
+                            <td>
+                                {{ calcularKgProductoTerminado(sku) || '-' }}
+                            </td>
+
+                            <td>
+                                {{ calcularKgEntradaRequeridos(sku) || '-' }}
+                            </td>
+
+                            <td>
+                                {{ calcularBatchesTeoricos(sku) || '-' }}
+                            </td>
+
+                            <td>
+                                <strong>
+                                    {{ calcularBatchesOperativos(sku) || '-' }}
+                                </strong>
+                            </td>
+
+                            <td style="width: 120px;">
+                                <button class="btn btn-danger" type="button" (click)="eliminarFila(i)">
+                                    Quitar
+                                </button>
+                            </td>
+
+                        </tr>
+
+                        <tr class="fw-bold table-light">
+
+                            <td colspan="4">
+                                TOTAL
+                            </td>
+
+                            <td>
+                                {{ calcularTotalKgPt() }}
+                            </td>
+
+                            <td>
+                                {{ calcularTotalKgEntrada() }}
+                            </td>
+
+                            <td>
+                                {{ calcularTotalBatchesTeoricos() }}
+                            </td>
+
+                            <td>
+                                {{ calcularTotalBatchesOperativos() }}
+                            </td>
+
+                            <td></td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            <div class="alert alert-info mt-3" *ngIf="calcularTotalBatchesTeoricos() > 0">
+                El sistema calcula los batches teóricos con decimales, pero la programación se guarda con
+                <strong>{{ calcularTotalBatchesOperativos() }}</strong>
+                batches operativos, porque en planta se trabaja por baches completos.
+            </div>
+
+            <div class="d-flex gap-2 mt-3">
+
+                <button class="btn btn-success" type="button" [disabled]="!tieneSkusValidos() || guardando"
+                    (click)="crearProgramacion()">
+                    {{ guardando ? 'Guardando...' : 'Crear programación' }}
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

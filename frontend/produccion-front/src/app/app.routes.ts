@@ -8,26 +8,25 @@ import { MainLayout } from './layout/main-layout/main-layout';
 import { authGuard } from './core/guards/auth-guard';
 
 import { RecepcionLeche } from './pages/recepcion-leche/recepcion-leche';
-
 import { RecepcionLecheForm } from './pages/recepcion-leche-form/recepcion-leche-form';
 
 import { Usuarios } from './pages/usuarios/usuarios';
-
 import { UsuarioForm } from './pages/usuario-form/usuario-form';
-
 import { UsuarioResetPassword } from './pages/usuario-reset-password/usuario-reset-password';
 
 import { Descremado } from './pages/descremado/descremado';
-
 import { DescremadoForm } from './pages/descremado-form/descremado-form';
 
-import { ProduccionLactea } from './pages/produccion-lactea/produccion-lactea';
+import { EjecucionProduccion } from './pages/ejecucion-produccion/ejecucion-produccion';
+import { EjecucionProduccionForm } from './pages/ejecucion-produccion-form/ejecucion-produccion-form';
 
-import { ProduccionLacteaForm } from './pages/produccion-lactea-form/produccion-lactea-form';
+import { ProgramacionProduccionForm } from './pages/programacion-produccion-form/programacion-produccion-form';
 
-import { OrdenProduccion } from './pages/orden-produccion/orden-produccion';
+import { Insumos } from './pages/insumos/insumos';
 
-import { OrdenProduccionForm } from './pages/orden-produccion-form/orden-produccion-form';
+import { OrdenesProduccion } from './pages/ordenes-produccion/ordenes-produccion';
+
+import { OrdenProduccionDetalle } from './pages/orden-produccion-detalle/orden-produccion-detalle';
 
 export const routes: Routes = [
 
@@ -76,6 +75,7 @@ export const routes: Routes = [
                 component: UsuarioForm,
                 canActivate: [authGuard]
             },
+
             {
                 path: 'usuarios/:id/editar',
                 component: UsuarioForm,
@@ -93,6 +93,7 @@ export const routes: Routes = [
                 component: Descremado,
                 canActivate: [authGuard]
             },
+
             {
                 path: 'descremado/nuevo',
                 component: DescremadoForm,
@@ -100,24 +101,52 @@ export const routes: Routes = [
             },
 
             {
-                path: 'produccion-lactea',
-                component: ProduccionLactea,
+                path: 'insumos',
+                component: Insumos,
                 canActivate: [authGuard]
             },
 
             {
-                path: 'produccion-lactea/nueva',
-                component: ProduccionLacteaForm,
+                path: 'formulas',
+                loadComponent: () =>
+                    import('./pages/formulas/formulas').then(m => m.Formulas),
                 canActivate: [authGuard]
             },
 
             {
-                path: 'orden-produccion',
-                component: OrdenProduccion
+                path: 'programacion-produccion/nueva',
+                component: ProgramacionProduccionForm,
+                canActivate: [authGuard]
             },
+
             {
-                path: 'orden-produccion/nueva',
-                component: OrdenProduccionForm
+                path: 'ordenes-produccion',
+                component: OrdenesProduccion,
+                canActivate: [authGuard]
+            },
+
+            {
+                path: 'ejecucion-produccion',
+                component: EjecucionProduccion,
+                canActivate: [authGuard]
+            },
+
+            {
+                path: 'ejecucion-produccion/nueva',
+                component: EjecucionProduccionForm,
+                canActivate: [authGuard]
+            },
+
+            {
+                path: 'ordenes-produccion/:id',
+                component: OrdenProduccionDetalle,
+                canActivate: [authGuard]
+            },
+
+            {
+                path: 'ordenes-produccion/:id/ejecutar',
+                component: EjecucionProduccionForm,
+                canActivate: [authGuard]
             },
 
         ]

@@ -9,6 +9,8 @@ import com.yerman.produccion_api.application.dto.response.FormulaProduccionRespo
 import com.yerman.produccion_api.application.exception.RecursoDuplicadoException;
 import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
 import com.yerman.produccion_api.application.exception.ReglaNegocioException;
+import com.yerman.produccion_api.application.service.FormulaCalculoUtil;
+import com.yerman.produccion_api.domain.model.TipoCalculoInsumo;
 import com.yerman.produccion_api.infrastructure.entity.*;
 import com.yerman.produccion_api.infrastructure.repository.*;
 import jakarta.validation.Valid;
@@ -16,6 +18,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -126,7 +130,6 @@ public class FormulaController {
             @Valid @RequestBody CrearFormulaDetalleRequest request) {
 
         FormulaVersionEntity version = buscarVersion(idFormulaVersion);
-
         validarVersionEditable(version);
 
         if (formulaDetalleRepository.existsByFormulaVersionIdAndInsumoId(idFormulaVersion, request.idInsumo())) {
@@ -135,11 +138,20 @@ public class FormulaController {
 
         InsumoEntity insumo = buscarInsumo(request.idInsumo());
 
+        TipoCalculoInsumo tipoCalculo = request.tipoCalculo() != null
+                ? request.tipoCalculo()
+                : TipoCalculoInsumo.PORCENTAJE_BATCH;
+
+        validarDetalleFormula(tipoCalculo, request.cantidadKg(), request.porcentaje(), version.getKgBatchTotal());
+
         FormulaDetalleEntity detalle = new FormulaDetalleEntity();
         detalle.setFormulaVersion(version);
         detalle.setInsumo(insumo);
-        detalle.setCantidadKg(request.cantidadKg());
-        detalle.setPorcentaje(request.porcentaje());
+        detalle.setTipoCalculo(tipoCalculo);
+        detalle.setCantidadKg(calcularCantidadKgReferencia(tipoCalculo, request.cantidadKg(), request.porcentaje(),
+                version.getKgBatchTotal()));
+        detalle.setPorcentaje(calcularPorcentajeReferencia(tipoCalculo, request.cantidadKg(), request.porcentaje(),
+                version.getKgBatchTotal()));
         detalle.setEsCritico(request.esCritico() != null ? request.esCritico() : false);
         detalle.setOrdenAdicion(request.ordenAdicion() != null ? request.ordenAdicion() : 1);
 
@@ -167,6 +179,7 @@ public class FormulaController {
 
         if (request.kgBatchTotal() != null) {
             version.setKgBatchTotal(request.kgBatchTotal());
+            recalcularDetallesPorCambioKgBatch(version);
         }
 
         if (request.reduccionEvaporacionPct() != null) {
@@ -213,13 +226,25 @@ public class FormulaController {
         FormulaVersionEntity version = detalle.getFormulaVersion();
         validarVersionEditable(version);
 
-        if (request.cantidadKg() != null) {
-            detalle.setCantidadKg(request.cantidadKg());
-        }
+        TipoCalculoInsumo tipoCalculo = request.tipoCalculo() != null
+                ? request.tipoCalculo()
+                : detalle.getTipoCalculo();
 
-        if (request.porcentaje() != null) {
-            detalle.setPorcentaje(request.porcentaje());
-        }
+        BigDecimal cantidadKgBase = request.cantidadKg() != null
+                ? request.cantidadKg()
+                : detalle.getCantidadKg();
+
+        BigDecimal porcentajeBase = request.porcentaje() != null
+                ? request.porcentaje()
+                : detalle.getPorcentaje();
+
+        validarDetalleFormula(tipoCalculo, cantidadKgBase, porcentajeBase, version.getKgBatchTotal());
+
+        detalle.setTipoCalculo(tipoCalculo);
+        detalle.setCantidadKg(
+                calcularCantidadKgReferencia(tipoCalculo, cantidadKgBase, porcentajeBase, version.getKgBatchTotal()));
+        detalle.setPorcentaje(
+                calcularPorcentajeReferencia(tipoCalculo, cantidadKgBase, porcentajeBase, version.getKgBatchTotal()));
 
         if (request.esCritico() != null) {
             detalle.setEsCritico(request.esCritico());
@@ -255,21 +280,19 @@ public class FormulaController {
         FormulaVersionEntity version = buscarVersion(idFormulaVersion);
 
         if (version.getDetalles() == null || version.getDetalles().isEmpty()) {
-            throw new ReglaNegocioException(
-                    "La fórmula debe tener al menos un insumo");
+            throw new ReglaNegocioException("La fórmula debe tener al menos un insumo");
         }
 
-        if (version.getKgBatchTotal() == null
-                || version.getKgBatchTotal().doubleValue() <= 0) {
-            throw new ReglaNegocioException(
-                    "La fórmula debe tener kg batch total");
+        if (version.getKgBatchTotal() == null || version.getKgBatchTotal().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ReglaNegocioException("La fórmula debe tener kg batch total");
         }
 
         if (version.getRendimientoTeoricoPct() == null
-                || version.getRendimientoTeoricoPct().doubleValue() <= 0) {
-            throw new ReglaNegocioException(
-                    "La fórmula debe tener rendimiento teórico");
+                || version.getRendimientoTeoricoPct().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ReglaNegocioException("La fórmula debe tener rendimiento teórico");
         }
+
+        validarDetallesAntesDeVigente(version);
 
         List<FormulaVersionEntity> versionesVigentes = formulaVersionRepository
                 .findByFormulaIdAndEstado(
@@ -296,6 +319,105 @@ public class FormulaController {
                         "No existe fórmula vigente para el producto con ID: " + idProducto));
 
         return toResponse(version);
+    }
+
+    private void validarDetalleFormula(
+            TipoCalculoInsumo tipoCalculo,
+            BigDecimal cantidadKg,
+            BigDecimal porcentaje,
+            BigDecimal kgBatchTotal) {
+
+        TipoCalculoInsumo tipoSeguro = tipoCalculo != null
+                ? tipoCalculo
+                : TipoCalculoInsumo.PORCENTAJE_BATCH;
+
+        if (tipoSeguro == TipoCalculoInsumo.FIJO) {
+            if (cantidadKg == null || cantidadKg.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new ReglaNegocioException("El ingrediente fijo debe tener cantidad kg mayor a cero");
+            }
+            return;
+        }
+
+        if (porcentaje == null || porcentaje.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ReglaNegocioException("El ingrediente porcentual debe tener porcentaje mayor a cero");
+        }
+
+        if (kgBatchTotal == null || kgBatchTotal.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ReglaNegocioException(
+                    "La versión de fórmula debe tener kg batch total para calcular ingredientes porcentuales");
+        }
+    }
+
+    private BigDecimal calcularCantidadKgReferencia(
+            TipoCalculoInsumo tipoCalculo,
+            BigDecimal cantidadKg,
+            BigDecimal porcentaje,
+            BigDecimal kgBatchTotal) {
+
+        return FormulaCalculoUtil.calcularCantidadPorBatch(
+                tipoCalculo,
+                cantidadKg,
+                porcentaje,
+                kgBatchTotal);
+    }
+
+    private BigDecimal calcularPorcentajeReferencia(
+            TipoCalculoInsumo tipoCalculo,
+            BigDecimal cantidadKg,
+            BigDecimal porcentaje,
+            BigDecimal kgBatchTotal) {
+
+        TipoCalculoInsumo tipoSeguro = tipoCalculo != null
+                ? tipoCalculo
+                : TipoCalculoInsumo.PORCENTAJE_BATCH;
+
+        if (tipoSeguro == TipoCalculoInsumo.PORCENTAJE_BATCH) {
+            return porcentaje != null
+                    ? porcentaje.setScale(6, RoundingMode.HALF_UP)
+                    : BigDecimal.ZERO.setScale(6, RoundingMode.HALF_UP);
+        }
+
+        return FormulaCalculoUtil.calcularPorcentajeInformativo(cantidadKg, kgBatchTotal);
+    }
+
+    private void recalcularDetallesPorCambioKgBatch(FormulaVersionEntity version) {
+        if (version.getDetalles() == null || version.getDetalles().isEmpty()) {
+            return;
+        }
+
+        for (FormulaDetalleEntity detalle : version.getDetalles()) {
+            TipoCalculoInsumo tipoCalculo = detalle.getTipoCalculo() != null
+                    ? detalle.getTipoCalculo()
+                    : TipoCalculoInsumo.PORCENTAJE_BATCH;
+
+            if (tipoCalculo == TipoCalculoInsumo.PORCENTAJE_BATCH) {
+                detalle.setCantidadKg(FormulaCalculoUtil.calcularCantidadPorBatch(
+                        tipoCalculo,
+                        detalle.getCantidadKg(),
+                        detalle.getPorcentaje(),
+                        version.getKgBatchTotal()));
+            } else {
+                detalle.setPorcentaje(FormulaCalculoUtil.calcularPorcentajeInformativo(
+                        detalle.getCantidadKg(),
+                        version.getKgBatchTotal()));
+            }
+
+            formulaDetalleRepository.save(detalle);
+        }
+    }
+
+    private void validarDetallesAntesDeVigente(FormulaVersionEntity version) {
+        for (FormulaDetalleEntity detalle : version.getDetalles()) {
+            TipoCalculoInsumo tipoCalculo = detalle.getTipoCalculo() != null
+                    ? detalle.getTipoCalculo()
+                    : TipoCalculoInsumo.PORCENTAJE_BATCH;
+
+            validarDetalleFormula(
+                    tipoCalculo,
+                    detalle.getCantidadKg(),
+                    detalle.getPorcentaje(),
+                    version.getKgBatchTotal());
+        }
     }
 
     private void validarVersionEditable(FormulaVersionEntity version) {
@@ -352,16 +474,23 @@ public class FormulaController {
                         .sorted(Comparator.comparing(
                                 FormulaDetalleEntity::getOrdenAdicion,
                                 Comparator.nullsLast(Integer::compareTo)))
-                        .map(detalle -> new FormulaProduccionResponse.FormulaDetalleResponse(
-                                detalle.getId(),
-                                detalle.getInsumo().getId(),
-                                detalle.getInsumo().getCodigo(),
-                                detalle.getInsumo().getNombre(),
-                                detalle.getInsumo().getUnidadMedida(),
-                                detalle.getCantidadKg(),
-                                detalle.getPorcentaje(),
-                                Boolean.TRUE.equals(detalle.getEsCritico()),
-                                detalle.getOrdenAdicion()))
+                        .map(detalle -> {
+                            TipoCalculoInsumo tipoCalculo = detalle.getTipoCalculo() != null
+                                    ? detalle.getTipoCalculo()
+                                    : TipoCalculoInsumo.PORCENTAJE_BATCH;
+
+                            return new FormulaProduccionResponse.FormulaDetalleResponse(
+                                    detalle.getId(),
+                                    detalle.getInsumo().getId(),
+                                    detalle.getInsumo().getCodigo(),
+                                    detalle.getInsumo().getNombre(),
+                                    detalle.getInsumo().getUnidadMedida(),
+                                    detalle.getCantidadKg(),
+                                    detalle.getPorcentaje(),
+                                    tipoCalculo.name(),
+                                    Boolean.TRUE.equals(detalle.getEsCritico()),
+                                    detalle.getOrdenAdicion());
+                        })
                         .toList();
 
         return new FormulaProduccionResponse(

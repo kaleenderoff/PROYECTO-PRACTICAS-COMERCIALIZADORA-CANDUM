@@ -1,0 +1,114 @@
+<div class="container-fluid">
+
+    <div class="row mb-4 align-items-center">
+
+        <div class="col">
+
+            <h2 class="fw-bold">
+                Órdenes de producción
+            </h2>
+
+            <p class="text-muted mb-0">
+                Gestión y seguimiento de órdenes programadas para ejecución en planta
+            </p>
+
+        </div>
+
+    </div>
+
+    <div *ngIf="cargando" class="alert alert-info">
+        Cargando órdenes de producción...
+    </div>
+
+    <div *ngIf="error" class="alert alert-danger">
+        {{ error }}
+    </div>
+
+    <div class="card shadow border-0">
+
+        <div class="card-header bg-white fw-bold">
+            Órdenes registradas
+        </div>
+
+        <div class="card-body table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead>
+                    <tr>
+                        <th># Orden</th>
+                        <th>Fecha</th>
+                        <th>Estado</th>
+                        <th>Inicio real</th>
+                        <th>Fin real</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    <tr *ngFor="let orden of ordenes">
+
+                        <td>
+                            <strong>
+                                {{ orden.numeroOrden }}
+                            </strong>
+                        </td>
+
+                        <td>
+                            {{ orden.fechaProduccion }}
+                        </td>
+
+                        <td>
+                            <span class="badge" [ngClass]="obtenerClaseEstado(orden.estado)">
+                                {{ orden.estado }}
+                            </span>
+                        </td>
+
+                        <td>
+                            {{ orden.fechaInicioReal || '-' }}
+                        </td>
+
+                        <td>
+                            {{ orden.fechaFinReal || '-' }}
+                        </td>
+
+                        <td>
+
+                            <div class="d-flex gap-2">
+
+                                <a class="btn btn-sm btn-outline-primary"
+                                    [routerLink]="['/ordenes-produccion', orden.id]">
+                                    Ver
+                                </a>
+
+                                <a *ngIf="orden.estado === 'PROGRAMADA' || orden.estado === 'EN_EJECUCION'"
+                                    class="btn btn-sm btn-primary"
+                                    [routerLink]="['/ordenes-produccion', orden.id, 'ejecutar']">
+                                    Ejecutar
+                                </a>
+
+                                <button *ngIf="orden.estado === 'EN_EJECUCION'" type="button"
+                                    class="btn btn-sm btn-success" (click)="finalizarOrden(orden)">
+                                    Finalizar
+                                </button>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+            <div *ngIf="!cargando && ordenes.length === 0" class="text-center text-muted py-4">
+                No hay órdenes de producción registradas.
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

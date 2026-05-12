@@ -1,6 +1,7 @@
 package com.yerman.produccion_api.infrastructure.entity;
 
 import com.yerman.produccion_api.domain.model.EstadoOrdenProduccion;
+
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
@@ -65,6 +66,10 @@ public class OrdenProduccionEntity {
 
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getNumeroOrden() {

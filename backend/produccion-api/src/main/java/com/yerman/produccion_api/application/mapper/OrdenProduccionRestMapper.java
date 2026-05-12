@@ -9,23 +9,47 @@ public class OrdenProduccionRestMapper {
     }
 
     public static OrdenProduccionResponse toResponse(OrdenProduccion orden) {
+
         if (orden == null) {
             return null;
         }
 
         return new OrdenProduccionResponse(
+
                 orden.getId(),
+
                 orden.getNumeroOrden(),
+
                 orden.getIdProgramacion(),
+
                 orden.getIdLinea(),
+
+                null,
+
                 orden.getIdProducto(),
+
+                null,
+
                 orden.getIdTurno(),
+
+                null,
+
                 orden.getIdJefeLineaEjecutor(),
+
+                null,
+
                 orden.getIdCreadaPor(),
+
+                null,
+
                 orden.getFechaProduccion(),
+
                 orden.getEstado(),
+
                 orden.getObservaciones(),
+
                 orden.getFechaInicioReal(),
+
                 orden.getFechaFinReal());
     }
 }

@@ -8,35 +8,44 @@ import {
 } from '../../core/services/produccion-lactea';
 
 @Component({
-  selector: 'app-produccion-lactea',
+  selector: 'app-ejecucion-produccion',
   imports: [CommonModule, RouterLink],
-  templateUrl: './produccion-lactea.html',
-  styleUrl: './produccion-lactea.scss',
+  templateUrl: './ejecucion-produccion.html',
+  styleUrl: './ejecucion-produccion.scss',
 })
-export class ProduccionLactea implements OnInit {
+export class EjecucionProduccion implements OnInit {
+
   producciones: ProduccionLacteaModel[] = [];
 
   cargando = false;
   error = '';
 
-  constructor(private service: ProduccionLacteaService) { }
+  constructor(
+    private service: ProduccionLacteaService
+  ) { }
 
   ngOnInit(): void {
     this.cargarProducciones();
   }
 
   cargarProducciones(): void {
+
     this.cargando = true;
     this.error = '';
 
     this.service.listar().subscribe({
+
       next: (data) => {
         this.producciones = data;
         this.cargando = false;
       },
+
       error: (err) => {
         console.error(err);
-        this.error = 'No se pudieron cargar las producciones lácteas.';
+
+        this.error =
+          'No se pudieron cargar las ejecuciones de producción.';
+
         this.cargando = false;
       }
     });

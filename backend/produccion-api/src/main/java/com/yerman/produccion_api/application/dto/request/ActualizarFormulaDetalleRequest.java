@@ -1,16 +1,17 @@
 package com.yerman.produccion_api.application.dto.request;
 
-import jakarta.validation.constraints.Positive;
+import com.yerman.produccion_api.domain.model.TipoCalculoInsumo;
 
 import java.math.BigDecimal;
 
 public record ActualizarFormulaDetalleRequest(
+                TipoCalculoInsumo tipoCalculo,
 
-        @Positive(message = "La cantidad en kg debe ser mayor a cero") BigDecimal cantidadKg,
+                BigDecimal cantidadKg,
 
-        BigDecimal porcentaje,
+                BigDecimal porcentaje,
 
-        Boolean esCritico,
+                Boolean esCritico,
 
-        Integer ordenAdicion) {
+                Integer ordenAdicion) {
 }

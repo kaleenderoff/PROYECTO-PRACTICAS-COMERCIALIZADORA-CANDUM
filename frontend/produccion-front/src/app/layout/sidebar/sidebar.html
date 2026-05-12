@@ -7,31 +7,59 @@
     <nav>
 
         <a *ngIf="authService.isAdmin()" routerLink="/usuarios" routerLinkActive="active">
+
             Usuarios
+
         </a>
 
         <a routerLink="/dashboard" routerLinkActive="active">
+
             Dashboard
+
         </a>
 
-        <a *ngIf="authService.isAdmin() || authService.isDuenoEmpresa() || authService.isJefePlanta() || authService.isJefeLinea()"
-            routerLink="/recepcion-leche" routerLinkActive="active">
+        <a *ngIf="authService.isAdmin()
+                || authService.isDuenoEmpresa()
+                || authService.isJefePlanta()
+                || authService.isJefeLinea()" routerLink="/recepcion-leche" routerLinkActive="active">
+
             Recepción leche
+
         </a>
 
         <a routerLink="/descremado" routerLinkActive="active" class="sidebar-link">
+
             Descremado
-        </a>
-
-        <a routerLink="/orden-produccion" routerLinkActive="active" class="sidebar-link">
-
-            Órdenes de producción
 
         </a>
 
-        <a routerLink="/produccion-lactea" routerLinkActive="active" class="sidebar-link">
+        <a routerLink="/insumos" routerLinkActive="active">
 
-            Producción láctea
+            Insumos
+
+        </a>
+
+        <a routerLink="/formulas" routerLinkActive="active" class="sidebar-link">
+
+            Fórmulas
+
+        </a>
+
+        <a routerLink="/programacion-produccion/nueva" routerLinkActive="active" class="sidebar-link">
+
+            Programación producción
+
+        </a>
+
+        <a routerLink="/ordenes-produccion" routerLinkActive="active" class="sidebar-link">
+
+            Órdenes producción
+
+        </a>
+
+        <a routerLink="/ejecucion-produccion" routerLinkActive="active" class="sidebar-link">
+
+            Ejecución producción
 
         </a>
 
