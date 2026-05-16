@@ -16,7 +16,7 @@ import {
   selector: 'app-usuario-reset-password',
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './usuario-reset-password.html',
-  styleUrl: './usuario-reset-password.scss',
+  
 })
 export class UsuarioResetPassword implements OnInit {
 

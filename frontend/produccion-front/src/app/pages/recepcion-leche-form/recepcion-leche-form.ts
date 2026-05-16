@@ -7,12 +7,13 @@ import {
   RecepcionLecheService,
   Proveedor
 } from '../../core/services/recepcion-leche';
+import { AuthService } from '../../core/services/auth';
 
 @Component({
   selector: 'app-recepcion-leche-form',
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './recepcion-leche-form.html',
-  styleUrl: './recepcion-leche-form.scss',
+  
 })
 export class RecepcionLecheForm implements OnInit {
   cargando = false;
@@ -30,6 +31,7 @@ export class RecepcionLecheForm implements OnInit {
   constructor(
     private fb: FormBuilder,
     private service: RecepcionLecheService,
+    private authService: AuthService,
     private router: Router
   ) {
     this.form = this.fb.group({
@@ -82,7 +84,7 @@ export class RecepcionLecheForm implements OnInit {
       proveedor: value.proveedor!,
       cantidadRecibidaLitros: Number(value.cantidadRecibidaLitros),
       recibidoPor: value.recibidoPor || undefined,
-      idUsuario: 1,
+      idUsuario: this.authService.getIdUsuario(),
       numeroRemision: value.numeroRemision || undefined,
       cantidadRemisionLitros: Number(value.cantidadRemisionLitros) || undefined,
       observaciones: value.observaciones || undefined,

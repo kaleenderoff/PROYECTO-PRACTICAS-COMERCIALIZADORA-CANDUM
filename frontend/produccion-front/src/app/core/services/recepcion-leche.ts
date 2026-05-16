@@ -10,7 +10,7 @@ export interface RecepcionLeche {
   proveedor: string;
   cantidadRecibidaLitros: number;
   recibidoPor?: string;
-  idTanque: number;
+  idTanque?: number | null;
   idUsuario: number;
   numeroRemision?: string;
   cantidadRemisionLitros?: number;

@@ -8,7 +8,7 @@ import {
   Validators
 } from '@angular/forms';
 
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ProduccionLacteaService } from '../../core/services/produccion-lactea';
 
@@ -24,9 +24,9 @@ import {
 
 @Component({
   selector: 'app-ejecucion-produccion-form',
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './ejecucion-produccion-form.html',
-  styleUrl: './ejecucion-produccion-form.scss',
+  
 })
 export class EjecucionProduccionForm implements OnInit {
 
@@ -86,12 +86,14 @@ export class EjecucionProduccionForm implements OnInit {
     this.idOrdenProduccion =
       Number(this.route.snapshot.paramMap.get('id')) || null;
 
-    this.cargarTanques();
-
-    if (this.idOrdenProduccion) {
-      this.cargarOrden(this.idOrdenProduccion);
+    if (!this.idOrdenProduccion) {
+      console.warn('Acceso denegado: No se puede crear una ejecución sin una orden previa.');
+      this.router.navigate(['/ordenes-produccion']);
+      return;
     }
 
+    this.cargarTanques();
+    this.cargarOrden(this.idOrdenProduccion);
     this.agregarBatch();
   }
 

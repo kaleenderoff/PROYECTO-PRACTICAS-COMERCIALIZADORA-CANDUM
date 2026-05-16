@@ -1,79 +1,338 @@
-<div class="container-fluid">
-
-    <div class="row mb-4 mt-3">
-        <div class="col">
-            <h2 class="fw-bold">Dashboard Producción Yerman</h2>
-            <p class="text-muted mb-0">Producción vs empaque lácteo</p>
+<div class="space-y-8 animate-in fade-in duration-700 pb-20">
+    
+    <!-- Page Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+        <div class="flex items-center gap-5">
+            <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 shadow-inner">
+                <i class="bi bi-graph-up-arrow text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Centro de Inteligencia</h1>
+                <div class="flex items-center gap-2 mt-1">
+                    <select [(ngModel)]="mesActual" (change)="cargarDatos()" class="text-xs font-bold text-blue-600 bg-blue-50 border-none rounded-lg py-1 px-2 outline-none">
+                        <option [value]="1">Enero</option>
+                        <option [value]="2">Febrero</option>
+                        <option [value]="3">Marzo</option>
+                        <option [value]="4">Abril</option>
+                        <option [value]="5">Mayo</option>
+                        <option [value]="6">Junio</option>
+                        <option [value]="7">Julio</option>
+                        <option [value]="8">Agosto</option>
+                        <option [value]="9">Septiembre</option>
+                        <option [value]="10">Octubre</option>
+                        <option [value]="11">Noviembre</option>
+                        <option [value]="12">Diciembre</option>
+                    </select>
+                    <select [(ngModel)]="anioActual" (change)="cargarDatos()" class="text-xs font-bold text-blue-600 bg-blue-50 border-none rounded-lg py-1 px-2 outline-none">
+                        <option [value]="2025">2025</option>
+                        <option [value]="2026">2026</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab Switcher (Simplified) -->
+        <div class="flex bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
+            <button (click)="view = 'general'" [class]="view === 'general' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'" class="px-6 py-2 rounded-xl text-xs font-bold transition-all">GENERAL</button>
+            <button *ngIf="authService.isGerencia() || authService.isJefeProduccion()" (click)="view = 'gerencial'" [class]="view === 'gerencial' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'" class="px-6 py-2 rounded-xl text-xs font-bold transition-all">GERENCIAL</button>
+            <button *ngIf="authService.isGerencia() || authService.isJefeProduccion()" (click)="view = 'operativo'" [class]="view === 'operativo' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'" class="px-6 py-2 rounded-xl text-xs font-bold transition-all">OPERATIVO SKU</button>
         </div>
     </div>
 
-    <div *ngIf="cargando" class="alert alert-info">
-        Cargando información...
+    <!-- VIEW: GENERAL (Existing Dashboard + Tanks) -->
+    <div *ngIf="view === 'general'" class="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
+        <!-- Tanks Monitoring -->
+        <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+            <div class="xl:col-span-3 bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+                <div class="relative flex flex-col md:flex-row md:items-center justify-between gap-8">
+                    <div>
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                            <h2 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Leche Disponible en Silos</h2>
+                        </div>
+                        <p class="text-5xl font-black tracking-tighter">{{ totalLecheDisponible | number:'1.0-0' }} <span class="text-xl text-slate-500 font-normal">Litros</span></p>
+                    </div>
+                    <div class="flex flex-wrap gap-8">
+                        <div *ngFor="let t of tanques" class="min-w-[140px]">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ t.nombre }}</span>
+                                <span class="text-[10px] font-black text-blue-400">{{ t.saldoLitros | number:'1.0-0' }} L</span>
+                            </div>
+                            <div class="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                                <div class="h-full bg-blue-500 rounded-full transition-all duration-1000" [style.width.%]="(t.saldoLitros / 5000) * 100"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm flex flex-col justify-center text-center">
+                <i class="bi bi-droplet-half text-5xl text-blue-100 mb-4"></i>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Capacidad Operativa</p>
+                <p class="text-3xl font-black text-slate-900">ALTA</p>
+            </div>
+        </div>
+
+        <!-- Classic Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden group">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-bl-[4rem]"></div>
+                <div class="relative flex flex-col">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Total Producido</span>
+                    <span class="text-3xl font-black text-slate-900">{{ totalProducido | number:'1.1-1' }} <small class="text-slate-400 text-sm">Kg</small></span>
+                </div>
+            </div>
+            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden group">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-bl-[4rem]"></div>
+                <div class="relative flex flex-col">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Total Empacado</span>
+                    <span class="text-3xl font-black text-slate-900">{{ totalEmpacado | number:'1.1-1' }} <small class="text-slate-400 text-sm">Kg</small></span>
+                </div>
+            </div>
+            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden group">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-amber-50 rounded-bl-[4rem]"></div>
+                <div class="relative flex flex-col">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Diferencia</span>
+                    <span class="text-3xl font-black text-amber-600">{{ totalDiferencia | number:'1.1-1' }} <small class="text-slate-400 text-sm">Kg</small></span>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div *ngIf="error" class="alert alert-danger">
-        {{ error }}
-    </div>
+    <!-- VIEW: GERENCIAL (Rafael) -->
+    <div *ngIf="view === 'gerencial' && gerencial" class="space-y-10 animate-in slide-in-from-right-4 duration-500">
+        
+        <!-- KPI Cards Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Rendimiento DL -->
+            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Rendimiento DL</span>
+                    <span [class]="gerencial.kpis.estadoDulceLeche === 'OPTIMO' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'" class="px-2 py-0.5 rounded-full text-[8px] font-black">{{ gerencial.kpis.estadoDulceLeche }}</span>
+                </div>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-4xl font-black text-slate-900">{{ gerencial.kpis.rendDulceLechePromedio | number:'1.1-1' }}%</span>
+                    <span class="text-[10px] text-slate-400 font-bold">Meta: {{ gerencial.kpis.metaDulceLeche }}%</span>
+                </div>
+                <div class="mt-4 h-1.5 w-full bg-slate-50 rounded-full overflow-hidden">
+                    <div class="h-full bg-blue-500 transition-all duration-1000" [style.width.%]="gerencial.kpis.rendDulceLechePromedio"></div>
+                </div>
+            </div>
 
-    <div class="row g-4 mb-4">
+            <!-- Rendimiento LC -->
+            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Rendimiento LC</span>
+                    <span [class]="gerencial.kpis.estadoLecheCondensada === 'OPTIMO' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'" class="px-2 py-0.5 rounded-full text-[8px] font-black">{{ gerencial.kpis.estadoLecheCondensada }}</span>
+                </div>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-4xl font-black text-slate-900">{{ gerencial.kpis.rendLecheCondensadaPromedio | number:'1.1-1' }}%</span>
+                    <span class="text-[10px] text-slate-400 font-bold">Meta: {{ gerencial.kpis.metaLecheCondensada }}%</span>
+                </div>
+                <div class="mt-4 h-1.5 w-full bg-slate-50 rounded-full overflow-hidden">
+                    <div class="h-full bg-emerald-500 transition-all duration-1000" [style.width.%]="gerencial.kpis.rendLecheCondensadaPromedio"></div>
+                </div>
+            </div>
 
-        <div class="col-md-4">
-            <div class="card shadow border-0">
-                <div class="card-body">
-                    <h6 class="text-muted">Total producido</h6>
-                    <h3>{{ totalProducido | number:'1.2-2' }} kg</h3>
+            <!-- Crema Real vs Esperada -->
+            <div class="bg-slate-900 p-8 rounded-[2.5rem] shadow-xl text-white md:col-span-2">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div>
+                        <span class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1 block">Eficiencia en Descremado</span>
+                        <h3 class="text-3xl font-black">{{ gerencial.resumenMes.kgCremaReal | number:'1.0-0' }} <small class="text-slate-500">kg producidos</small></h3>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[9px] font-bold text-blue-400 uppercase tracking-widest mb-1 block">Esperado (Excel)</span>
+                        <span class="text-xl font-bold">{{ gerencial.resumenMes.kgCremaEsperada | number:'1.0-1' }} kg</span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card shadow border-0">
-                <div class="card-body">
-                    <h6 class="text-muted">Total empacado</h6>
-                    <h3>{{ totalEmpacado | number:'1.2-2' }} kg</h3>
+        <!-- Annual Charts Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Annual Production & Yield Chart (Excel Replicant) -->
+            <div class="lg:col-span-2 bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm flex flex-col">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+                    <div>
+                        <h3 class="text-xl font-black text-slate-800 tracking-tight">Rendimiento Mensual (Detalle por Semanas)</h3>
+                        <p class="text-xs text-slate-400 font-medium mt-1">Semanas correspondientes a {{ mesActual === 1 ? 'Enero' : mesActual === 2 ? 'Febrero' : mesActual === 3 ? 'Marzo' : mesActual === 4 ? 'Abril' : mesActual === 5 ? 'Mayo' : 'Seleccionado' }}</p>
+                    </div>
+                </div>
+                
+                <div class="relative h-[350px]">
+                    <canvas baseChart
+                            [data]="weeklyChartData"
+                            [options]="barChartOptions"
+                            [type]="'bar'">
+                    </canvas>
+                </div>
+            </div>
+
+            <!-- SKU Distribution (Donut Chart) -->
+            <div class="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm flex flex-col">
+                <div class="mb-10">
+                    <h3 class="text-xl font-black text-slate-800 tracking-tight">Mix de Productos</h3>
+                    <p class="text-xs text-slate-400 font-medium mt-1">Distribución de kilos producidos por los 6 principales SKUs</p>
+                </div>
+                
+                <div class="relative flex-1 min-h-[300px]">
+                    <canvas baseChart
+                            [data]="donutChartData"
+                            [options]="donutChartOptions"
+                            [type]="'doughnut'">
+                    </canvas>
+                </div>
+                
+                <div class="mt-8 pt-8 border-t border-slate-50">
+                    <div class="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        <span>Total Mes</span>
+                        <span class="text-slate-900 text-sm font-black">{{ totalProducido | number:'1.0-0' }} Kg</span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card shadow border-0">
-                <div class="card-body">
-                    <h6 class="text-muted">Pendiente por empacar</h6>
-                    <h3>{{ totalDiferencia | number:'1.2-2' }} kg</h3>
-                </div>
+        <!-- Weekly Summary Table (Executive View) -->
+        <div class="bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden">
+            <div class="px-10 py-8 border-b border-slate-50 flex items-center justify-between">
+                <h3 class="text-lg font-black text-slate-800 tracking-tight">Resumen Ejecutivo Semanal</h3>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mes Actual (Histórico + Real)</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="bg-slate-50/50">
+                            <th class="px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Semana</th>
+                            <th class="px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Leche Recibida</th>
+                            <th class="px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">PT Dulce Leche</th>
+                            <th class="px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Rendimiento DL</th>
+                            <th class="px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">PT Condensada</th>
+                            <th class="px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Rendimiento LC</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        <tr *ngFor="let sem of gerencial.tablaSemanal" class="hover:bg-slate-50 transition-colors">
+                            <td class="px-10 py-6 font-bold text-slate-700">W{{ sem.numeroSemana }}</td>
+                            <td class="px-10 py-6 text-right font-medium">{{ sem.lecheRecibida | number:'1.0-0' }} L</td>
+                            <td class="px-10 py-6 text-right font-black text-blue-600">{{ sem.ptDulceLeche | number:'1.1-1' }} Kg</td>
+                            <td class="px-10 py-6 text-center">
+                                <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-[10px] font-black">{{ sem.rend1DulceLeche }}%</span>
+                            </td>
+                            <td class="px-10 py-6 text-right font-black text-emerald-600">{{ sem.ptLecheCondensada | number:'1.1-1' }} Kg</td>
+                            <td class="px-10 py-6 text-center">
+                                <span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-black">{{ sem.rendLecheCondensada }}%</span>
+                            </td>
+                        </tr>
+                        <tr *ngIf="gerencial.tablaSemanal.length === 0">
+                            <td colspan="6" class="py-20 text-center text-slate-400">Procesando datos históricos para esta vista...</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
-
     </div>
-
-    <div class="card shadow border-0">
-        <div class="card-header bg-white fw-bold">
-            Producción vs Empaque
+    <!-- VIEW: OPERATIVO (Diana) -->
+    <div *ngIf="view === 'operativo'" class="space-y-12 animate-in slide-in-from-left-4 duration-500">
+        
+        <!-- Legend / Guide -->
+        <div class="bg-slate-900 rounded-[2.5rem] p-8 text-white flex flex-wrap items-center justify-between gap-8 shadow-2xl mx-4 border border-white/5">
+            <div class="flex items-center gap-5">
+                <div class="w-12 h-12 bg-blue-500/20 rounded-2xl flex items-center justify-center text-blue-400 shadow-inner">
+                    <i class="bi bi-info-circle-fill text-xl"></i>
+                </div>
+                <div>
+                    <h4 class="text-base font-black tracking-tight">Guía de Análisis Operativo</h4>
+                    <p class="text-[11px] text-slate-400 font-medium">Lectura de consistencia productiva y distribución de volumen mensual</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-8">
+                <div class="flex items-center gap-3">
+                    <div class="w-4 h-4 rounded-lg bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]"></div>
+                    <span class="text-[11px] font-black text-slate-300 uppercase tracking-widest">Producción Activa</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="w-4 h-4 rounded-lg bg-slate-700"></div>
+                    <span class="text-[11px] font-black text-slate-300 uppercase tracking-widest">Día Sin Carga</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="w-4 h-4 rounded-lg bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.4)]"></div>
+                    <span class="text-[11px] font-black text-slate-300 uppercase tracking-widest">Líderes de Volumen</span>
+                </div>
+            </div>
         </div>
 
-        <div class="card-body table-responsive">
-            <table class="table table-hover align-middle">
-                <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Total producido</th>
-                        <th>Total empacado</th>
-                        <th>Diferencia</th>
-                    </tr>
-                </thead>
+        <div *ngFor="let cat of skus" class="space-y-8 pb-10">
+            <!-- Section Header -->
+            <div class="flex items-end justify-between px-10">
+                <div>
+                    <h3 class="text-3xl font-black text-slate-800 tracking-tighter flex items-center gap-4">
+                        <div [class]="cat.tipoProducto === 'LC' ? 'bg-emerald-500' : 'bg-blue-600'" class="w-2 h-8 rounded-full"></div>
+                        {{ cat.tipoProducto === 'LC' ? 'Leche Condensada' : 'Dulce de Leche' }}
+                        <span class="px-4 py-1 bg-slate-100 rounded-2xl text-xs font-black text-slate-400 uppercase tracking-widest">{{ cat.items.length }} Formatos</span>
+                    </h3>
+                </div>
+                <div class="flex flex-col items-end">
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] block mb-1">Volumen Consolidado</span>
+                    <span class="text-3xl font-black text-slate-900 tracking-tighter">{{ cat.totalKilos | number:'1.0-0' }} <small class="text-sm font-bold text-slate-400">Kg</small></span>
+                </div>
+            </div>
 
-                <tbody>
-                    <tr *ngFor="let item of datos">
-                        <td>{{ item.fecha }}</td>
-                        <td>{{ item.totalProducido | number:'1.2-2' }} kg</td>
-                        <td>{{ item.totalEmpaquetado | number:'1.2-2' }} kg</td>
-                        <td>{{ item.diferencia | number:'1.2-2' }} kg</td>
-                    </tr>
-                </tbody>
-            </table>
+            <!-- Performance List -->
+            <div class="bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden mx-4">
+                <div class="divide-y divide-slate-50">
+                    <div *ngFor="let sku of cat.items; let i = index" class="p-10 hover:bg-slate-50/80 transition-all group cursor-default">
+                        <div class="flex flex-col xl:flex-row xl:items-center gap-12">
+                            
+                            <!-- Col 1: Ranking & Identification -->
+                            <div class="xl:w-[35%] flex items-center gap-8">
+                                <div class="w-14 h-14 rounded-[1.25rem] flex items-center justify-center font-black text-lg transition-transform group-hover:scale-110 shadow-sm"
+                                     [class]="i < 3 ? (cat.tipoProducto === 'LC' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700') : 'bg-slate-50 text-slate-400'">
+                                    {{ i + 1 }}
+                                </div>
+                                <div class="flex flex-col gap-1.5">
+                                    <h4 class="text-base font-black text-slate-800 uppercase tracking-tight group-hover:text-blue-600 transition-colors leading-none">{{ sku.sku }}</h4>
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-2 py-0.5 rounded-md">Formato: {{ sku.pesoNeto }}g</span>
+                                        <span *ngIf="i === 0" class="text-[9px] font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md uppercase tracking-widest flex items-center gap-1">
+                                            <i class="bi bi-trophy-fill"></i> Máximo Volumen
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
 
-            <div *ngIf="!cargando && datos.length === 0" class="text-muted text-center py-3">
-                No hay datos disponibles.
+                            <!-- Col 2: Volume & Distribution -->
+                            <div class="xl:w-[25%] flex items-center gap-10">
+                                <div class="flex flex-col">
+                                    <span class="text-3xl font-black text-slate-900 tracking-tighter">{{ sku.kilosMes | number:'1.1-1' }} <small class="text-xs text-slate-400 font-bold">Kg</small></span>
+                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ sku.unidadesMes | number }} Unidades Reales</span>
+                                </div>
+                                <div class="flex flex-col items-end ml-auto pr-8">
+                                    <span class="text-sm font-black text-slate-800">{{ (sku.kilosMes / cat.totalKilos! * 100) | number:'1.1-1' }}%</span>
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Mix</span>
+                                </div>
+                            </div>
+
+                            <!-- Col 3: Rhythm / Pulse (Visual Story) -->
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between mb-3 px-1">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Ritmo de Producción Mensual (31 Días)</span>
+                                    <div class="flex items-center gap-4">
+                                        <span class="text-[10px] font-bold text-slate-900">{{ (sku.kilosMes / 31) | number:'1.0-0' }} <small class="text-slate-400">Kg/promedio día</small></span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-1 p-2 bg-slate-50/50 rounded-xl border border-slate-100/50 shadow-inner">
+                                    <div *ngFor="let dia of sku.detalleDiario" 
+                                         class="h-10 flex-1 rounded-md transition-all duration-300 hover:scale-y-110 shadow-sm" 
+                                         [class]="dia.unidades > 0 ? (cat.tipoProducto === 'LC' ? 'bg-emerald-500' : 'bg-blue-600') : 'bg-slate-200'" 
+                                         [title]="dia.fecha + ': ' + dia.unidades + ' uds'">
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

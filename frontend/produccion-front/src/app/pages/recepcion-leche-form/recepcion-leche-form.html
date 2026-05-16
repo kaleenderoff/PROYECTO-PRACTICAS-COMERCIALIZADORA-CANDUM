@@ -1,115 +1,160 @@
-<div class="container-fluid">
-
-    <div class="row mb-4">
-        <div class="col">
-            <h2 class="fw-bold">Registrar recepción de leche</h2>
-            <p class="text-muted mb-0">Ingreso de leche cruda al sistema</p>
+<div class="max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    
+    <!-- Page Header -->
+    <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <button routerLink="/recepcion-leche" 
+                    class="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-100 transition-all">
+                <i class="bi bi-arrow-left"></i>
+            </button>
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Registrar Recepción</h1>
+                <p class="text-slate-500 text-sm">Ingreso de leche cruda al sistema operativo</p>
+            </div>
         </div>
     </div>
 
-    <div *ngIf="cargandoDatos" class="alert alert-info">
-        Cargando tanques...
+    <!-- Alert Messages -->
+    <div *ngIf="cargandoDatos" class="flex items-center gap-3 p-4 bg-blue-50 text-blue-700 rounded-2xl border border-blue-100">
+        <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span class="text-sm font-medium">Sincronizando maestros y tanques...</span>
     </div>
 
-    <div *ngIf="error" class="alert alert-danger">
-        {{ error }}
+    <div *ngIf="error" class="flex items-center gap-3 p-4 bg-red-50 text-red-700 rounded-2xl border border-red-100">
+        <i class="bi bi-exclamation-circle-fill"></i>
+        <span class="text-sm font-medium">{{ error }}</span>
     </div>
 
-    <div class="card shadow border-0">
-        <div class="card-body">
-
-            <form [formGroup]="form" (ngSubmit)="guardar()">
-
-                <div class="row g-3">
-
-                    <div class="col-md-4">
-                        <label class="form-label">Fecha recepción</label>
-                        <input type="date" class="form-control" formControlName="fechaRecepcion">
-
-                        <small class="text-danger"
-                            *ngIf="form.get('fechaRecepcion')?.invalid && form.get('fechaRecepcion')?.touched">
-                            La fecha es obligatoria.
-                        </small>
+    <!-- Main Form Card -->
+    <form [formGroup]="form" (ngSubmit)="guardar()" class="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
+        
+        <div class="p-8 md:p-12 space-y-10">
+            
+            <!-- Section: Información de Origen -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="md:col-span-1">
+                    <h3 class="text-lg font-bold text-slate-800">Origen y Fecha</h3>
+                    <p class="text-slate-500 text-sm mt-1">Detalles sobre cuándo y quién entrega la materia prima.</p>
+                </div>
+                
+                <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Fecha -->
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">Fecha de Recepción</label>
+                        <input type="date" formControlName="fechaRecepcion"
+                               class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-slate-900">
+                        <p class="text-[10px] text-red-500 font-medium ml-1" *ngIf="form.get('fechaRecepcion')?.invalid && form.get('fechaRecepcion')?.touched">
+                            <i class="bi bi-info-circle mr-1"></i>La fecha es obligatoria.
+                        </p>
                     </div>
 
-                    <div class="col-md-4">
-                        <label class="form-label">Tipo materia prima</label>
-                        <select class="form-select" formControlName="tipoMateriaPrima">
-
-                            <option *ngFor="let tipo of tiposMateriaPrima" [value]="tipo">
-
-                                {{ tipo }}
-
-                            </option>
-
+                    <!-- Tipo Materia Prima -->
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">Materia Prima</label>
+                        <select formControlName="tipoMateriaPrima"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-slate-900 appearance-none">
+                            <option *ngFor="let tipo of tiposMateriaPrima" [value]="tipo">{{ tipo }}</option>
                         </select>
                     </div>
 
-                    <div class="col-md-4">
-                        <label class="form-label">Proveedor</label>
-                        <select class="form-select" formControlName="proveedor">
-
-                            <option value="">Seleccione proveedor</option>
-
-                            <option *ngFor="let proveedor of proveedores" [value]="proveedor.nombre">
-
-                                {{ proveedor.nombre }}
-
-                            </option>
-
-                        </select>
-
-                        <small class="text-danger"
-                            *ngIf="form.get('proveedor')?.invalid && form.get('proveedor')?.touched">
-                            El proveedor es obligatorio.
-                        </small>
+                    <!-- Proveedor -->
+                    <div class="md:col-span-2 space-y-2">
+                        <label class="text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">Proveedor Autorizado</label>
+                        <div class="relative">
+                            <select formControlName="proveedor"
+                                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-slate-900 appearance-none">
+                                <option value="">Seleccione un proveedor del catálogo</option>
+                                <option *ngFor="let proveedor of proveedores" [value]="proveedor.nombre">{{ proveedor.nombre }}</option>
+                            </select>
+                            <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                        </div>
+                        <p class="text-[10px] text-red-500 font-medium ml-1" *ngIf="form.get('proveedor')?.invalid && form.get('proveedor')?.touched">
+                            <i class="bi bi-info-circle mr-1"></i>El proveedor es requerido.
+                        </p>
                     </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label">Litros recibidos</label>
-                        <input type="number" class="form-control" formControlName="cantidadRecibidaLitros">
-
-                        <small class="text-danger"
-                            *ngIf="form.get('cantidadRecibidaLitros')?.invalid && form.get('cantidadRecibidaLitros')?.touched">
-                            Ingrese una cantidad válida.
-                        </small>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label">Litros remisión</label>
-                        <input type="number" class="form-control" formControlName="cantidadRemisionLitros">
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label">Número remisión</label>
-                        <input type="text" class="form-control" formControlName="numeroRemision">
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label">Recibido por</label>
-                        <input type="text" class="form-control" formControlName="recibidoPor">
-                    </div>
-
-                    <div class="col-md-12">
-                        <label class="form-label">Observaciones</label>
-                        <textarea class="form-control" rows="3" formControlName="observaciones"></textarea>
-                    </div>
-
                 </div>
+            </div>
 
-                <div class="mt-4 d-flex gap-2">
-                    <button class="btn btn-primary" type="submit" [disabled]="cargando || cargandoDatos">
-                        {{ cargando ? 'Guardando...' : 'Guardar recepción' }}
-                    </button>
+            <hr class="border-slate-100">
 
-                    <button class="btn btn-secondary" type="button" routerLink="/recepcion-leche">
-                        Cancelar
-                    </button>
+            <!-- Section: Mediciones y Cantidades -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="md:col-span-1">
+                    <h3 class="text-lg font-bold text-slate-800">Cantidades</h3>
+                    <p class="text-slate-500 text-sm mt-1">Registro de volumen recibido vs remisión externa.</p>
                 </div>
+                
+                <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Litros Recibidos -->
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">Litros Planta (Reales)</label>
+                        <div class="relative group">
+                            <input type="number" formControlName="cantidadRecibidaLitros" placeholder="0.00"
+                                   class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-slate-900 font-bold">
+                            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs uppercase">Ltrs</span>
+                        </div>
+                        <p class="text-[10px] text-red-500 font-medium ml-1" *ngIf="form.get('cantidadRecibidaLitros')?.invalid && form.get('cantidadRecibidaLitros')?.touched">
+                            <i class="bi bi-info-circle mr-1"></i>Ingrese una cantidad válida.
+                        </p>
+                    </div>
 
-            </form>
+                    <!-- Litros Remisión -->
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">Litros Remisión (Teóricos)</label>
+                        <div class="relative group">
+                            <input type="number" formControlName="cantidadRemisionLitros" placeholder="0.00"
+                                   class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-slate-900">
+                            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs uppercase">Ltrs</span>
+                        </div>
+                    </div>
 
+                    <!-- Número Remisión -->
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">Número de Remisión</label>
+                        <input type="text" formControlName="numeroRemision" placeholder="REM-0000"
+                               class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-slate-900 font-mono">
+                    </div>
+
+                    <!-- Recibido por -->
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">Responsable Planta</label>
+                        <input type="text" formControlName="recibidoPor" placeholder="Nombre del operario"
+                               class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-slate-900">
+                    </div>
+                </div>
+            </div>
+
+            <hr class="border-slate-100">
+
+            <!-- Section: Notas Adicionales -->
+            <div class="space-y-4">
+                <label class="text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">Observaciones y Novedades</label>
+                <textarea formControlName="observaciones" rows="4" placeholder="Describa cualquier novedad en la recepción..."
+                          class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-[2rem] focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-slate-900 resize-none"></textarea>
+            </div>
         </div>
-    </div>
 
+        <!-- Sticky Form Actions -->
+        <div class="px-8 py-6 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-4">
+            <button type="button" routerLink="/recepcion-leche" 
+                    class="px-6 py-3 bg-white text-slate-600 font-bold rounded-2xl border border-slate-200 hover:bg-slate-100 transition-all active:scale-95">
+                Cancelar
+            </button>
+            <button type="submit" [disabled]="cargando || cargandoDatos"
+                    class="px-10 py-3 bg-blue-600 text-white font-bold rounded-2xl shadow-lg shadow-blue-900/20 hover:bg-blue-700 transition-all active:scale-95 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                <span *ngIf="!cargando">Finalizar Registro</span>
+                <span *ngIf="cargando" class="flex items-center gap-2">
+                    <svg class="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Guardando...
+                </span>
+            </button>
+        </div>
+
+    </form>
 </div>

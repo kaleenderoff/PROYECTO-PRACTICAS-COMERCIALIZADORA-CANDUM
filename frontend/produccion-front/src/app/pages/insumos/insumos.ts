@@ -3,6 +3,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { FormulaService } from '../../core/services/formula';
+import { AuthService } from '../../core/services/auth';
 
 @Component({
     selector: 'app-insumos',
@@ -12,17 +13,22 @@ import { FormulaService } from '../../core/services/formula';
         FormsModule
     ],
     templateUrl: './insumos.html',
-    styleUrl: './insumos.scss'
+    
 })
 export class Insumos implements OnInit {
 
     private formulaService = inject(FormulaService);
+    public authService = inject(AuthService);
 
     insumos: any[] = [];
     filtro = '';
 
     modoEdicion = false;
     idInsumoEditando: number | null = null;
+
+    // Paginación
+    paginaActual = 1;
+    itemsPorPagina = 10;
 
     nuevoInsumo = {
         nombre: '',
@@ -42,6 +48,7 @@ export class Insumos implements OnInit {
         this.formulaService.listarInsumos().subscribe({
             next: data => {
                 this.insumos = data;
+                this.paginaActual = 1;
             },
             error: error => {
                 console.error(error);
@@ -127,11 +134,30 @@ export class Insumos implements OnInit {
 
         const filtroNormalizado = this.filtro.toLowerCase();
 
-        return this.insumos.filter(i =>
+        return this.insumos.filter((i: any) =>
             String(i.nombre || '').toLowerCase().includes(filtroNormalizado) ||
             String(i.tipo || '').toLowerCase().includes(filtroNormalizado) ||
             String(i.unidadMedida || '').toLowerCase().includes(filtroNormalizado)
         );
+    }
+
+    get insumosPaginados(): any[] {
+        const inicio = (this.paginaActual - 1) * this.itemsPorPagina;
+        return this.insumosFiltrados.slice(inicio, inicio + this.itemsPorPagina);
+    }
+
+    get totalPaginas(): number {
+        return Math.ceil(this.insumosFiltrados.length / this.itemsPorPagina);
+    }
+
+    get paginas(): number[] {
+        return Array.from({ length: this.totalPaginas }, (_, i) => i + 1);
+    }
+
+    cambiarPagina(p: number): void {
+        if (p >= 1 && p <= this.totalPaginas) {
+            this.paginaActual = p;
+        }
     }
 
     limpiarFormulario(): void {

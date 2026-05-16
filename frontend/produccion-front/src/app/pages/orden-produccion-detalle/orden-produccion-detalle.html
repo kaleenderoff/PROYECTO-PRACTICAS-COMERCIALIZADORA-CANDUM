@@ -1,101 +1,326 @@
-<div class="container-fluid">
+<div class="max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    
+    <!-- Page Header & Navigation -->
+    <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+            <button routerLink="/ordenes-produccion" 
+                    class="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-100 transition-all shadow-sm">
+                <i class="bi bi-arrow-left"></i>
+            </button>
+            <div>
+                <h1 class="text-2xl font-black text-slate-900 tracking-tight">Orden de Producción</h1>
+                <p class="text-slate-500 text-sm font-medium">Instrucción operativa para planta</p>
+            </div>
+        </div>
 
-    <div class="mb-4">
+        <!-- Dynamic Action Buttons -->
+        <div *ngIf="orden" class="flex items-center gap-3">
+            <button *ngIf="orden.estado === 'PROGRAMADA'"
+                    (click)="iniciarEjecucion()"
+                    class="px-6 py-2.5 bg-blue-600 text-white rounded-2xl text-sm font-black hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95 flex items-center gap-2">
+                <i class="bi bi-play-fill"></i>
+                Iniciar Ejecución
+            </button>
 
-        <a routerLink="/ordenes-produccion" class="btn btn-sm btn-secondary mb-3">
-            Volver
-        </a>
+            <button *ngIf="orden.estado === 'EN_EJECUCION'"
+                    (click)="registrarBatch()"
+                    class="px-6 py-2.5 bg-white border-2 border-blue-600 text-blue-600 rounded-2xl text-sm font-black hover:bg-blue-50 transition-all active:scale-95 flex items-center gap-2">
+                <i class="bi bi-plus-circle"></i>
+                Registrar Batch
+            </button>
 
-        <h2 class="fw-bold">
-            Detalle de orden de producción
-        </h2>
-
-        <p class="text-muted mb-0">
-            Información general y estado de la orden.
-        </p>
-
+            <button *ngIf="orden.estado === 'EN_EJECUCION'"
+                    (click)="finalizarOrden()"
+                    class="px-6 py-2.5 bg-slate-900 text-white rounded-2xl text-sm font-black hover:bg-slate-800 transition-all shadow-lg shadow-slate-200 active:scale-95 flex items-center gap-2">
+                <i class="bi bi-check-lg"></i>
+                Finalizar Orden
+            </button>
+        </div>
     </div>
 
-    <div *ngIf="cargando" class="alert alert-info">
-        Cargando orden de producción...
+    <!-- Alert Messages -->
+    <div *ngIf="cargando" class="flex items-center gap-3 p-6 bg-white border border-slate-100 rounded-[2rem] shadow-sm animate-pulse">
+        <div class="w-12 h-12 bg-slate-100 rounded-2xl"></div>
+        <div class="flex-1 space-y-2">
+            <div class="h-4 bg-slate-100 rounded w-1/4"></div>
+            <div class="h-3 bg-slate-50 rounded w-1/2"></div>
+        </div>
     </div>
 
-    <div *ngIf="error" class="alert alert-danger">
+    <div *ngIf="error" class="p-6 bg-red-50 text-red-700 rounded-[2rem] border border-red-100 shadow-sm flex items-center gap-4 font-bold animate-in zoom-in duration-300">
+        <i class="bi bi-exclamation-octagon-fill text-xl"></i>
         {{ error }}
     </div>
 
-    <div *ngIf="orden" class="card shadow border-0">
-
-        <div class="card-header bg-white fw-bold">
-            {{ orden.numeroOrden }}
+    <!-- MAIN OPERATIONAL VIEW -->
+    <div *ngIf="orden" class="space-y-8">
+        
+        <!-- TOP BANNER: IDENTITY & STATUS -->
+        <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden border-b-4 border-b-blue-600">
+            <div class="px-10 py-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+                <div class="flex items-center gap-6">
+                    <div class="w-20 h-20 bg-slate-900 rounded-3xl flex flex-col items-center justify-center text-white shadow-2xl shadow-slate-200">
+                        <span class="text-[10px] font-black uppercase tracking-widest opacity-50">FOLIO</span>
+                        <span class="text-2xl font-black italic">#{{ orden.numeroOrden.split('-').pop() }}</span>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-3 mb-1">
+                            <h2 class="text-3xl font-black text-slate-900 tracking-tight">{{ orden.nombreProducto }}</h2>
+                            <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-[10px] font-black uppercase tracking-widest">
+                                {{ orden.nombreLinea }}
+                            </span>
+                        </div>
+                        <p class="text-slate-500 font-medium flex items-center gap-2 italic">
+                            <i class="bi bi-info-circle"></i>
+                            Orden generada automáticamente desde programación técnica
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col items-end gap-3 bg-slate-50/80 p-6 rounded-3xl border border-slate-100">
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Estado Operativo</span>
+                    <span class="px-8 py-3 rounded-2xl text-sm font-black uppercase tracking-wider border shadow-sm flex items-center gap-2"
+                          [ngClass]="obtenerClaseEstado(orden.estado)">
+                        <span class="w-2 h-2 rounded-full bg-current animate-pulse"></span>
+                        {{ orden.estado }}
+                    </span>
+                </div>
+            </div>
         </div>
 
-        <div class="card-body">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- LEFT COLUMN: OPERATIVE SUMMARY -->
+            <div class="lg:col-span-1 space-y-8">
+                <div class="bg-blue-600 rounded-[2.5rem] p-8 text-white shadow-xl shadow-blue-200 relative overflow-hidden">
+                    <!-- Decorative element -->
+                    <div class="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
+                    
+                    <h3 class="text-xs font-black uppercase tracking-[0.2em] opacity-70 mb-6 flex items-center gap-2">
+                        <i class="bi bi-cpu-fill"></i>
+                        Resumen Operativo
+                    </h3>
 
-            <div class="row g-3">
+                    <div class="space-y-6">
+                        <div class="flex justify-between items-end border-b border-white/10 pb-4">
+                            <span class="text-sm font-medium opacity-80">Producto Terminado Planificado</span>
+                            <span class="text-2xl font-black">{{ orden.kgPTTotalPlan | number:'1.2-2' }} <small class="text-xs opacity-60">kg</small></span>
+                        </div>
+                        <div class="flex justify-between items-end border-b border-white/10 pb-4">
+                            <span class="text-sm font-medium opacity-80">Entrada Requerida</span>
+                            <span class="text-2xl font-black text-blue-100">{{ orden.kgEntradaTotalPlan | number:'1.2-3' }} <small class="text-xs opacity-60">kg</small></span>
+                        </div>
+                        <div class="flex justify-between items-end border-b border-white/10 pb-4">
+                            <span class="text-sm font-medium opacity-80">Ciclos Planificados</span>
+                            <span class="text-2xl font-black">{{ orden.numBachesPlan }} <small class="text-xs opacity-60">Batches</small></span>
+                        </div>
+                        <div class="pt-2">
+                            <p class="text-[10px] font-black uppercase tracking-widest opacity-60 mb-1">Fórmula Aplicada</p>
+                            <p class="text-lg font-bold leading-tight">{{ orden.nombreFormula }}</p>
+                            <span class="inline-block mt-2 px-3 py-1 bg-white/20 rounded-lg text-[10px] font-black uppercase">Versión: {{ orden.versionFormula }}</span>
+                        </div>
+                    </div>
+                </div>
 
-                <div class="col-md-4">
-                    <label class="text-muted">Estado</label>
-                    <div>
-                        <span class="badge" [ngClass]="obtenerClaseEstado(orden.estado)">
-                            {{ orden.estado }}
+                <!-- Admin Info Header -->
+                <div class="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm space-y-6">
+                    <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+                        <i class="bi bi-person-badge-fill text-blue-500"></i>
+                        Datos de Control
+                    </h3>
+                    
+                    <div class="space-y-5">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
+                                <i class="bi bi-calendar3"></i>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Fecha Producción</p>
+                                <p class="text-sm font-bold text-slate-700">{{ orden.fechaProduccion | date:'mediumDate' }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
+                                <i class="bi bi-clock"></i>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Turno</p>
+                                <p class="text-sm font-bold text-slate-700">{{ orden.nombreTurno }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
+                                <i class="bi bi-person-check"></i>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Programado por</p>
+                                <p class="text-sm font-bold text-slate-700">{{ orden.nombreCreadaPor }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Selector de Tanque -->
+                        <div class="pt-4 border-t border-slate-50">
+                            <div class="flex items-center gap-4 p-4 rounded-2xl transition-all"
+                                 [ngClass]="orden.idTanqueLeche ? 'bg-blue-50/50 border border-blue-100' : 'bg-amber-50/50 border border-amber-100 animate-pulse'">
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center"
+                                     [ngClass]="orden.idTanqueLeche ? 'bg-blue-600 text-white' : 'bg-amber-500 text-white'">
+                                    <i class="bi bi-droplet-fill"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-[9px] font-black uppercase tracking-widest"
+                                       [ngClass]="orden.idTanqueLeche ? 'text-blue-600' : 'text-amber-600'">
+                                        Tanque de Leche Descremada
+                                    </p>
+                                    
+                                    <div *ngIf="orden.estado === 'PROGRAMADA' || orden.estado === 'EN_EJECUCION'; else verTanque">
+                                        <select (change)="cambiarTanque($event)" 
+                                                class="w-full bg-transparent border-none p-0 text-sm font-black text-slate-900 focus:ring-0 cursor-pointer outline-none">
+                                            <option value="">Seleccionar Tanque...</option>
+                                            <option *ngFor="let t of tanques" [value]="t.idTanque" [selected]="t.idTanque === orden.idTanqueLeche">
+                                                {{ t.nombre }} ({{ t.saldoLitros | number:'1.0-0' }} L)
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <ng-template #verTanque>
+                                        <p class="text-sm font-black text-slate-700 truncate">{{ orden.nombreTanqueLeche || 'SISTEMA (No especificado)' }}</p>
+                                    </ng-template>
+                                </div>
+                            </div>
+                            <p *ngIf="!orden.idTanqueLeche && orden.estado !== 'FINALIZADA'" class="text-[9px] font-bold text-amber-600 mt-2 flex items-center gap-1">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                DEBE SELECCIONAR EL TANQUE DE LECHE DESCREMADA PARA EL DESCUENTO DE INVENTARIO
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: SKUs TABLE & EXECUTION -->
+            <div class="lg:col-span-2 space-y-8">
+                
+                <!-- SKUs PROGRAMADOS -->
+                <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+                    <div class="px-8 py-6 border-b border-slate-50 flex items-center justify-between">
+                        <h3 class="text-sm font-black text-slate-900 flex items-center gap-2">
+                            <i class="bi bi-box-seam text-blue-600"></i>
+                            SKUs PROGRAMADOS
+                        </h3>
+                        <span class="px-3 py-1 bg-slate-100 text-slate-600 rounded-lg text-[10px] font-black uppercase">
+                            {{ orden.skus.length }} Items
                         </span>
                     </div>
-                </div>
-
-                <div class="col-md-4">
-                    <label class="text-muted">Fecha producción</label>
-                    <div class="fw-semibold">
-                        {{ orden.fechaProduccion }}
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50/50">
+                                    <th class="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">SKU / Presentación</th>
+                                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Unidades</th>
+                                    <th class="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Kg PT</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-50">
+                                <tr *ngFor="let sku of orden.skus" class="hover:bg-slate-50/50 transition-colors">
+                                    <td class="px-8 py-5">
+                                        <p class="text-sm font-bold text-slate-900">{{ sku.descripcionSku }}</p>
+                                        <p class="text-[10px] font-medium text-slate-400 tracking-wider uppercase">{{ sku.codigoSku }} • {{ sku.pesoUnidadGr }}g</p>
+                                    </td>
+                                    <td class="px-6 py-5 text-center">
+                                        <span class="px-4 py-1.5 bg-slate-100 rounded-xl text-sm font-black text-slate-700">
+                                            {{ sku.unidadesObjetivo | number }}
+                                        </span>
+                                    </td>
+                                    <td class="px-8 py-5 text-right">
+                                        <span class="text-sm font-black text-slate-900">{{ sku.kgProductoTerminado | number:'1.2-2' }} kg</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                <div class="col-md-4">
-                    <label class="text-muted">Línea</label>
-                    <div class="fw-semibold">
-                        {{ obtenerNombreLinea(orden.idLinea) }}
-                    </div>
-                </div>
+                <!-- SEGUIMIENTO DE EJECUCIÓN -->
+                <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-8">
+                    <h3 class="text-sm font-black text-slate-900 mb-8 flex items-center gap-2">
+                        <i class="bi bi-activity text-blue-600"></i>
+                        TRAZABILIDAD DE EJECUCIÓN
+                    </h3>
 
-                <div class="col-md-4">
-                    <label class="text-muted">Producto</label>
-                    <div class="fw-semibold">
-                        {{ obtenerNombreProducto(orden.idProducto) }}
-                    </div>
-                </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="p-6 bg-slate-50 rounded-3xl border border-slate-100 relative group overflow-hidden">
+                            <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-blue-500/5 rounded-full scale-0 group-hover:scale-100 transition-transform duration-500"></div>
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Inicio de Operación</label>
+                            <p class="text-lg font-black text-slate-900">{{ (orden.fechaInicioReal | date:'dd/MM/yyyy HH:mm') || 'SIN INICIAR' }}</p>
+                            <div class="flex items-center gap-2 mt-2">
+                                <span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-[9px] font-black rounded uppercase">
+                                    {{ orden.nombreJefeLineaEjecutor || 'SISTEMA' }}
+                                </span>
+                                <span class="text-[9px] text-slate-400 font-bold uppercase">JEFE DE LÍNEA</span>
+                            </div>
+                        </div>
 
-                <div class="col-md-4">
-                    <label class="text-muted">Turno</label>
-                    <div class="fw-semibold">
-                        {{ obtenerNombreTurno(orden.idTurno) }}
+                        <div class="p-6 bg-slate-50 rounded-3xl border border-slate-100 relative group overflow-hidden">
+                            <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-emerald-500/5 rounded-full scale-0 group-hover:scale-100 transition-transform duration-500"></div>
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Finalización de Orden</label>
+                            <p class="text-lg font-black text-slate-900">{{ (orden.fechaFinReal | date:'dd/MM/yyyy HH:mm') || 'EN PROCESO' }}</p>
+                            <div class="flex items-center gap-2 mt-2">
+                                <span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[9px] font-black rounded uppercase">
+                                    {{ orden.fechaFinReal ? 'OPERACIÓN CERRADA' : 'ACTIVA EN PLANTA' }}
+                                </span>
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                <div class="col-md-4">
-                    <label class="text-muted">Inicio real</label>
-                    <div class="fw-semibold">
-                        {{ orden.fechaInicioReal || '-' }}
+                    <!-- Métricas Reales si está Finalizada -->
+                    <div *ngIf="orden.estado === 'FINALIZADA'" class="mt-8 grid grid-cols-2 md:grid-cols-3 gap-4 animate-in slide-in-from-bottom-4 duration-500">
+                        <div class="p-5 bg-blue-50/50 rounded-3xl border border-blue-100/50">
+                            <span class="text-[10px] font-black text-blue-400 uppercase tracking-widest block mb-1">Kg Entrada Real</span>
+                            <span class="text-xl font-black text-blue-700">{{ orden.kgEntradaReal | number:'1.1-2' }}</span>
+                        </div>
+                        <div class="p-5 bg-amber-50/50 rounded-3xl border border-amber-100/50">
+                            <span class="text-[10px] font-black text-amber-400 uppercase tracking-widest block mb-1">Salida Proceso</span>
+                            <span class="text-xl font-black text-amber-700">{{ orden.kgProducidoBatches | number:'1.1-2' }}</span>
+                        </div>
+                        <div class="p-5 bg-emerald-50/50 rounded-3xl border border-emerald-100/50">
+                            <span class="text-[10px] font-black text-emerald-400 uppercase tracking-widest block mb-1">Producto Terminado</span>
+                            <span class="text-xl font-black text-emerald-700">{{ orden.kgPtReal | number:'1.1-2' }}</span>
+                        </div>
+                        <div class="p-5 bg-rose-50/50 rounded-3xl border border-rose-100/50">
+                            <span class="text-[10px] font-black text-rose-400 uppercase tracking-widest block mb-1">Reducción Evaporación</span>
+                            <span class="text-xl font-black text-rose-700">{{ orden.mermaReal | number:'1.1-2' }}</span>
+                        </div>
+                        <div class="p-5 bg-indigo-50/50 rounded-3xl border border-indigo-100/50">
+                            <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest block mb-1">Diferencia Empaque</span>
+                            <span class="text-xl font-black text-indigo-700">{{ orden.mermaEmpaque | number:'1.1-2' }}</span>
+                        </div>
+                        <div class="p-5 bg-slate-900 rounded-3xl border border-slate-800">
+                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 opacity-70">Rendimiento Proceso</span>
+                            <span class="text-xl font-black text-white">{{ orden.rendimientoReal | number:'1.1-2' }}%</span>
+                        </div>
                     </div>
-                </div>
 
-                <div class="col-md-4">
-                    <label class="text-muted">Fin real</label>
-                    <div class="fw-semibold">
-                        {{ orden.fechaFinReal || '-' }}
-                    </div>
-                </div>
-
-                <div class="col-12">
-                    <label class="text-muted">Observaciones</label>
-                    <div class="fw-semibold">
-                        {{ orden.observaciones || '-' }}
+                    <div class="mt-8 p-8 bg-slate-900 rounded-[2rem] text-white/90">
+                        <label class="text-[10px] font-black uppercase tracking-widest opacity-50 block mb-3">Observaciones de Planta</label>
+                        <p class="text-sm leading-relaxed italic">
+                            {{ orden.observaciones || 'No se registraron incidentes ni notas operativas para este turno.' }}
+                        </p>
                     </div>
                 </div>
 
             </div>
+        </div>
 
+        <!-- Footer Actions -->
+        <div class="px-10 py-8 bg-white border border-slate-100 rounded-[2rem] shadow-sm flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <i class="bi bi-info-circle-fill text-blue-500"></i>
+                <p class="text-xs font-medium text-slate-500 italic">Este documento es una instrucción oficial de producción. Verifique la fórmula antes de cargar marmitas.</p>
+            </div>
+            <button class="px-8 py-3 bg-white border border-slate-200 text-slate-900 rounded-2xl text-sm font-black hover:border-blue-200 hover:text-blue-600 transition-all active:scale-95 flex items-center gap-2 shadow-sm">
+                <i class="bi bi-printer"></i>
+                Imprimir Orden
+            </button>
         </div>
 
     </div>
-
 </div>

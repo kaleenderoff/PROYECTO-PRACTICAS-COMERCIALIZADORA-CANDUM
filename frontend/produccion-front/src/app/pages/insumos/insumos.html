@@ -1,209 +1,197 @@
-<div class="container-fluid py-4">
-
-    <h1 class="h2 mb-1">
-        Gestión de Insumos
-    </h1>
-
-    <p class="text-muted mb-4">
-        Administración de materias primas y aditivos.
-    </p>
-
-    <div class="card shadow-sm mb-4">
-
-        <div class="card-body">
-
-            <h2 class="h4 mb-3">
-                {{ modoEdicion ? 'Editar insumo' : 'Crear insumo' }}
-            </h2>
-
-            <div class="alert alert-success" *ngIf="mensajeOk">
-                {{ mensajeOk }}
+<div *ngIf="authService.isJefeProduccion() || authService.isGerencia()" class="space-y-10 animate-in fade-in duration-500">
+    
+    <!-- Page Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+        <div class="flex items-center gap-5">
+            <div class="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 shadow-inner">
+                <i class="bi bi-box-seam text-2xl"></i>
             </div>
-
-            <div class="alert alert-danger" *ngIf="mensajeError">
-                {{ mensajeError }}
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Gestión de Insumos</h1>
+                <p class="text-slate-500 text-sm">Control de materias primas, aditivos y empaques</p>
             </div>
-
-            <div class="row g-3">
-
-                <div class="col-md-5">
-
-                    <label class="form-label">
-                        Nombre
-                    </label>
-
-                    <input class="form-control" [(ngModel)]="nuevoInsumo.nombre">
-
-                </div>
-
-                <div class="col-md-3">
-
-                    <label class="form-label">
-                        Tipo
-                    </label>
-
-                    <select class="form-select" [(ngModel)]="nuevoInsumo.tipo">
-                        <option value="MATERIA_PRIMA">
-                            Materia prima
-                        </option>
-
-                        <option value="MATERIAL_EMPAQUE">
-                            Material de empaque
-                        </option>
-
-                        <option value="ADITIVO">
-                            Aditivo
-                        </option>
-
-                        <option value="OTRO">
-                            Otro
-                        </option>
-                    </select>
-
-                </div>
-
-                <div class="col-md-2">
-
-                    <label class="form-label">
-                        Unidad
-                    </label>
-
-                    <select class="form-select" [(ngModel)]="nuevoInsumo.unidadMedida">
-                        <option value="kg">
-                            kg
-                        </option>
-
-                        <option value="g">
-                            g
-                        </option>
-
-                        <option value="lt">
-                            lt
-                        </option>
-
-                        <option value="ml">
-                            ml
-                        </option>
-
-                        <option value="unidad">
-                            unidad
-                        </option>
-                    </select>
-
-                </div>
-
-                <div class="col-md-2">
-
-                    <label class="form-label">
-                        Activo
-                    </label>
-
-                    <select class="form-select" [(ngModel)]="nuevoInsumo.activo">
-                        <option [ngValue]="true">
-                            Sí
-                        </option>
-
-                        <option [ngValue]="false">
-                            No
-                        </option>
-                    </select>
-
-                </div>
-
-                <div class="col-md-12 d-flex gap-2">
-
-                    <button class="btn btn-success" type="button" (click)="guardarInsumo()">
-                        {{ modoEdicion ? 'Actualizar' : 'Crear' }}
-                    </button>
-
-                    <button class="btn btn-secondary" type="button" *ngIf="modoEdicion" (click)="cancelarEdicion()">
-                        Cancelar
-                    </button>
-
-                </div>
-
-            </div>
-
         </div>
-
     </div>
 
-    <div class="card shadow-sm">
+    <!-- Alert Messages -->
+    <div *ngIf="mensajeOk" class="flex items-center gap-3 p-4 bg-emerald-50 text-emerald-700 rounded-2xl border border-emerald-100 animate-in slide-in-from-top-2">
+        <i class="bi bi-check-circle-fill"></i>
+        <span class="text-sm font-medium">{{ mensajeOk }}</span>
+    </div>
 
-        <div class="card-body">
+    <div *ngIf="mensajeError" class="flex items-center gap-3 p-4 bg-red-50 text-red-700 rounded-2xl border border-red-100 animate-in slide-in-from-top-2">
+        <i class="bi bi-exclamation-circle-fill"></i>
+        <span class="text-sm font-medium">{{ mensajeError }}</span>
+    </div>
 
-            <div class="d-flex justify-content-between align-items-center mb-3">
+    <!-- Creation/Edition Card -->
+    <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-lg shadow-slate-200/50 overflow-hidden">
+        <div class="px-8 py-5 border-b border-slate-50 bg-slate-50/30 flex items-center gap-2">
+            <div class="w-2 h-6 bg-emerald-500 rounded-full"></div>
+            <h2 class="font-bold text-slate-800">{{ modoEdicion ? 'Actualizar Insumo' : 'Registrar Nuevo Insumo' }}</h2>
+        </div>
+        
+        <div class="p-8 md:p-10">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                <!-- Nombre -->
+                <div class="md:col-span-5 space-y-2">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Nombre del Insumo</label>
+                    <input [(ngModel)]="nuevoInsumo.nombre" placeholder="Ej. Azúcar Industrial, Bolsas 1L..."
+                           class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all text-slate-900">
+                </div>
 
-                <h2 class="h4 mb-0">
-                    Insumos registrados
-                </h2>
+                <!-- Tipo -->
+                <div class="md:col-span-3 space-y-2">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Categoría</label>
+                    <div class="relative">
+                        <select [(ngModel)]="nuevoInsumo.tipo"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all text-slate-900 appearance-none">
+                            <option value="MATERIA_PRIMA">Materia prima</option>
+                            <option value="MATERIAL_EMPAQUE">Material de empaque</option>
+                            <option value="ADITIVO">Aditivo</option>
+                            <option value="OTRO">Otro</option>
+                        </select>
+                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                    </div>
+                </div>
 
-                <input class="form-control w-auto" placeholder="Buscar..." [(ngModel)]="filtro">
+                <!-- Unidad -->
+                <div class="md:col-span-2 space-y-2">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">U. Medida</label>
+                    <div class="relative">
+                        <select [(ngModel)]="nuevoInsumo.unidadMedida"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all text-slate-900 appearance-none">
+                            <option value="kg">kg</option>
+                            <option value="g">g</option>
+                            <option value="lt">lt</option>
+                            <option value="ml">ml</option>
+                            <option value="unidad">unidad</option>
+                        </select>
+                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                    </div>
+                </div>
 
+                <!-- Activo -->
+                <div class="md:col-span-2 space-y-2">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">¿Activo?</label>
+                    <div class="relative">
+                        <select [(ngModel)]="nuevoInsumo.activo"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all text-slate-900 appearance-none">
+                            <option [ngValue]="true">Activo</option>
+                            <option [ngValue]="false">Inactivo</option>
+                        </select>
+                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="md:col-span-12 pt-4 flex gap-3">
+                    <button (click)="guardarInsumo()"
+                            class="px-8 py-3 bg-emerald-600 text-white font-bold rounded-2xl shadow-lg shadow-emerald-900/20 hover:bg-emerald-700 transition-all active:scale-95 flex items-center gap-2">
+                        <i class="bi" [class]="modoEdicion ? 'bi-check-all' : 'bi-plus-circle'"></i>
+                        {{ modoEdicion ? 'Actualizar Insumo' : 'Crear Insumo' }}
+                    </button>
+                    <button *ngIf="modoEdicion" (click)="cancelarEdicion()"
+                            class="px-8 py-3 bg-slate-100 text-slate-600 font-bold rounded-2xl border border-slate-200 hover:bg-slate-200 transition-all active:scale-95">
+                        Cancelar
+                    </button>
+                </div>
             </div>
+        </div>
+    </div>
 
-            <table class="table table-bordered align-middle">
+    <!-- Registered Items Card -->
+    <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+        <div class="px-8 py-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/30">
+            <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                <i class="bi bi-archive text-emerald-500"></i>
+                Catálogo de Insumos
+            </h3>
+            <div class="relative">
+                <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input [(ngModel)]="filtro" (ngModelChange)="paginaActual = 1" placeholder="Filtrar por nombre..." 
+                       class="pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all w-full md:w-80 shadow-inner">
+            </div>
+        </div>
 
-                <thead class="table-light">
-
-                    <tr>
-                        <th>#</th>
-                        <th>Nombre</th>
-                        <th>Tipo</th>
-                        <th>Unidad</th>
-                        <th>Activo</th>
-                        <th>Acciones</th>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50/50">
+                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">#</th>
+                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Insumo</th>
+                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Categoría</th>
+                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Unidad</th>
+                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Estado</th>
+                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Acciones</th>
                     </tr>
-
                 </thead>
-
-                <tbody>
-
-                    <tr *ngFor="let insumo of insumosFiltrados; let i = index">
-
-                        <td>
-                            {{ i + 1 }}
+                <tbody class="divide-y divide-slate-50">
+                    <tr *ngFor="let insumo of insumosPaginados; let i = index" class="hover:bg-emerald-50/30 transition-colors group">
+                        <td class="px-8 py-5">
+                            <span class="text-xs font-bold text-slate-300 group-hover:text-emerald-400 transition-colors">{{ (paginaActual - 1) * itemsPorPagina + i + 1 }}</span>
                         </td>
-
-                        <td>
-                            {{ insumo.nombre }}
+                        <td class="px-8 py-5">
+                            <span class="text-sm font-semibold text-slate-700">{{ insumo.nombre }}</span>
                         </td>
-
-                        <td>
-                            {{ insumo.tipo }}
-                        </td>
-
-                        <td>
-                            {{ insumo.unidadMedida }}
-                        </td>
-
-                        <td>
-                            <span class="badge" [class.bg-success]="insumo.activo"
-                                [class.bg-secondary]="!insumo.activo">
-                                {{ insumo.activo ? 'SI' : 'NO' }}
+                        <td class="px-8 py-5">
+                            <span class="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg text-[10px] font-bold uppercase tracking-wider">
+                                {{ insumo.tipo.replace('_', ' ') }}
                             </span>
                         </td>
-
-                        <td>
-                            <button class="btn btn-outline-primary btn-sm" type="button" (click)="editarInsumo(insumo)">
+                        <td class="px-8 py-5">
+                            <span class="text-sm font-medium text-slate-500">{{ insumo.unidadMedida }}</span>
+                        </td>
+                        <td class="px-8 py-5 text-center">
+                            <span [class]="insumo.activo ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-100'" 
+                                  class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border">
+                                {{ insumo.activo ? 'Activo' : 'Inactivo' }}
+                            </span>
+                        </td>
+                        <td class="px-8 py-5 text-right">
+                            <button (click)="editarInsumo(insumo)"
+                                    class="inline-flex items-center gap-2 px-4 py-2 bg-slate-50 hover:bg-emerald-600 text-slate-600 hover:text-white rounded-xl border border-slate-100 transition-all font-semibold text-xs active:scale-95">
+                                <i class="bi bi-pencil"></i>
                                 Editar
                             </button>
                         </td>
-
                     </tr>
-
                     <tr *ngIf="insumosFiltrados.length === 0">
-                        <td colspan="6" class="text-center text-muted">
-                            No hay insumos para mostrar.
+                        <td colspan="6" class="px-8 py-20 text-center">
+                            <div class="flex flex-col items-center justify-center text-slate-400">
+                                <i class="bi bi-search text-5xl mb-4"></i>
+                                <p class="text-sm font-medium">No se encontraron resultados para "{{ filtro }}"</p>
+                            </div>
                         </td>
                     </tr>
-
                 </tbody>
-
             </table>
-
         </div>
 
+        <div *ngIf="totalPaginas > 1" class="px-8 py-6 bg-slate-50/30 border-t border-slate-100 flex items-center justify-between">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                Página {{ paginaActual }} de {{ totalPaginas }} ({{ insumosFiltrados.length }} total)
+            </span>
+            <div class="flex items-center gap-2">
+                <button (click)="cambiarPagina(paginaActual - 1)" [disabled]="paginaActual === 1"
+                    class="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-white border border-transparent hover:border-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all text-slate-600">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                
+                <div class="flex items-center gap-1">
+                    <button *ngFor="let p of paginas" (click)="cambiarPagina(p)"
+                        [ngClass]="paginaActual === p ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200' : 'hover:bg-white border border-transparent hover:border-slate-200 text-slate-600 font-medium'"
+                        class="w-10 h-10 rounded-xl text-xs transition-all">
+                        {{ p }}
+                    </button>
+                </div>
+
+                <button (click)="cambiarPagina(paginaActual + 1)" [disabled]="paginaActual === totalPaginas"
+                    class="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-white border border-transparent hover:border-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all text-slate-600">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+        </div>
     </div>
 
-</div>
+</div>

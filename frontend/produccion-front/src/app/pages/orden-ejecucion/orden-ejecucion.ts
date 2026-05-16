@@ -1,0 +1,341 @@
+import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { 
+  EjecucionBatch, 
+  EjecucionBatchService 
+} from '../../core/services/ejecucion-batch';
+import { OrdenProduccionService, OrdenProduccionResponse } from '../../core/services/orden-produccion';
+import { CatalogoService } from '../../core/services/catalogo';
+import { NotificationService } from '../../core/services/notification';
+
+@Component({
+  selector: 'app-orden-ejecucion',
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterLink],
+  templateUrl: './orden-ejecucion.html'
+})
+export class OrdenEjecucion implements OnInit {
+
+  idOrden: number = 0;
+  orden: OrdenProduccionResponse | null = null;
+  batches: EjecucionBatch[] = [];
+  marmitas: any[] = [];
+  Math = Math;
+  
+  cargando = false;
+  error = '';
+  mensajeExito = '';
+
+  // Formulario para nuevo batch
+  nuevoBatch = {
+    numeroBatch: 1,
+    idMarmita: 0,
+    kgEntrada: 0
+  };
+
+  // Formulario para finalizar batch
+  batchAFinalizar: EjecucionBatch | null = null;
+  finalizacion = {
+    kgProducidos: 0,
+    observaciones: '',
+    conNovedad: false,
+    huboReproceso: false,
+    batchConforme: true
+  };
+
+  // Formulario para producción real por SKU
+  skusEditables: any[] = [];
+
+  // Confirmación de cierre
+  mostrarConfirmacionCierre = false;
+
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private batchService: EjecucionBatchService,
+    private ordenService: OrdenProduccionService,
+    private catalogoService: CatalogoService,
+    private notification: NotificationService
+  ) { }
+
+  ngOnInit(): void {
+    this.idOrden = Number(this.route.snapshot.paramMap.get('id'));
+    if (this.idOrden) {
+      this.cargarDatos();
+    }
+  }
+
+  cargarDatos(): void {
+    this.cargando = true;
+    
+    // Carga paralela de orden, batches y marmitas
+    this.ordenService.obtenerPorId(this.idOrden).subscribe(o => {
+      this.orden = o;
+      this.prepararSkusEditables();
+    });
+    this.batchService.listarPorOrden(this.idOrden).subscribe(b => {
+      this.batches = b;
+      // Sugerir siguiente número de batch
+      if (this.batches.length > 0) {
+        this.nuevoBatch.numeroBatch = Math.max(...this.batches.map(x => x.numeroBatch)) + 1;
+      } else {
+        this.nuevoBatch.numeroBatch = 1;
+      }
+      
+      this.actualizarMarmitaSugerida();
+    });
+    
+    this.catalogoService.listarMarmitas().subscribe(m => {
+      this.marmitas = m;
+      this.actualizarMarmitaSugerida();
+      this.cargando = false;
+    });
+  }
+
+  actualizarMarmitaSugerida(): void {
+    if (this.marmitas.length > 0) {
+      const proximoNum = this.batches.length > 0 
+        ? Math.max(...this.batches.map(x => x.numeroBatch)) + 1 
+        : 1;
+      const index = (proximoNum - 1) % this.marmitas.length;
+      this.nuevoBatch.idMarmita = this.marmitas[index].id;
+    }
+  }
+
+  iniciarBatch(): void {
+    if (this.nuevoBatch.idMarmita <= 0) {
+      this.notification.warning('Debe seleccionar una marmita.');
+      return;
+    }
+    
+    if (this.nuevoBatch.kgEntrada <= 0) {
+      this.notification.warning('La cantidad de entrada debe ser mayor a 0 kg.');
+      return;
+    }
+
+    this.cargando = true;
+    
+    this.batchService.iniciar({
+      idOrdenProduccion: this.idOrden,
+      idMarmita: this.nuevoBatch.idMarmita,
+      kgEntrada: this.nuevoBatch.kgEntrada
+    }).subscribe({
+      next: () => {
+        this.notification.toast('Batch iniciado correctamente');
+        this.cargarDatos();
+        this.nuevoBatch.kgEntrada = 0;
+      },
+      error: (err) => {
+        const msg = err.error?.message || 'Error al iniciar el batch.';
+        this.notification.error(msg);
+        this.cargando = false;
+      }
+    });
+  }
+
+  // Estadísticas para el resumen global
+  get totalBatchesActivos(): number {
+    return this.batches.filter(b => b.estado === 'EN_PROCESO').length;
+  }
+
+  get estaFinalizada(): boolean {
+    return this.orden?.estado === 'FINALIZADA';
+  }
+
+  get totalBatchesCompletados(): number {
+    return this.batches.filter(b => b.estado === 'FINALIZADO').length;
+  }
+
+  get kgProducidosAcumulados(): number {
+    return this.batches.reduce((sum, b) => sum + (b.kgProducidos || 0), 0);
+  }
+
+  get kgEntradaAcumulados(): number {
+    return this.batches.reduce((sum, b) => sum + (b.kgEntrada || 0), 0);
+  }
+
+  get rendimientoPromedio(): number {
+    const finalizados = this.batches.filter(b => (b.estado === 'FINALIZADO' || b.estado === 'CON_NOVEDAD') && b.rendimientoPct);
+    if (finalizados.length === 0) return 0;
+    const suma = finalizados.reduce((sum, b) => sum + (b.rendimientoPct || 0), 0);
+    return suma / finalizados.length;
+  }
+
+  get totalKgSkus(): number {
+    return this.skusEditables.reduce((sum, s) => sum + (s.cantidadReal || 0), 0);
+  }
+
+  get estadoMarmitas(): any[] {
+    return this.marmitas.map(m => {
+      const batchActivo = this.batches.find(b => b.idMarmita === m.id && b.estado === 'EN_PROCESO');
+      const batchesRealizados = this.batches.filter(b => b.idMarmita === m.id).length;
+      return {
+        ...m,
+        ocupada: !!batchActivo,
+        batchActual: batchActivo ? batchActivo.numeroBatch : null,
+        totalBatches: batchesRealizados
+      };
+    });
+  }
+
+  get balanceEmpaque(): number {
+    return this.kgProducidosAcumulados - this.totalKgSkus;
+  }
+
+  get desviacionConsistencia(): number {
+    return this.totalKgSkus - this.kgProducidosAcumulados;
+  }
+
+  get marmitasActivas(): number {
+    return this.batches.filter(b => b.estado === 'EN_PROCESO').length;
+  }
+
+  get limiteAlcanzado(): boolean {
+    return this.batches.length >= (this.orden?.numBachesPlan || 0);
+  }
+
+  prepararFinalizacion(batch: EjecucionBatch): void {
+    this.batchAFinalizar = batch;
+    this.finalizacion.kgProducidos = batch.kgEntrada; // Sugerencia inicial
+    this.finalizacion.observaciones = '';
+    this.finalizacion.conNovedad = false;
+    this.finalizacion.huboReproceso = false;
+    this.finalizacion.batchConforme = true;
+  }
+
+  confirmarFinalizacion(): void {
+    if (!this.batchAFinalizar) return;
+    
+    this.cargando = true;
+    this.batchService.finalizar(this.batchAFinalizar.id, {
+      kgProducidos: this.finalizacion.kgProducidos,
+      observaciones: this.finalizacion.observaciones,
+      conNovedad: this.finalizacion.conNovedad,
+      huboReproceso: this.finalizacion.huboReproceso,
+      batchConforme: this.finalizacion.batchConforme
+    }).subscribe({
+      next: () => {
+        this.batchAFinalizar = null;
+        this.notification.toast('Batch finalizado correctamente');
+        this.cargarDatos();
+      },
+      error: (err) => {
+        const msg = err.error?.message || 'Error al finalizar el batch.';
+        this.notification.error(msg);
+        this.cargando = false;
+      }
+    });
+  }
+
+  cancelarFinalizacion(): void {
+    this.batchAFinalizar = null;
+  }
+
+  eliminarBatch(batch: EjecucionBatch): void {
+    this.notification.warning(`¿Está seguro de eliminar el batch #${batch.numeroBatch}? Esta acción es irreversible.`);
+    // Nota: NotificationService no tiene confirm aún, pero SweetAlert2 sí. 
+    // Por simplicidad usaré Swal directamente o dejaré el confirm del navegador por ahora
+    // si no quiero complicar el wrapper. 
+    // Pero el usuario pidió "saltar un mensaje", así que usaré Swal.
+    
+    import('sweetalert2').then(Swal => {
+      Swal.default.fire({
+        title: '¿Confirmar eliminación?',
+        text: `Se eliminará el batch #${batch.numeroBatch}.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.cargando = true;
+          this.batchService.eliminar(batch.id).subscribe({
+            next: () => {
+              this.notification.toast(`Batch #${batch.numeroBatch} eliminado`);
+              this.cargarDatos();
+            },
+            error: (err) => {
+              this.notification.error(err.error?.message || 'Error al eliminar el batch.');
+              this.cargando = false;
+            }
+          });
+        }
+      });
+    });
+  }
+
+  prepararSkusEditables(): void {
+    if (!this.orden?.skus) return;
+    this.skusEditables = this.orden.skus.map(s => ({
+      idOrdenDetalle: s.id,
+      codigoSku: s.codigoSku,
+      descripcionSku: s.descripcionSku,
+      unidadesPlan: s.unidadesObjetivo,
+      kgPlan: s.kgProductoTerminado,
+      pesoUnidadGr: s.pesoUnidadGr,
+      cantidadReal: s.cantidadReal || 0,
+      unidadesReales: s.unidadesReales || 0,
+      observaciones: s.observaciones || '',
+      desviacion: (s.unidadesReales || 0) - s.unidadesObjetivo
+    }));
+  }
+
+  onUnidadesRealesChange(sku: any): void {
+    sku.cantidadReal = (sku.unidadesReales * sku.pesoUnidadGr) / 1000;
+    sku.desviacion = sku.unidadesReales - sku.unidadesPlan;
+  }
+
+  guardarProduccionReal(): void {
+    this.cargando = true;
+    this.ordenService.registrarSkus(this.idOrden, this.skusEditables).subscribe({
+      next: () => {
+        this.notification.success('Producción por SKU guardada correctamente.');
+        this.cargarDatos();
+      },
+      error: (err) => {
+        this.notification.error(err.error?.message || 'Error al guardar producción por SKU.');
+        this.cargando = false;
+      }
+    });
+  }
+
+  finalizarOrden(): void {
+    if (this.totalBatchesActivos > 0) {
+      this.notification.warning('No se puede finalizar la orden con batches activos.');
+      return;
+    }
+
+    if (this.totalKgSkus <= 0) {
+      this.notification.warning('Debe registrar y guardar la producción real de los SKUs antes de finalizar la orden.');
+      return;
+    }
+
+    this.mostrarConfirmacionCierre = true;
+  }
+
+  confirmarCierreFinal(): void {
+    this.cargando = true;
+    this.ordenService.finalizar(this.idOrden).subscribe({
+      next: () => {
+        this.mostrarConfirmacionCierre = false;
+        this.notification.success('Orden de producción finalizada y liquidada correctamente.');
+        setTimeout(() => {
+          this.router.navigate(['/ordenes-produccion', this.idOrden]);
+        }, 1500);
+      },
+      error: (err) => {
+        const msg = err.error?.message || 'Error al finalizar la orden.';
+        this.notification.error(msg);
+        this.cargando = false;
+      }
+    });
+  }
+
+  cancelarCierreFinal(): void {
+    this.mostrarConfirmacionCierre = false;
+  }
+}

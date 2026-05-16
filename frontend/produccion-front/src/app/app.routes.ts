@@ -27,6 +27,7 @@ import { Insumos } from './pages/insumos/insumos';
 import { OrdenesProduccion } from './pages/ordenes-produccion/ordenes-produccion';
 
 import { OrdenProduccionDetalle } from './pages/orden-produccion-detalle/orden-produccion-detalle';
+import { OrdenEjecucion } from './pages/orden-ejecucion/orden-ejecucion';
 
 export const routes: Routes = [
 
@@ -114,6 +115,13 @@ export const routes: Routes = [
             },
 
             {
+                path: 'skus',
+                loadComponent: () =>
+                    import('./pages/skus/skus').then(m => m.Skus),
+                canActivate: [authGuard]
+            },
+
+            {
                 path: 'programacion-produccion/nueva',
                 component: ProgramacionProduccionForm,
                 canActivate: [authGuard]
@@ -131,11 +139,7 @@ export const routes: Routes = [
                 canActivate: [authGuard]
             },
 
-            {
-                path: 'ejecucion-produccion/nueva',
-                component: EjecucionProduccionForm,
-                canActivate: [authGuard]
-            },
+
 
             {
                 path: 'ordenes-produccion/:id',
@@ -145,7 +149,7 @@ export const routes: Routes = [
 
             {
                 path: 'ordenes-produccion/:id/ejecutar',
-                component: EjecucionProduccionForm,
+                component: OrdenEjecucion,
                 canActivate: [authGuard]
             },
 

@@ -17,7 +17,7 @@ import {
   selector: 'app-descremado',
   imports: [CommonModule, RouterLink],
   templateUrl: './descremado.html',
-  styleUrl: './descremado.scss',
+  
 })
 export class Descremado implements OnInit {
 
@@ -89,5 +89,28 @@ export class Descremado implements OnInit {
     const tanque = this.tanques.find(t => t.idTanque === idTanque);
 
     return tanque?.nombre || `Tanque ${idTanque}`;
+  }
+
+  // Paginación
+  paginaActual = 1;
+  itemsPorPagina = 10;
+
+  get descremadosPaginados(): DescremadoRecepcion[] {
+    const inicio = (this.paginaActual - 1) * this.itemsPorPagina;
+    return this.descremados.slice(inicio, inicio + this.itemsPorPagina);
+  }
+
+  get totalPaginas(): number {
+    return Math.ceil(this.descremados.length / this.itemsPorPagina);
+  }
+
+  get paginas(): number[] {
+    return Array.from({ length: this.totalPaginas }, (_, i) => i + 1);
+  }
+
+  cambiarPagina(p: number): void {
+    if (p >= 1 && p <= this.totalPaginas) {
+      this.paginaActual = p;
+    }
   }
 }

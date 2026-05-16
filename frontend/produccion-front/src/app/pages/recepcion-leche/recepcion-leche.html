@@ -1,62 +1,187 @@
-<div class="container-fluid">
-
-    <div class="row mb-4 align-items-center">
-
-        <div class="col">
-            <h2 class="fw-bold">Recepción de leche</h2>
-            <p class="text-muted mb-0">
-                Registro de leche cruda recibida en planta
-            </p>
+<div class="space-y-8 animate-in fade-in duration-500">
+    
+    <!-- Page Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+        <div class="flex items-center gap-5">
+            <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 shadow-inner">
+                <i class="bi bi-truck text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Recepción de Leche</h1>
+                <p class="text-slate-500 text-sm">Monitoreo y registro de entrada de materia prima</p>
+            </div>
         </div>
-
-        <div class="col-auto">
-            <a class="btn btn-primary" routerLink="/recepcion-leche/nueva">
-                Nueva recepción
+        <div>
+            <a routerLink="/recepcion-leche/nueva" 
+               class="inline-flex items-center gap-2 px-6 py-3.5 bg-blue-600 text-white font-semibold rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-900/20 active:scale-95 group">
+                <i class="bi bi-plus-lg group-hover:rotate-90 transition-transform"></i>
+                Nueva Recepción
             </a>
         </div>
-
     </div>
 
-    <div *ngIf="cargando" class="alert alert-info">
-        Cargando recepciones...
+    <!-- Alert Messages -->
+    <div *ngIf="cargando" class="flex items-center gap-3 p-5 bg-white border border-slate-100 rounded-3xl shadow-sm animate-pulse">
+        <div class="w-10 h-10 bg-slate-100 rounded-xl"></div>
+        <div class="flex-1 space-y-2">
+            <div class="h-4 bg-slate-100 rounded w-1/4"></div>
+            <div class="h-3 bg-slate-50 rounded w-1/2"></div>
+        </div>
     </div>
 
-    <div *ngIf="error" class="alert alert-danger">
-        {{ error }}
+    <div *ngIf="error" class="flex items-center gap-4 p-5 bg-red-50 text-red-700 rounded-3xl border border-red-100 shadow-sm">
+        <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+        </div>
+        <span class="font-medium">{{ error }}</span>
     </div>
 
-    <div class="card shadow border-0">
-        <div class="card-header bg-white fw-bold">
-            Recepciones registradas
+    <!-- Metrics Panel -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center gap-6 group hover:shadow-lg transition-all duration-500">
+            <div class="w-16 h-16 bg-blue-50 rounded-[1.5rem] flex items-center justify-center text-blue-600 shadow-inner group-hover:scale-110 transition-transform">
+                <i class="bi bi-droplet-fill text-2xl"></i>
+            </div>
+            <div>
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Total del Mes</span>
+                <h3 class="text-3xl font-black text-slate-900 tracking-tighter">{{ totalLitrosMes | number:'1.0-0' }} <small class="text-sm font-bold text-slate-400">Lts</small></h3>
+            </div>
         </div>
 
-        <div class="card-body table-responsive">
-            <table class="table table-hover align-middle">
+        <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center gap-6 group hover:shadow-lg transition-all duration-500">
+            <div class="w-16 h-16 bg-emerald-50 rounded-[1.5rem] flex items-center justify-center text-emerald-600 shadow-inner group-hover:scale-110 transition-transform">
+                <i class="bi bi-person-badge-fill text-2xl"></i>
+            </div>
+            <div class="overflow-hidden">
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Proveedor Líder</span>
+                <h3 class="text-xl font-black text-slate-900 tracking-tighter truncate">{{ proveedorTop }}</h3>
+            </div>
+        </div>
+
+        <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center gap-6 group hover:shadow-lg transition-all duration-500">
+            <div class="w-16 h-16 bg-amber-50 rounded-[1.5rem] flex items-center justify-center text-amber-600 shadow-inner group-hover:scale-110 transition-transform">
+                <i class="bi bi-speedometer2 text-2xl"></i>
+            </div>
+            <div>
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Promedio por Carga</span>
+                <h3 class="text-2xl font-black text-slate-900 tracking-tighter">{{ promedioLitros | number:'1.0-0' }} <small class="text-sm font-bold text-slate-400">L/remisión</small></h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Container -->
+    <div class="bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden">
+        <div class="px-10 py-8 border-b border-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <h3 class="text-lg font-black text-slate-800 flex items-center gap-3">
+                <i class="bi bi-list-stars text-blue-500"></i>
+                Historial de Recepciones
+            </h3>
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" [(ngModel)]="filtro" (ngModelChange)="paginaActual = 1" placeholder="Buscar por proveedor o remisión..." 
+                           class="pl-12 pr-6 py-3 bg-slate-50/50 border border-slate-100 rounded-2xl text-sm focus:ring-4 focus:ring-blue-500/10 outline-none transition-all w-72 font-medium">
+                </div>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
                 <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Fecha</th>
-                        <th>Proveedor</th>
-                        <th>Litros recibidos</th>
-                        <th>Remisión</th>
-                        <th>Observaciones</th>
+                    <tr class="bg-slate-50/30">
+                        <th class="px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Proveedor / Tanque</th>
+                        <th class="px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Volumen Recibido</th>
+                        <th class="px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Detalles de Entrega</th>
+                        <th class="px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Estado</th>
+                        <th class="px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Acciones</th>
                     </tr>
                 </thead>
-
-                <tbody>
-                    <tr *ngFor="let item of recepciones; let i = index">
-                        <td>{{ i + 1 }}</td>
-                        <td>{{ item.fechaRecepcion }}</td>
-                        <td>{{ item.proveedor }}</td>
-                        <td>{{ item.cantidadRecibidaLitros | number:'1.2-2' }} L</td>
-                        <td>{{ item.numeroRemision || '-' }}</td>
-                        <td>{{ item.observaciones || '-' }}</td>
+                <tbody class="divide-y divide-slate-50">
+                    <tr *ngFor="let item of recepcionesPaginadas" class="hover:bg-slate-50/80 transition-all group cursor-default">
+                        <td class="px-10 py-8">
+                            <div class="flex items-center gap-5">
+                                <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-500 font-black text-sm uppercase shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                    {{ item.proveedor.substring(0, 2) }}
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-sm font-black text-slate-800 uppercase tracking-tight">{{ item.proveedor }}</span>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1">
+                                        <i class="bi bi-box-seam"></i> Tanque #{{ item.idTanque }}
+                                    </span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-10 py-8">
+                            <div class="flex flex-col items-end gap-2">
+                                <span class="text-lg font-black text-slate-900">{{ item.cantidadRecibidaLitros | number:'1.0-0' }} <small class="text-[10px] text-slate-400">Lts</small></span>
+                                <div class="h-1.5 w-32 bg-slate-100 rounded-full overflow-hidden">
+                                    <div class="h-full bg-blue-500 rounded-full transition-all duration-1000" 
+                                         [style.width.%]="(item.cantidadRecibidaLitros / maxLitros * 100)"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-10 py-8">
+                            <div class="flex flex-col gap-1">
+                                <span class="text-sm font-bold text-slate-700">Remisión: {{ item.numeroRemision || 'N/A' }}</span>
+                                <span class="text-[10px] font-medium text-slate-400 flex items-center gap-1">
+                                    <i class="bi bi-clock"></i> {{ item.fechaRecepcion | date:'dd MMM, hh:mm a' }}
+                                </span>
+                            </div>
+                        </td>
+                        <td class="px-10 py-8 text-center">
+                            <span class="px-4 py-1.5 bg-emerald-50 text-emerald-700 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm">
+                                Completado
+                            </span>
+                        </td>
+                        <td class="px-10 py-8">
+                            <div class="flex items-center justify-center gap-3">
+                                <button class="w-10 h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:text-blue-600 hover:shadow-md transition-all">
+                                    <i class="bi bi-eye-fill"></i>
+                                </button>
+                                <button class="w-10 h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:text-red-600 hover:shadow-md transition-all">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </button>
+                            </div>
+                        </td>
                     </tr>
                 </tbody>
             </table>
 
-            <div *ngIf="!cargando && recepciones.length === 0" class="text-muted text-center py-3">
-                No hay recepciones registradas.
+            <div *ngIf="!cargando && recepciones.length === 0" class="flex flex-col items-center justify-center py-24 bg-slate-50/20">
+                <div class="w-24 h-24 bg-white border border-slate-100 rounded-[2rem] flex items-center justify-center text-slate-200 mb-6 shadow-sm">
+                    <i class="bi bi-truck-flatbed text-4xl"></i>
+                </div>
+                <p class="text-slate-400 font-black uppercase text-xs tracking-widest">No hay registros de recepción</p>
+                <button routerLink="/recepcion-leche/nueva" class="mt-6 text-blue-600 text-sm font-black hover:underline uppercase tracking-widest">Empezar registro ahora</button>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div *ngIf="totalPaginas > 1" class="px-10 py-8 bg-slate-50/30 border-t border-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                Mostrando {{ (paginaActual - 1) * itemsPorPagina + 1 }} - {{ (paginaActual * itemsPorPagina) > recepcionesFiltradas.length ? recepcionesFiltradas.length : (paginaActual * itemsPorPagina) }} de {{ recepcionesFiltradas.length }} Registros
+            </span>
+            <div class="flex items-center gap-3">
+                <button (click)="cambiarPagina(paginaActual - 1)" [disabled]="paginaActual === 1"
+                    class="w-12 h-12 rounded-2xl flex items-center justify-center bg-white border border-slate-100 disabled:opacity-30 disabled:cursor-not-allowed hover:shadow-md transition-all text-slate-600">
+                    <i class="bi bi-arrow-left-short text-2xl"></i>
+                </button>
+                
+                <div class="flex items-center gap-2">
+                    <ng-container *ngFor="let p of paginasVisibles">
+                        <button *ngIf="p !== '...'" (click)="cambiarPagina(p)"
+                            [ngClass]="paginaActual === p ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 scale-110' : 'bg-white border border-slate-100 text-slate-600 font-black hover:bg-slate-50'"
+                            class="w-12 h-12 rounded-2xl text-xs transition-all">
+                            {{ p }}
+                        </button>
+                        <span *ngIf="p === '...'" class="px-2 text-slate-400 font-black">...</span>
+                    </ng-container>
+                </div>
+
+                <button (click)="cambiarPagina(paginaActual + 1)" [disabled]="paginaActual === totalPaginas"
+                    class="w-12 h-12 rounded-2xl flex items-center justify-center bg-white border border-slate-100 disabled:opacity-30 disabled:cursor-not-allowed hover:shadow-md transition-all text-slate-600">
+                    <i class="bi bi-arrow-right-short text-2xl"></i>
+                </button>
             </div>
         </div>
     </div>

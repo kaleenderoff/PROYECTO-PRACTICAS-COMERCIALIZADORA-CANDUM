@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
     providedIn: 'root'
@@ -9,7 +10,7 @@ export class FormulaService {
 
     private http = inject(HttpClient);
 
-    private readonly baseUrl = 'http://localhost:8082/api';
+    private readonly baseUrl = environment.apiUrl;
     private readonly catalogosUrl = `${this.baseUrl}/catalogos`;
     private readonly formulasUrl = `${this.baseUrl}/formulas`;
 

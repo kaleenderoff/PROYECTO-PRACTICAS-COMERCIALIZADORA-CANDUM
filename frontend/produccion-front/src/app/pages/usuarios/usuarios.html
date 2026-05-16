@@ -1,95 +1,157 @@
-<div class="container-fluid">
-
-    <div class="row mb-4 align-items-center">
-        <div class="col">
-            <h2 class="fw-bold">Usuarios</h2>
-            <p class="text-muted mb-0">Gestión de usuarios y roles del sistema</p>
+<div class="space-y-8 animate-in fade-in duration-500">
+    
+    <!-- Page Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+        <div class="flex items-center gap-5">
+            <div class="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 shadow-inner">
+                <i class="bi bi-person-gear text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Gestión de Usuarios</h1>
+                <p class="text-slate-500 text-sm">Control de acceso y roles administrativos</p>
+            </div>
         </div>
-
-        <div class="col-auto">
-            <a class="btn btn-primary" routerLink="/usuarios/nuevo">
-                Nuevo usuario
+        <div>
+            <a routerLink="/usuarios/nuevo" 
+               class="inline-flex items-center gap-2 px-6 py-3.5 bg-indigo-600 text-white font-semibold rounded-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-900/20 active:scale-95 group">
+                <i class="bi bi-person-plus group-hover:scale-110 transition-transform"></i>
+                Nuevo Usuario
             </a>
         </div>
     </div>
 
-    <div *ngIf="cargando" class="alert alert-info">
-        Cargando usuarios...
+    <!-- Alert Messages -->
+    <div *ngIf="cargando" class="flex items-center gap-3 p-5 bg-white border border-slate-100 rounded-3xl shadow-sm animate-pulse">
+        <div class="w-10 h-10 bg-slate-100 rounded-xl"></div>
+        <div class="flex-1 space-y-2">
+            <div class="h-4 bg-slate-100 rounded w-1/4"></div>
+            <div class="h-3 bg-slate-50 rounded w-1/2"></div>
+        </div>
     </div>
 
-    <div *ngIf="error" class="alert alert-danger">
-        {{ error }}
+    <div *ngIf="error" class="flex items-center gap-4 p-5 bg-red-50 text-red-700 rounded-3xl border border-red-100 shadow-sm">
+        <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+        </div>
+        <span class="font-medium">{{ error }}</span>
     </div>
 
-    <div class="card shadow border-0">
-        <div class="card-header bg-white fw-bold">
-            Usuarios registrados
+    <!-- Users Table Container -->
+    <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+        <div class="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
+            <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                <i class="bi bi-people-fill text-indigo-500"></i>
+                Directorio de Personal
+            </h3>
+            <div class="relative">
+                <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="text" [(ngModel)]="filtro" (ngModelChange)="paginaActual = 1" placeholder="Buscar por nombre o CC..." 
+                       class="pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all w-72">
+            </div>
         </div>
 
-        <div class="card-body table-responsive">
-            <table class="table table-hover align-middle">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
                 <thead>
-                    <tr>
-                        <th>CC</th>
-                        <th>Nombre</th>
-                        <th>Rol</th>
-                        <th>Estado</th>
-                        <th class="text-end">Acciones</th>
+                    <tr class="bg-slate-50/50">
+                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Identificación</th>
+                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Colaborador</th>
+                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Rol de Sistema</th>
+                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Estado</th>
+                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Acciones</th>
                     </tr>
                 </thead>
-
-                <tbody>
-                    <tr *ngFor="let usuario of usuarios">
-                        <td>{{ usuario.cc }}</td>
-
-                        <td>
-                            {{ usuario.primerNombre }}
-                            {{ usuario.segundoNombre || '' }}
-                            {{ usuario.primerApellido }}
-                            {{ usuario.segundoApellido || '' }}
+                <tbody class="divide-y divide-slate-50">
+                    <tr *ngFor="let usuario of usuariosPaginados; let i = index" class="hover:bg-indigo-50/30 transition-colors group">
+                        <td class="px-8 py-5">
+                            <span class="text-xs font-bold text-slate-300 group-hover:text-indigo-600 transition-colors">
+                                {{ (paginaActual - 1) * itemsPorPagina + i + 1 }}
+                            </span>
                         </td>
-
-                        <td>
-                            <span class="badge text-bg-secondary">
+                        <td class="px-8 py-5">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm">
+                                    {{ usuario.primerNombre.charAt(0) }}{{ usuario.primerApellido.charAt(0) }}
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-sm font-semibold text-slate-900">
+                                        {{ usuario.primerNombre }} {{ usuario.segundoNombre || '' }} 
+                                        {{ usuario.primerApellido }} {{ usuario.segundoApellido || '' }}
+                                    </span>
+                                    <span class="text-[10px] text-slate-400 uppercase tracking-tight">Personal Activo</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5">
+                            <span class="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-slate-200">
                                 {{ usuario.rol }}
                             </span>
                         </td>
-
-                        <td>
-                            <span class="badge" [ngClass]="usuario.activo ? 'text-bg-success' : 'text-bg-danger'">
+                        <td class="px-8 py-5 text-center">
+                            <span [class]="usuario.activo ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-red-50 text-red-700 border-red-100'" 
+                                  class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border">
                                 {{ usuario.activo ? 'Activo' : 'Inactivo' }}
                             </span>
                         </td>
-
-                        <td class="text-end">
-
-                            <a class="btn btn-sm btn-outline-warning me-2"
-                                [routerLink]="['/usuarios', usuario.idUsuario, 'reset-password']">
-                                Reset password
-                            </a>
-
-                            <a class="btn btn-sm btn-outline-primary me-2"
-                                [routerLink]="['/usuarios', usuario.idUsuario, 'editar']">
-                                Editar
-                            </a>
-
-                            <button *ngIf="usuario.activo && usuario.rol !== 'ADMIN'"
-                                class="btn btn-sm btn-outline-danger" (click)="desactivar(usuario)">
-                                Desactivar
-                            </button>
-
-                            <button *ngIf="!usuario.activo && usuario.rol !== 'ADMIN'"
-                                class="btn btn-sm btn-outline-success" (click)="activar(usuario)">
-                                Activar
-                            </button>
-
+                        <td class="px-8 py-5 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <a [routerLink]="['/usuarios', usuario.idUsuario, 'reset-password']"
+                                   title="Reiniciar Contraseña"
+                                   class="p-2 hover:bg-white hover:text-amber-600 rounded-lg transition-all text-slate-400 shadow-sm border border-transparent hover:border-slate-100">
+                                    <i class="bi bi-key"></i>
+                                </a>
+                                <a [routerLink]="['/usuarios', usuario.idUsuario, 'editar']"
+                                   title="Editar Usuario"
+                                   class="p-2 hover:bg-white hover:text-indigo-600 rounded-lg transition-all text-slate-400 shadow-sm border border-transparent hover:border-slate-100">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <button *ngIf="usuario.activo && usuario.rol !== 'ADMIN'"
+                                        (click)="desactivar(usuario)"
+                                        title="Desactivar"
+                                        class="p-2 hover:bg-white hover:text-red-600 rounded-lg transition-all text-slate-400 shadow-sm border border-transparent hover:border-slate-100">
+                                    <i class="bi bi-person-x"></i>
+                                </button>
+                                <button *ngIf="!usuario.activo && usuario.rol !== 'ADMIN'"
+                                        (click)="activar(usuario)"
+                                        title="Activar"
+                                        class="p-2 hover:bg-white hover:text-emerald-600 rounded-lg transition-all text-slate-400 shadow-sm border border-transparent hover:border-slate-100">
+                                    <i class="bi bi-person-check"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 </tbody>
             </table>
 
-            <div *ngIf="!cargando && usuarios.length === 0" class="text-muted text-center py-3">
-                No hay usuarios registrados.
+            <div *ngIf="!cargando && usuarios.length === 0" class="flex flex-col items-center justify-center py-20 text-slate-400">
+                <i class="bi bi-people text-5xl mb-4"></i>
+                <p class="text-sm font-medium">No hay usuarios registrados en el sistema</p>
+            </div>
+        </div>
+
+        <!-- Paginación -->
+        <div *ngIf="totalPaginas > 1" class="px-8 py-6 bg-slate-50/30 border-t border-slate-100 flex items-center justify-between">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                Mostrando {{ paginaActual }} de {{ totalPaginas }} páginas
+            </span>
+            <div class="flex items-center gap-2">
+                <button (click)="cambiarPagina(paginaActual - 1)" [disabled]="paginaActual === 1"
+                    class="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-white border border-transparent hover:border-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all text-slate-600">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                
+                <div class="flex items-center gap-1">
+                    <button *ngFor="let p of paginas" (click)="cambiarPagina(p)"
+                        [ngClass]="paginaActual === p ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'hover:bg-white border border-transparent hover:border-slate-200 text-slate-600 font-medium'"
+                        class="w-10 h-10 rounded-xl text-xs transition-all">
+                        {{ p }}
+                    </button>
+                </div>
+
+                <button (click)="cambiarPagina(paginaActual + 1)" [disabled]="paginaActual === totalPaginas"
+                    class="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-white border border-transparent hover:border-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all text-slate-600">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
             </div>
         </div>
     </div>

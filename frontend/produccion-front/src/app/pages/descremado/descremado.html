@@ -1,87 +1,121 @@
-<div class="container-fluid">
-
-    <div class="row mb-4 align-items-center">
-        <div class="col">
-            <h2 class="fw-bold">Descremado de leche</h2>
-            <p class="text-muted mb-0">
-                Registro de leche descremada y crema obtenida
-            </p>
+<div class="space-y-8 animate-in fade-in duration-500">
+    
+    <!-- Page Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+        <div class="flex items-center gap-5">
+            <div class="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 shadow-inner">
+                <i class="bi bi-droplet-half text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Descremado de Leche</h1>
+                <p class="text-slate-500 text-sm">Control de separación de grasas y obtención de subproductos</p>
+            </div>
         </div>
-
-        <div class="col-auto">
-            <a class="btn btn-primary" routerLink="/descremado/nuevo">
-                Nuevo descremado
+        <div class="flex items-center gap-3">
+            <a routerLink="/descremado/nuevo" 
+               class="px-6 py-3.5 bg-amber-600 text-white font-bold rounded-2xl shadow-lg shadow-amber-900/20 hover:bg-amber-700 transition-all active:scale-95 flex items-center gap-2">
+                <i class="bi bi-plus-lg"></i>
+                Registrar Descremado
             </a>
         </div>
     </div>
 
-    <div *ngIf="cargando" class="alert alert-info">
-        Cargando registros...
+    <!-- Alert Messages -->
+    <div *ngIf="cargando" class="flex items-center gap-3 p-5 bg-white border border-slate-100 rounded-3xl shadow-sm animate-pulse">
+        <div class="w-10 h-10 bg-slate-100 rounded-xl"></div>
+        <div class="flex-1 space-y-2">
+            <div class="h-4 bg-slate-100 rounded w-1/4"></div>
+        </div>
     </div>
 
-    <div *ngIf="error" class="alert alert-danger">
+    <div *ngIf="error" class="p-5 bg-red-50 text-red-700 rounded-3xl border border-red-100 shadow-sm flex items-center gap-4 font-medium">
+        <i class="bi bi-exclamation-circle-fill"></i>
         {{ error }}
     </div>
 
-    <div class="card shadow border-0">
-        <div class="card-header bg-white fw-bold">
-            Registros de descremado
+    <!-- Data Table Card -->
+    <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+        <div class="px-8 py-6 border-b border-slate-50 flex items-center justify-between bg-slate-50/30">
+            <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                <i class="bi bi-card-list text-amber-500"></i>
+                Registros de Proceso
+            </h3>
         </div>
 
-        <div class="card-body table-responsive">
-            <table class="table table-hover align-middle">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
                 <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Recepción</th>
-                        <th>Tanque destino</th>
-                        <th>Litros descremados</th>
-                        <th>Crema obtenida</th>
-                        <th>Unidades crema</th>
-                        <th>Lote crema</th>
-                        <th>Observaciones</th>
+                    <tr class="bg-slate-50/50">
+                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Procedencia</th>
+                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Destino (Leche)</th>
+                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Volumen (L)</th>
+                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Crema (Kg)</th>
+                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Lote Crema</th>
+                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Observaciones</th>
                     </tr>
                 </thead>
-
-                <tbody>
-                    <tr *ngFor="let item of descremados; let i = index">
-
-                        <td>{{ i + 1 }}</td>
-
-                        <td>
-                            {{ obtenerRecepcion(item.idRecepcionLeche) }}
+                <tbody class="divide-y divide-slate-50 text-sm">
+                    <tr *ngFor="let item of descremadosPaginados" class="hover:bg-amber-50/30 transition-colors group">
+                        <td class="px-8 py-5">
+                            <span class="text-slate-500 text-xs font-medium block">Recepción</span>
+                            <span class="text-slate-900 font-bold tracking-tight">{{ obtenerRecepcion(item.idRecepcionLeche) }}</span>
                         </td>
-
-                        <td>
-                            {{ obtenerTanque(item.idTanqueDestino) }}
+                        <td class="px-8 py-5">
+                            <span class="px-3 py-1 bg-blue-50 text-blue-700 rounded-lg text-xs font-black uppercase tracking-tighter border border-blue-100 shadow-sm">
+                                {{ obtenerTanque(item.idTanqueDestino) }}
+                            </span>
                         </td>
-
-                        <td>
-                            {{ item.litrosDescremados | number:'1.2-2' }} L
+                        <td class="px-8 py-5 text-right font-mono font-bold text-slate-700">
+                            {{ item.litrosDescremados | number:'1.2-2' }} <span class="text-[10px] text-slate-400">L</span>
                         </td>
-
-                        <td>
-                            {{ item.cremaObtenidaKg | number:'1.2-2' }} kg
+                        <td class="px-8 py-5 text-right">
+                            <div class="flex flex-col items-end">
+                                <span class="font-black text-amber-700">{{ item.cremaObtenidaKg | number:'1.2-2' }} kg</span>
+                                <span class="text-[10px] text-slate-400">{{ item.unidadesCrema || 0 }} Unidades</span>
+                            </div>
                         </td>
-
-                        <td>
-                            {{ item.unidadesCrema || '-' }}
+                        <td class="px-8 py-5 text-center">
+                            <span class="px-2 py-1 bg-slate-900 text-white rounded text-[10px] font-mono font-bold">{{ item.loteCrema || '-' }}</span>
                         </td>
-
-                        <td>
-                            {{ item.loteCrema || '-' }}
+                        <td class="px-8 py-5 max-w-xs">
+                            <p class="text-slate-500 text-xs truncate italic" [title]="item.observaciones">{{ item.observaciones || 'Sin detalles' }}</p>
                         </td>
-
-                        <td>
-                            {{ item.observaciones || '-' }}
-                        </td>
-
                     </tr>
                 </tbody>
             </table>
 
-            <div *ngIf="!cargando && descremados.length === 0" class="text-muted text-center py-3">
-                No hay registros de descremado.
+            <div *ngIf="!cargando && descremados.length === 0" class="flex flex-col items-center justify-center py-20 bg-slate-50/20">
+                <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center text-slate-300 mb-4">
+                    <i class="bi bi-droplet-half text-4xl"></i>
+                </div>
+                <p class="text-slate-500 font-medium tracking-tight">No se han registrado procesos de descremado</p>
+                <a routerLink="/descremado/nuevo" class="mt-4 text-amber-600 font-bold hover:underline text-sm">Iniciar nuevo proceso</a>
+            </div>
+        </div>
+
+        <!-- Paginación -->
+        <div *ngIf="totalPaginas > 1" class="px-8 py-6 bg-slate-50/30 border-t border-slate-100 flex items-center justify-between">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                Página {{ paginaActual }} de {{ totalPaginas }} ({{ descremados.length }} total)
+            </span>
+            <div class="flex items-center gap-2">
+                <button (click)="cambiarPagina(paginaActual - 1)" [disabled]="paginaActual === 1"
+                    class="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-white border border-transparent hover:border-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all text-slate-600">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                
+                <div class="flex items-center gap-1">
+                    <button *ngFor="let p of paginas" (click)="cambiarPagina(p)"
+                        [ngClass]="paginaActual === p ? 'bg-amber-600 text-white shadow-lg shadow-amber-200' : 'hover:bg-white border border-transparent hover:border-slate-200 text-slate-600 font-medium'"
+                        class="w-10 h-10 rounded-xl text-xs transition-all">
+                        {{ p }}
+                    </button>
+                </div>
+
+                <button (click)="cambiarPagina(paginaActual + 1)" [disabled]="paginaActual === totalPaginas"
+                    class="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-white border border-transparent hover:border-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all text-slate-600">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
             </div>
         </div>
     </div>

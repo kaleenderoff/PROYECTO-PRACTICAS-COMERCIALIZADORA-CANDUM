@@ -1,106 +1,145 @@
-<div class="container-fluid">
-
-    <div class="row mb-4">
-        <div class="col">
-            <h2 class="fw-bold">
-                {{ editando ? 'Editar usuario' : 'Nuevo usuario' }}
-            </h2>
-            <p class="text-muted mb-0">
-                Información del usuario y rol dentro del sistema
-            </p>
+<div class="max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    
+    <!-- Page Header -->
+    <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <button routerLink="/usuarios" 
+                    class="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:border-indigo-100 transition-all">
+                <i class="bi bi-arrow-left"></i>
+            </button>
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
+                    {{ editando ? 'Editar Colaborador' : 'Nuevo Colaborador' }}
+                </h1>
+                <p class="text-slate-500 text-sm">Configuración de perfil y permisos de acceso</p>
+            </div>
         </div>
     </div>
 
-    <div *ngIf="error" class="alert alert-danger">
-        {{ error }}
-    </div>
 
-    <div class="card shadow border-0">
-        <div class="card-body">
-            <form [formGroup]="form" (ngSubmit)="guardar()" autocomplete="off">
-
-                <h5 class="fw-bold mb-3">Datos de identificación</h5>
-
-                <div class="row g-3 mb-4">
-
-                    <div class="col-md-4">
-                        <label class="form-label">Cédula</label>
-                        <input type="text" class="form-control" formControlName="cc" autocomplete="off">
-                    </div>
-
+    <!-- Main Form Card -->
+    <form [formGroup]="form" (ngSubmit)="guardar()" autocomplete="off" 
+          class="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
+        
+        <div class="p-8 md:p-12 space-y-12">
+            
+            <!-- Section: Identificación -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="md:col-span-1">
+                    <h3 class="text-lg font-bold text-slate-800">Identificación</h3>
+                    <p class="text-slate-500 text-sm mt-1">Documento único de identidad para el acceso.</p>
                 </div>
-
-                <h5 class="fw-bold mb-3">Datos personales</h5>
-
-                <div class="row g-3 mb-4">
-
-                    <div class="col-md-3">
-                        <label class="form-label">Primer nombre</label>
-                        <input type="text" class="form-control" formControlName="primerNombre" autocomplete="off">
+                
+                <div class="md:col-span-2">
+                    <div class="max-w-xs space-y-2">
+                        <label class="text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">Cédula de Ciudadanía</label>
+                        <div class="relative group">
+                            <i class="bi bi-person-badge absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors"></i>
+                            <input type="text" formControlName="cc" placeholder="1000000000"
+                                   class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-slate-900 font-mono">
+                        </div>
                     </div>
-
-                    <div class="col-md-3">
-                        <label class="form-label">Segundo nombre</label>
-                        <input type="text" class="form-control" formControlName="segundoNombre" autocomplete="off">
-                    </div>
-
-                    <div class="col-md-3">
-                        <label class="form-label">Primer apellido</label>
-                        <input type="text" class="form-control" formControlName="primerApellido" autocomplete="off">
-                    </div>
-
-                    <div class="col-md-3">
-                        <label class="form-label">Segundo apellido</label>
-                        <input type="text" class="form-control" formControlName="segundoApellido" autocomplete="off">
-                    </div>
-
                 </div>
+            </div>
 
-                <h5 class="fw-bold mb-3">Acceso al sistema</h5>
+            <hr class="border-slate-100">
 
-                <div class="row g-3">
-
-                    <div class="col-md-4">
-                        <label class="form-label">Rol</label>
-                        <select class="form-select" formControlName="rol">
-                            <option value="">Seleccione un rol</option>
-                            <option *ngFor="let rol of roles" [value]="rol">
-                                {{ rol }}
-                            </option>
-                        </select>
+            <!-- Section: Datos Personales -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="md:col-span-1">
+                    <h3 class="text-lg font-bold text-slate-800">Datos Personales</h3>
+                    <p class="text-slate-500 text-sm mt-1">Nombres y apellidos completos del colaborador.</p>
+                </div>
+                
+                <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">Primer Nombre</label>
+                        <input type="text" formControlName="primerNombre" placeholder="Ej. Juan"
+                               class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-slate-900">
                     </div>
-
-                    <div class="col-md-4" *ngIf="!editando">
-                        <label class="form-label">Contraseña</label>
-                        <input type="password" class="form-control" formControlName="password"
-                            autocomplete="new-password">
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">Segundo Nombre</label>
+                        <input type="text" formControlName="segundoNombre" placeholder="(Opcional)"
+                               class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-slate-900">
                     </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">Primer Apellido</label>
+                        <input type="text" formControlName="primerApellido" placeholder="Ej. Perez"
+                               class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-slate-900">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">Segundo Apellido</label>
+                        <input type="text" formControlName="segundoApellido" placeholder="(Opcional)"
+                               class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-slate-900">
+                    </div>
+                </div>
+            </div>
 
-                    <div class="col-md-4 d-flex align-items-end" *ngIf="editando">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" formControlName="activo" id="activo">
+            <hr class="border-slate-100">
 
-                            <label class="form-check-label" for="activo">
-                                Usuario activo
-                            </label>
+            <!-- Section: Acceso y Seguridad -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="md:col-span-1">
+                    <h3 class="text-lg font-bold text-slate-800">Acceso y Seguridad</h3>
+                    <p class="text-slate-500 text-sm mt-1">Permisos y estado de la cuenta en el sistema.</p>
+                </div>
+                
+                <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Rol -->
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">Rol Asignado</label>
+                        <div class="relative">
+                            <select formControlName="rol"
+                                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-slate-900 appearance-none">
+                                <option value="">Seleccione un nivel de acceso</option>
+                                <option *ngFor="let rol of roles" [value]="rol">{{ rol }}</option>
+                            </select>
+                            <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                         </div>
                     </div>
 
+                    <!-- Password (Solo nuevo) -->
+                    <div class="space-y-2" *ngIf="!editando">
+                        <label class="text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">Contraseña Inicial</label>
+                        <div class="relative group">
+                            <i class="bi bi-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors"></i>
+                            <input type="password" formControlName="password" placeholder="••••••••"
+                                   autocomplete="new-password"
+                                   class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-slate-900">
+                        </div>
+                    </div>
+
+                    <!-- Estado (Solo edición) -->
+                    <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100" *ngIf="editando">
+                        <div class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" formControlName="activo" id="activo" class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                        </div>
+                        <label for="activo" class="text-sm font-semibold text-slate-700 cursor-pointer">Usuario Activo</label>
+                    </div>
                 </div>
-
-                <div class="mt-4 d-flex gap-2">
-                    <button class="btn btn-primary" type="submit" [disabled]="cargando">
-                        {{ cargando ? 'Guardando...' : 'Guardar usuario' }}
-                    </button>
-
-                    <a class="btn btn-secondary" routerLink="/usuarios">
-                        Cancelar
-                    </a>
-                </div>
-
-            </form>
+            </div>
 
         </div>
-    </div>
 
+        <!-- Sticky Form Actions -->
+        <div class="px-8 py-6 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-4">
+            <a routerLink="/usuarios" 
+               class="px-6 py-3 bg-white text-slate-600 font-bold rounded-2xl border border-slate-200 hover:bg-slate-100 transition-all active:scale-95">
+                Cancelar
+            </a>
+            <button type="submit" [disabled]="cargando"
+                    class="px-10 py-3 bg-indigo-600 text-white font-bold rounded-2xl shadow-lg shadow-indigo-900/20 hover:bg-indigo-700 transition-all active:scale-95 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                <span *ngIf="!cargando">{{ editando ? 'Actualizar Colaborador' : 'Crear Colaborador' }}</span>
+                <span *ngIf="cargando" class="flex items-center gap-2">
+                    <svg class="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Guardando...
+                </span>
+            </button>
+        </div>
+
+    </form>
 </div>

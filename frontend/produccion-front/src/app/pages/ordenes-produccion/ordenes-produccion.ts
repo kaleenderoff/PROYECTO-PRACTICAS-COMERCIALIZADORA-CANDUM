@@ -11,7 +11,7 @@ import {
   selector: 'app-ordenes-produccion',
   imports: [CommonModule, RouterLink],
   templateUrl: './ordenes-produccion.html',
-  styleUrl: './ordenes-produccion.scss',
+  
 })
 export class OrdenesProduccion implements OnInit {
 
@@ -84,6 +84,29 @@ export class OrdenesProduccion implements OnInit {
 
       default:
         return 'bg-dark';
+    }
+  }
+
+  // Paginación
+  paginaActual = 1;
+  itemsPorPagina = 10;
+
+  get ordenesPaginadas(): OrdenProduccionResponse[] {
+    const inicio = (this.paginaActual - 1) * this.itemsPorPagina;
+    return this.ordenes.slice(inicio, inicio + this.itemsPorPagina);
+  }
+
+  get totalPaginas(): number {
+    return Math.ceil(this.ordenes.length / this.itemsPorPagina);
+  }
+
+  get paginas(): number[] {
+    return Array.from({ length: this.totalPaginas }, (_, i) => i + 1);
+  }
+
+  cambiarPagina(p: number): void {
+    if (p >= 1 && p <= this.totalPaginas) {
+      this.paginaActual = p;
     }
   }
 }

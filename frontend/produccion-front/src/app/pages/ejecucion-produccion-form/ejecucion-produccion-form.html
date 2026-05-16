@@ -1,152 +1,186 @@
-<div class="container-fluid">
-
-    <div class="row mb-4">
-        <div class="col">
-            <h2 class="fw-bold">Registrar ejecución de producción</h2>
-            <p class="text-muted mb-0">
-                Registro operativo de producción por batches y marmitas
-            </p>
+<div class="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500">
+    
+    <!-- Page Header -->
+    <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <button routerLink="/ejecucion-produccion" 
+                    class="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-100 transition-all">
+                <i class="bi bi-arrow-left"></i>
+            </button>
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Registro de Ejecución</h1>
+                <p class="text-slate-500 text-sm">Control operativo de batches y marmitas en planta</p>
+            </div>
         </div>
     </div>
 
-    <div *ngIf="cargandoDatos" class="alert alert-info">
-        Cargando datos iniciales...
+    <!-- Alert Messages -->
+    <div *ngIf="cargandoDatos" class="flex items-center gap-3 p-4 bg-blue-50 text-blue-700 rounded-2xl border border-blue-100 shadow-sm animate-pulse">
+        <div class="w-10 h-10 bg-blue-100 rounded-xl"></div>
+        <div class="flex-1 space-y-2">
+            <div class="h-3 bg-blue-200/50 rounded w-1/4"></div>
+        </div>
     </div>
 
-    <div *ngIf="error" class="alert alert-danger">
-        {{ error }}
+    <div *ngIf="error" class="flex items-center gap-3 p-4 bg-red-50 text-red-700 rounded-2xl border border-red-100 shadow-sm">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span class="text-sm font-medium">{{ error }}</span>
     </div>
 
-    <div class="card shadow border-0">
-        <div class="card-body">
+    <!-- Main Execution Form -->
+    <form [formGroup]="form" (ngSubmit)="guardar()" class="space-y-8">
+        
+        <!-- Section: Información de Base -->
+        <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-8 md:p-10">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Fecha -->
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Fecha de Proceso</label>
+                    <input type="date" formControlName="fechaProduccion"
+                           class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-slate-900">
+                </div>
 
-            <form [formGroup]="form" (ngSubmit)="guardar()">
-
-                <div class="row g-3">
-
-                    <div class="col-md-4">
-                        <label class="form-label">Fecha producción</label>
-                        <input type="date" class="form-control" formControlName="fechaProduccion">
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label">Producto</label>
-
-                        <select class="form-select" formControlName="producto">
-                            <option value="">Seleccione producto</option>
-
-                            <option *ngFor="let producto of productosLacteos" [value]="producto">
-                                {{ producto }}
-                            </option>
+                <!-- Producto -->
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Tipo de Producto</label>
+                    <div class="relative">
+                        <select formControlName="producto"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-slate-900 appearance-none">
+                            <option value="">Seleccione un producto</option>
+                            <option *ngFor="let producto of productosLacteos" [value]="producto">{{ producto }}</option>
                         </select>
+                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                     </div>
+                </div>
 
-                    <div class="col-md-4">
-                        <label class="form-label">Tanque de leche</label>
-
-                        <select class="form-select" formControlName="idTanque">
-                            <option [ngValue]="null">Seleccione un tanque</option>
-
+                <!-- Tanque -->
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Fuente de Leche (Tanque)</label>
+                    <div class="relative">
+                        <select formControlName="idTanque"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-slate-900 appearance-none">
+                            <option [ngValue]="null">Seleccione tanque</option>
                             <option *ngFor="let tanque of tanques" [value]="tanque.idTanque">
-                                {{ tanque.nombre }} -
-                                {{ tanque.saldoLitros | number:'1.2-2' }} L disponibles
+                                {{ tanque.nombre }} ({{ tanque.saldoLitros | number:'1.2-2' }} L)
                             </option>
                         </select>
+                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                     </div>
-
-                    <div class="col-md-12">
-                        <label class="form-label">Observaciones generales</label>
-                        <textarea class="form-control" rows="2" formControlName="observaciones"></textarea>
-                    </div>
-
                 </div>
 
-                <hr class="my-4">
-
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div>
-                        <h5 class="fw-bold mb-0">Batches / Marmitas</h5>
-                        <small class="text-muted">
-                            Registra cada batch ejecutado en una marmita.
-                        </small>
-                    </div>
-
-                    <button class="btn btn-outline-primary" type="button" (click)="agregarBatch()">
-                        Agregar batch
-                    </button>
+                <!-- Observaciones -->
+                <div class="md:col-span-3 space-y-2">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Novedades Generales</label>
+                    <textarea formControlName="observaciones" rows="1" placeholder="Indique cualquier observación sobre el turno de producción..."
+                              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-slate-900 resize-none"></textarea>
                 </div>
+            </div>
+        </div>
 
-                <div formArrayName="batches">
+        <!-- Section: Batches / Marmitas -->
+        <div class="space-y-6">
+            <div class="flex items-center justify-between px-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-1.5 h-6 bg-blue-600 rounded-full"></div>
+                    <h2 class="text-xl font-bold text-slate-800">Control de Batches</h2>
+                </div>
+                <button type="button" (click)="agregarBatch()"
+                        class="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-blue-600 font-bold rounded-xl hover:bg-blue-50 hover:border-blue-100 transition-all active:scale-95 shadow-sm">
+                    <i class="bi bi-plus-lg"></i>
+                    Añadir Batch
+                </button>
+            </div>
 
-                    <div class="card border mb-3" *ngFor="let batch of batches.controls; let i = index"
-                        [formGroupName]="i">
-
-                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                            <strong>Batch {{ i + 1 }}</strong>
-
-                            <button class="btn btn-sm btn-outline-danger" type="button" *ngIf="batches.length > 1"
-                                (click)="eliminarBatch(i)">
-                                Eliminar
-                            </button>
+            <div formArrayName="batches" class="grid grid-cols-1 gap-6">
+                <div *ngFor="let batch of batches.controls; let i = index" [formGroupName]="i"
+                     class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden animate-in slide-in-from-left-4 duration-300"
+                     [style.animation-delay]="i * 50 + 'ms'">
+                    
+                    <div class="px-8 py-4 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center shadow-md shadow-blue-900/20">
+                                {{ i + 1 }}
+                            </span>
+                            <span class="font-bold text-slate-700 tracking-tight text-sm">Batch Operativo</span>
                         </div>
+                        <button *ngIf="batches.length > 1" type="button" (click)="eliminarBatch(i)"
+                                class="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-red-600 transition-colors">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
 
-                        <div class="card-body">
-                            <div class="row g-3">
+                    <div class="p-8">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <!-- Número Batch (Readonly) -->
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">ID Batch</label>
+                                <input type="number" formControlName="numeroBatch" readonly
+                                       class="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 font-mono text-sm cursor-not-allowed">
+                            </div>
 
-                                <div class="col-md-3">
-                                    <label class="form-label">Número batch</label>
-                                    <input type="number" class="form-control" formControlName="numeroBatch" readonly>
-                                </div>
-
-                                <div class="col-md-3">
-                                    <label class="form-label">Marmita</label>
-
-                                    <select class="form-select" formControlName="idMarmita">
-                                        <option [ngValue]="null">Seleccione marmita</option>
-
-                                        <option *ngFor="let marmita of marmitas" [value]="marmita.id">
-                                            {{ marmita.nombre }}
-                                        </option>
+                            <!-- Marmita -->
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Marmita</label>
+                                <div class="relative">
+                                    <select formControlName="idMarmita"
+                                            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm appearance-none">
+                                        <option [ngValue]="null">Marmita...</option>
+                                        <option *ngFor="let marmita of marmitas" [value]="marmita.id">{{ marmita.nombre }}</option>
                                     </select>
+                                    <i class="bi bi-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none text-xs"></i>
                                 </div>
+                            </div>
 
-                                <div class="col-md-3">
-                                    <label class="form-label">Litros consumidos</label>
-                                    <input type="number" class="form-control" formControlName="litrosConsumidos">
-                                </div>
+                            <!-- Litros Consumidos -->
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Consumo (L)</label>
+                                <input type="number" formControlName="litrosConsumidos" placeholder="0.00"
+                                       class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-bold text-slate-700">
+                            </div>
 
-                                <div class="col-md-3">
-                                    <label class="form-label">Kilos producidos</label>
-                                    <input type="number" class="form-control" formControlName="kilosProducidos">
-                                </div>
+                            <!-- Kilos Producidos -->
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Producción (Kg)</label>
+                                <input type="number" formControlName="kilosProducidos" placeholder="0.00"
+                                       class="w-full px-4 py-2.5 bg-blue-50 border border-blue-100 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 outline-none transition-all text-sm font-bold text-blue-700">
+                            </div>
 
-                                <div class="col-md-12">
-                                    <label class="form-label">Observaciones batch</label>
-                                    <textarea class="form-control" rows="2" formControlName="observaciones"></textarea>
-                                </div>
-
+                            <!-- Observaciones Batch -->
+                            <div class="md:col-span-4 space-y-2">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Detalle del Batch</label>
+                                <textarea formControlName="observaciones" rows="1" placeholder="Ej: Batch sin novedades, limpieza de marmita previa..."
+                                          class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm resize-none"></textarea>
                             </div>
                         </div>
-
                     </div>
-
                 </div>
-
-                <div class="mt-4 d-flex gap-2">
-                    <button class="btn btn-primary" type="submit" [disabled]="cargando || cargandoDatos">
-
-                        {{ cargando ? 'Guardando...' : 'Guardar ejecución' }}
-
-                    </button>
-
-                    <button class="btn btn-secondary" type="button" routerLink="/ejecucion-produccion">
-                        Cancelar
-                    </button>
-                </div>
-
-            </form>
-
+            </div>
         </div>
-    </div>
 
+        <!-- Sticky Form Actions -->
+        <div class="fixed bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-5xl bg-slate-900/90 backdrop-blur-xl px-8 py-4 rounded-3xl border border-slate-700/50 flex items-center justify-between shadow-2xl z-50">
+            <div class="hidden md:block">
+                <span class="text-slate-400 text-xs font-bold uppercase tracking-widest">Resumen de Carga</span>
+                <p class="text-white text-sm font-medium">{{ batches.length }} Batches configurados</p>
+            </div>
+            <div class="flex items-center gap-4 w-full md:w-auto">
+                <button type="button" routerLink="/ejecucion-produccion" 
+                        class="flex-1 md:flex-none px-6 py-3 bg-slate-800 text-slate-300 font-bold rounded-2xl border border-slate-700 hover:bg-slate-700 transition-all active:scale-95">
+                    Cancelar
+                </button>
+                <button type="submit" [disabled]="cargando || cargandoDatos"
+                        class="flex-1 md:flex-none px-10 py-3 bg-blue-600 text-white font-bold rounded-2xl shadow-lg shadow-blue-900/20 hover:bg-blue-500 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2">
+                    <span *ngIf="!cargando">Finalizar Ejecución</span>
+                    <span *ngIf="cargando" class="flex items-center gap-2">
+                        <svg class="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Guardando...
+                    </span>
+                </button>
+            </div>
+        </div>
+
+    </form>
 </div>

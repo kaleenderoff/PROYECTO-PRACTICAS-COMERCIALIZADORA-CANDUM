@@ -4,18 +4,20 @@ import { FormsModule } from '@angular/forms';
 
 import { FormulaService } from '../../core/services/formula';
 import { ProgramacionProduccionService } from '../../core/services/programacion-produccion';
+import { AuthService } from '../../core/services/auth';
 
 @Component({
     selector: 'app-formulas',
     standalone: true,
     imports: [CommonModule, FormsModule],
     templateUrl: './formulas.html',
-    styleUrl: './formulas.scss'
+    
 })
 export class Formulas implements OnInit {
 
     private formulaService = inject(FormulaService);
     private programacionService = inject(ProgramacionProduccionService);
+    public authService = inject(AuthService);
 
     productos: any[] = [];
     insumos: any[] = [];

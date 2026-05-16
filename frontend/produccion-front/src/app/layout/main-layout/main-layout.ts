@@ -12,6 +12,6 @@ import { Navbar } from '../navbar/navbar';
     Navbar
   ],
   templateUrl: './main-layout.html',
-  styleUrl: './main-layout.scss',
+  
 })
 export class MainLayout { }

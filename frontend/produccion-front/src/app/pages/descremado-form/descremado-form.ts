@@ -18,7 +18,7 @@ import {
   selector: 'app-descremado-form',
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './descremado-form.html',
-  styleUrl: './descremado-form.scss',
+  
 })
 export class DescremadoForm implements OnInit {
 

@@ -7,7 +7,7 @@ import { AuthService } from '../../core/services/auth';
   selector: 'app-sidebar',
   imports: [CommonModule, RouterLink, RouterLinkActive],
   templateUrl: './sidebar.html',
-  styleUrl: './sidebar.scss',
+  
 })
 export class Sidebar {
 

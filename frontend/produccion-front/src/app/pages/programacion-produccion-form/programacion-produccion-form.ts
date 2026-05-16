@@ -3,6 +3,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { ProgramacionProduccionService } from '../../core/services/programacion-produccion';
+import { NotificationService } from '../../core/services/notification';
 
 import {
   SimularSkuRequest
@@ -18,12 +19,12 @@ import {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './programacion-produccion-form.html',
-  styleUrl: './programacion-produccion-form.scss',
 })
 export class ProgramacionProduccionForm implements OnInit {
 
   private programacionService = inject(ProgramacionProduccionService);
   private usuarioService = inject(UsuarioService);
+  private notification = inject(NotificationService);
 
   productos: any[] = [];
   turnos: any[] = [];
@@ -219,14 +220,14 @@ export class ProgramacionProduccionForm implements OnInit {
       !this.idTurno ||
       !this.fechaProduccion
     ) {
-      alert('Seleccione fecha, producto, turno, jefe de línea y al menos un SKU.');
+      this.notification.warning('Seleccione fecha, producto, turno, jefe de línea y al menos un SKU.');
       return;
     }
 
     const productoSeleccionado = this.obtenerProductoSeleccionado();
 
     if (!productoSeleccionado) {
-      alert('No se encontró el producto seleccionado.');
+      this.notification.error('No se encontró el producto seleccionado.');
       return;
     }
 
@@ -250,14 +251,12 @@ export class ProgramacionProduccionForm implements OnInit {
       skus: skusValidos
     };
 
-    console.log('BODY PROGRAMACION:', body);
-
     this.guardando = true;
 
     this.programacionService.crearProgramacion(body).subscribe({
       next: () => {
         this.guardando = false;
-        alert('Programación creada correctamente.');
+        this.notification.success('Programación creada correctamente.');
 
         this.idProducto = null;
         this.idJefeLineaEjecutor = null;
@@ -267,11 +266,13 @@ export class ProgramacionProduccionForm implements OnInit {
         this.formulaVigente = null;
         this.skusDisponibles = [];
         this.skus = [{ idSku: 0, unidades: 0 }];
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       },
       error: error => {
         this.guardando = false;
-        console.error('ERROR CREANDO PROGRAMACION:', error);
-        alert(error?.error?.message || 'Error creando programación.');
+        const msg = error?.error?.message || 'Error creando programación.';
+        this.notification.error(msg);
       }
     });
   }

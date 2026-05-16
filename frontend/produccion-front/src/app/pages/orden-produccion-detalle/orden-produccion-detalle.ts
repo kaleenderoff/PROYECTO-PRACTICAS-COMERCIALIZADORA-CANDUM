@@ -1,35 +1,38 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { RouterLink, ActivatedRoute } from '@angular/router';
+import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 
 import {
   OrdenProduccionResponse,
   OrdenProduccionService
 } from '../../core/services/orden-produccion';
+import { RecepcionLecheService, SaldoTanqueLeche } from '../../core/services/recepcion-leche';
 
 @Component({
   selector: 'app-orden-produccion-detalle',
+  standalone: true,
   imports: [CommonModule, RouterLink],
   templateUrl: './orden-produccion-detalle.html',
-  styleUrl: './orden-produccion-detalle.scss',
 })
 export class OrdenProduccionDetalle implements OnInit {
 
   orden: OrdenProduccionResponse | null = null;
-
   cargando = false;
   error = '';
+  tanques: SaldoTanqueLeche[] = [];
 
   constructor(
     private route: ActivatedRoute,
-    private ordenService: OrdenProduccionService
+    private router: Router,
+    private ordenService: OrdenProduccionService,
+    private recepcionService: RecepcionLecheService
   ) { }
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
-
     if (id) {
       this.cargarOrden(id);
+      this.cargarTanques();
     }
   }
 
@@ -50,60 +53,79 @@ export class OrdenProduccionDetalle implements OnInit {
     });
   }
 
+  iniciarEjecucion(): void {
+    if (!this.orden) return;
+    
+    // Para simplificar, usamos el ID del usuario actual si estuviera disponible, 
+    // pero como el servicio pide un ID de jefe ejecutor, y el backend ya maneja 
+    // seguridad, aquí pasamos un ID genérico o el del usuario si lo tuviéramos.
+    // Usaremos el idUsuario del AuthService si fuera necesario.
+    const idJefe = 1; // Simplificación para demo
+
+    this.cargando = true;
+    this.ordenService.iniciar(this.orden.id, idJefe).subscribe({
+      next: (updated) => {
+        this.orden = updated;
+        this.cargando = false;
+      },
+      error: (err) => {
+        this.error = 'No se pudo iniciar la orden.';
+        this.cargando = false;
+      }
+    });
+  }
+
+  finalizarOrden(): void {
+    if (!this.orden) return;
+    
+    this.cargando = true;
+    this.ordenService.finalizar(this.orden.id).subscribe({
+      next: (updated) => {
+        this.orden = updated;
+        this.cargando = false;
+      },
+      error: (err) => {
+        this.error = 'No se pudo finalizar la orden.';
+        this.cargando = false;
+      }
+    });
+  }
+
+  registrarBatch(): void {
+    if (!this.orden) return;
+    this.router.navigate([`/ordenes-produccion/${this.orden.id}/ejecutar`]);
+  }
+
   obtenerClaseEstado(estado: string): string {
     switch (estado) {
-      case 'PROGRAMADA':
-        return 'bg-secondary';
-
-      case 'EN_EJECUCION':
-        return 'bg-primary';
-
-      case 'FINALIZADA':
-        return 'bg-success';
-
-      case 'CERRADA':
-        return 'bg-dark';
-
-      case 'CANCELADA':
-        return 'bg-danger';
-
-      default:
-        return 'bg-dark';
+      case 'PROGRAMADA': return 'bg-slate-100 text-slate-600 border-slate-200';
+      case 'EN_EJECUCION': return 'bg-blue-50 text-blue-700 border-blue-100';
+      case 'FINALIZADA': return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+      case 'CERRADA': return 'bg-slate-900 text-white border-slate-800';
+      case 'CANCELADA': return 'bg-red-50 text-red-700 border-red-100';
+      default: return 'bg-slate-50 text-slate-400';
     }
   }
 
-  obtenerNombreProducto(idProducto: number): string {
-    switch (Number(idProducto)) {
-      case 1:
-        return 'Leche condensada';
-      case 2:
-        return 'Dulce de leche';
-      case 3:
-        return 'Dulce de leche panadería';
-      default:
-        return 'Producto no identificado';
-    }
+  cargarTanques(): void {
+    this.recepcionService.listarSaldosTanques().subscribe({
+      next: (data) => this.tanques = data.filter(t => t.activo),
+      error: (err) => console.error('Error cargando tanques', err)
+    });
   }
 
-  obtenerNombreLinea(idLinea: number): string {
-    switch (Number(idLinea)) {
-      case 1:
-        return 'Línea 1';
-      default:
-        return 'Línea no identificada';
-    }
-  }
+  cambiarTanque(event: any): void {
+    const idTanque = Number(event.target.value);
+    if (!this.orden || !idTanque) return;
 
-  obtenerNombreTurno(idTurno: number): string {
-    switch (Number(idTurno)) {
-      case 1:
-        return 'Turno 1';
-      case 2:
-        return 'Turno 2';
-      case 3:
-        return 'Turno 3';
-      default:
-        return 'Turno no identificado';
-    }
+    this.ordenService.actualizarTanqueLeche(this.orden.id, idTanque).subscribe({
+      next: (data) => {
+        this.orden = data;
+      },
+      error: (err) => {
+        console.error(err);
+        this.error = 'No se pudo actualizar el tanque de origen.';
+      }
+    });
   }
 }

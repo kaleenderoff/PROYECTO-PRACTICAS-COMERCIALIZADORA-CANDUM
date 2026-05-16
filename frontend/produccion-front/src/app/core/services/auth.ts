@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 interface LoginRequest {
   cc: string;
@@ -13,6 +14,7 @@ interface LoginResponse {
   rol: string;
   primerNombre: string;
   primerApellido: string;
+  idUsuario: number;
 }
 
 @Injectable({
@@ -20,7 +22,7 @@ interface LoginResponse {
 })
 export class AuthService {
 
-  private readonly apiUrl = 'http://localhost:8082/api/auth';
+  private readonly apiUrl = `${environment.apiUrl}/auth`;
   private readonly tokenKey = 'token';
   private readonly userKey = 'usuario';
 
@@ -34,7 +36,8 @@ export class AuthService {
           cc: response.cc,
           rol: response.rol,
           primerNombre: response.primerNombre,
-          primerApellido: response.primerApellido
+          primerApellido: response.primerApellido,
+          idUsuario: response.idUsuario
         }));
       })
     );
@@ -51,6 +54,10 @@ export class AuthService {
 
   getRol(): string {
     return this.getUsuario()?.rol || '';
+  }
+
+  getIdUsuario(): number {
+    return this.getUsuario()?.idUsuario || 0;
   }
 
   isAuthenticated(): boolean {
@@ -79,6 +86,11 @@ export class AuthService {
 
   isAuxiliarCalidad(): boolean {
     return this.getRol() === 'AUXILIAR_CALIDAD';
+  }
+
+  isGerencia(): boolean {
+    const rol = this.getRol();
+    return rol === 'ADMIN' || rol === 'DUENO_EMPRESA' || rol === 'JEFE_PLANTA';
   }
 
   logout(): void {

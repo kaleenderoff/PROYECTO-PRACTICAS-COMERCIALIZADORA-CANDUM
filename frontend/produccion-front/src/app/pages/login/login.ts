@@ -8,7 +8,7 @@ import { AuthService } from '../../core/services/auth';
   selector: 'app-login',
   imports: [CommonModule, FormsModule],
   templateUrl: './login.html',
-  styleUrl: './login.scss',
+  
 })
 export class Login {
 
@@ -36,13 +36,28 @@ export class Login {
       cc: this.cc,
       password: this.password
     }).subscribe({
-      next: () => {
+      next: (response) => {
         this.cargando = false;
-        this.router.navigate(['/dashboard']);
+        
+        // Redirección inteligente según el rol (normalización para evitar fallos por espacios o mayúsculas)
+        const rol = (response.rol || '').trim().toUpperCase();
+        
+        console.log('Login exitoso. Rol detectado:', rol);
+
+        if (rol.includes('JEFE_PRODUCCION')) {
+          this.router.navigate(['/programacion-produccion/nueva']);
+        } else if (rol.includes('JEFE_LINEA')) {
+          this.router.navigate(['/ordenes-produccion']);
+        } else {
+          // ADMIN, DUENO_EMPRESA, JEFE_PLANTA van al Dashboard
+          this.router.navigate(['/dashboard']);
+        }
       },
-      error: () => {
+      error: (err) => {
         this.cargando = false;
-        this.error = 'Credenciales incorrectas o usuario inactivo.';
+        console.error('Error en login:', err);
+        const msg = err.error?.message || 'Credenciales incorrectas o usuario inactivo.';
+        this.error = msg;
       }
     });
   }
