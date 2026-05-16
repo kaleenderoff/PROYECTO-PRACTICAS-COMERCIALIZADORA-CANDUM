@@ -1,0 +1,3 @@
+ALTER TABLE ejecucion_batch
+ADD COLUMN hubo_reproceso BOOLEAN DEFAULT FALSE,
+ADD COLUMN batch_conforme BOOLEAN DEFAULT TRUE;

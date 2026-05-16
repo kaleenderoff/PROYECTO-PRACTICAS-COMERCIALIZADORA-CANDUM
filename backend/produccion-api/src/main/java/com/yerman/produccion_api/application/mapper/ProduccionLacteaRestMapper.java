@@ -8,6 +8,7 @@ import com.yerman.produccion_api.domain.model.Produccion;
 import com.yerman.produccion_api.domain.model.ProduccionBatch;
 
 import java.util.List;
+import java.util.Collections;
 
 public class ProduccionLacteaRestMapper {
 
@@ -18,9 +19,11 @@ public class ProduccionLacteaRestMapper {
         if (request == null)
             return null;
 
-        List<ProduccionBatch> batches = request.getBatches().stream()
-                .map(ProduccionLacteaRestMapper::toDomainBatch)
-                .toList();
+        List<ProduccionBatch> batches = request.getBatches() != null 
+                ? request.getBatches().stream()
+                    .map(ProduccionLacteaRestMapper::toDomainBatch)
+                    .toList()
+                : Collections.emptyList();
 
         Produccion produccion = new Produccion();
         produccion.setIdOrdenProduccion(request.getIdOrdenProduccion());
@@ -35,6 +38,7 @@ public class ProduccionLacteaRestMapper {
     }
 
     private static ProduccionBatch toDomainBatch(ProduccionLacteaBatchRequest request) {
+        if (request == null) return null;
         ProduccionBatch batch = new ProduccionBatch();
         batch.setNumeroBatch(request.getNumeroBatch());
         batch.setIdMarmita(request.getIdMarmita());
@@ -45,9 +49,15 @@ public class ProduccionLacteaRestMapper {
     }
 
     public static ProduccionLacteaResponse toResponse(Produccion produccion) {
-        List<ProduccionLacteaBatchResponse> batches = produccion.getBatches().stream()
-                .map(ProduccionLacteaRestMapper::toResponseBatch)
-                .toList();
+        if (produccion == null) {
+            return null;
+        }
+
+        List<ProduccionLacteaBatchResponse> batches = produccion.getBatches() == null 
+                ? Collections.emptyList()
+                : produccion.getBatches().stream()
+                        .map(ProduccionLacteaRestMapper::toResponseBatch)
+                        .toList();
 
         return new ProduccionLacteaResponse(
                 produccion.getId(),
@@ -61,6 +71,7 @@ public class ProduccionLacteaRestMapper {
     }
 
     private static ProduccionLacteaBatchResponse toResponseBatch(ProduccionBatch batch) {
+        if (batch == null) return null;
         return new ProduccionLacteaBatchResponse(
                 batch.getId(),
                 batch.getNumeroBatch(),

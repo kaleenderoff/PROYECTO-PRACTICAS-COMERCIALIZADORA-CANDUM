@@ -14,8 +14,11 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.stream.Collectors;
 
 import java.time.LocalDateTime;
 
@@ -131,6 +134,23 @@ public class GlobalExceptionHandler {
                                 BAD_REQUEST,
                                 "El cuerpo de la solicitud contiene tipos de datos invalidos",
                                 request);
+        }
+
+        @ExceptionHandler(MethodArgumentNotValidException.class)
+        public ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(
+                        MethodArgumentNotValidException ex,
+                        HttpServletRequest request) {
+
+                String details = ex.getBindingResult().getFieldErrors().stream()
+                                .map(error -> String.format("%s: %s", error.getField(), error.getDefaultMessage()))
+                                .collect(Collectors.joining(", "));
+
+                String message = "Error de validacion: " + details;
+
+                log.warn("Error de validacion en {} {}: {}",
+                                request.getMethod(), request.getRequestURI(), message);
+
+                return buildResponse(HttpStatus.BAD_REQUEST, BAD_REQUEST, message, request);
         }
 
         @ExceptionHandler(Exception.class)

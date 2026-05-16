@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Service
+@org.springframework.transaction.annotation.Transactional(readOnly = true)
 public class GestionDescremadoRecepcionService implements GestionDescremadoRecepcionUseCase {
 
     private final DescremadoRecepcionRepositoryPort repository;

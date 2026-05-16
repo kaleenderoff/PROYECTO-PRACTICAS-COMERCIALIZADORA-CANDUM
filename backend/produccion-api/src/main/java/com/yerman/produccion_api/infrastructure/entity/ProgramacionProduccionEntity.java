@@ -53,11 +53,14 @@ public class ProgramacionProduccionEntity {
     private UsuarioEntity jefeProduccion;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "estado", nullable = false, columnDefinition = "ENUM('BORRADOR','CONFIRMADA','EN_EJECUCION','CERRADA','CANCELADA')")
+    @Column(name = "estado", nullable = false, columnDefinition = "ENUM('BORRADOR','CONFIRMADA','CON_ORDEN','CANCELADA')")
     private EstadoProgramacionProduccion estado;
 
     @Column(name = "observaciones", length = 500)
     private String observaciones;
+
+    @OneToMany(mappedBy = "programacion", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<ProgramacionSkuEntity> skus;
 
     @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -166,5 +169,13 @@ public class ProgramacionProduccionEntity {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public java.util.List<ProgramacionSkuEntity> getSkus() {
+        return skus;
+    }
+
+    public void setSkus(java.util.List<ProgramacionSkuEntity> skus) {
+        this.skus = skus;
     }
 }

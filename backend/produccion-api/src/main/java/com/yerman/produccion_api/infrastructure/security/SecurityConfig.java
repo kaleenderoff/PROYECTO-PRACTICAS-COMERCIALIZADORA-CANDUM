@@ -16,6 +16,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -50,8 +55,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                .cors(cors -> {
-                })
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
 
                 .sessionManagement(session -> session
@@ -63,6 +67,9 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
+                        // PERMITIR OPTIONS (PREFLIGHT)
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
                         // AUTH
                         .requestMatchers("/auth/**", "/error").permitAll()
 
@@ -71,6 +78,13 @@ public class SecurityConfig {
                         .requestMatchers("/usuarios/mi-password").authenticated()
 
                         // USUARIOS
+                        .requestMatchers(HttpMethod.GET, "/usuarios/**")
+                        .hasAnyRole(
+                                ROL_ADMIN,
+                                ROL_DUENO_EMPRESA,
+                                ROL_JEFE_PLANTA,
+                                ROL_JEFE_PRODUCCION)
+
                         .requestMatchers("/usuarios/**")
                         .hasAnyRole(
                                 ROL_ADMIN,
@@ -87,28 +101,21 @@ public class SecurityConfig {
                                 ROL_JEFE_PLANTA,
                                 ROL_JEFE_PRODUCCION)
 
-                        // RECEPCION LECHE
-                        .requestMatchers("/recepciones-leche/**")
+                        // PROGRAMACIONES Y FORMULAS
+                        .requestMatchers("/programaciones/**", "/formulas/**", "/programacion-skus/**")
                         .hasAnyRole(
                                 ROL_ADMIN,
                                 ROL_DUENO_EMPRESA,
                                 ROL_JEFE_PLANTA,
-                                ROL_JEFE_LINEA)
+                                ROL_JEFE_PRODUCCION)
 
-                        // DESCREMADO
-                        .requestMatchers("/descremados-recepcion/**")
+                        // RECEPCION LECHE, DESCREMADO, MOVIMIENTOS
+                        .requestMatchers("/recepciones-leche/**", "/descremados-recepcion/**", "/movimientos-leche/**")
                         .hasAnyRole(
                                 ROL_ADMIN,
                                 ROL_DUENO_EMPRESA,
                                 ROL_JEFE_PLANTA,
-                                ROL_JEFE_LINEA)
-
-                        // MOVIMIENTOS LECHE
-                        .requestMatchers("/movimientos-leche/**")
-                        .hasAnyRole(
-                                ROL_ADMIN,
-                                ROL_DUENO_EMPRESA,
-                                ROL_JEFE_PLANTA,
+                                ROL_JEFE_PRODUCCION,
                                 ROL_JEFE_LINEA)
 
                         // TANQUES
@@ -117,10 +124,34 @@ public class SecurityConfig {
                                 ROL_ADMIN,
                                 ROL_DUENO_EMPRESA,
                                 ROL_JEFE_PLANTA,
+                                ROL_JEFE_PRODUCCION,
                                 ROL_JEFE_LINEA,
                                 ROL_AUXILIAR_CALIDAD)
 
-                        // DASHBOARD
+                        // ORDENES Y EJECUCION
+                        .requestMatchers("/ordenes-produccion/**", "/ejecucion-batch/**", "/producciones-lactea/**")
+                        .hasAnyRole(
+                                ROL_ADMIN,
+                                ROL_DUENO_EMPRESA,
+                                ROL_JEFE_PLANTA,
+                                ROL_JEFE_PRODUCCION,
+                                ROL_JEFE_LINEA)
+
+                        // CALIDAD, EMPAQUE Y OTROS PROCESOS MES
+                        .requestMatchers(
+                                "/mediciones-calidad-lactea/**",
+                                "/empaques-lacteos/**",
+                                "/productos-terminados-lacteos/**",
+                                "/registros-insumo-lacteo/**",
+                                "/dashboard-operativo/**",
+                                "/reportes/lacteos/**")
+                        .hasAnyRole(
+                                ROL_ADMIN,
+                                ROL_DUENO_EMPRESA,
+                                ROL_JEFE_PLANTA,
+                                ROL_JEFE_PRODUCCION)
+
+                        // DASHBOARD GENERAL
                         .requestMatchers("/dashboard/**")
                         .hasAnyRole(
                                 ROL_ADMIN,
@@ -138,6 +169,21 @@ public class SecurityConfig {
                         UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("*"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers"));
+        configuration.setExposedHeaders(List.of("Authorization"));
+        configuration.setAllowCredentials(false);
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
     @Bean

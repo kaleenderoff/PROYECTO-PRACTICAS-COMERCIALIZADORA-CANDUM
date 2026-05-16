@@ -14,6 +14,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Service
+@org.springframework.transaction.annotation.Transactional(readOnly = true)
 public class GestionRecepcionLecheService implements GestionRecepcionLecheUseCase {
 
     private static final String TIPO_MATERIA_PRIMA_DEFAULT = "LECHE CRUDA";

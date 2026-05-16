@@ -43,6 +43,9 @@ public class CatalogoSkuEntity {
     @Column(name = "tipo_envase", nullable = false, length = 20)
     private TipoEnvase tipoEnvase = TipoEnvase.OTRO;
 
+    @Column(name = "unidad_medida", nullable = false, length = 10)
+    private String unidadMedida = "gr";
+
     @Column(name = "unidades_por_caja")
     private Integer unidadesPorCaja;
 
@@ -70,6 +73,9 @@ public class CatalogoSkuEntity {
         }
         if (tipoEnvase == null) {
             tipoEnvase = TipoEnvase.OTRO;
+        }
+        if (unidadMedida == null) {
+            unidadMedida = "gr";
         }
     }
 

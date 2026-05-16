@@ -28,6 +28,7 @@ public class CatalogoController {
     private final CatalogoProductoJpaRepository productoRepository;
     private final CatalogoSkuJpaRepository skuRepository;
     private final InsumoJpaRepository insumoRepository;
+    private final MarmitaJpaRepository marmitaRepository;
 
     public CatalogoController(
             TurnoJpaRepository turnoRepository,
@@ -36,7 +37,8 @@ public class CatalogoController {
             CatalogoLineaJpaRepository lineaRepository,
             CatalogoProductoJpaRepository productoRepository,
             CatalogoSkuJpaRepository skuRepository,
-            InsumoJpaRepository insumoRepository) {
+            InsumoJpaRepository insumoRepository,
+            MarmitaJpaRepository marmitaRepository) {
         this.turnoRepository = turnoRepository;
         this.proveedorRepository = proveedorRepository;
         this.marcaRepository = marcaRepository;
@@ -44,6 +46,7 @@ public class CatalogoController {
         this.productoRepository = productoRepository;
         this.skuRepository = skuRepository;
         this.insumoRepository = insumoRepository;
+        this.marmitaRepository = marmitaRepository;
     }
 
     @GetMapping("/turnos")
@@ -293,6 +296,13 @@ public class CatalogoController {
         return toInsumoResponse(insumoRepository.save(entity));
     }
 
+    @GetMapping("/marmitas")
+    public List<MarmitaResponse> listarMarmitas(@RequestParam(defaultValue = "true") boolean activos) {
+        return (activos ? marmitaRepository.findByActivaTrue() : marmitaRepository.findAll())
+                .stream().map(m -> new MarmitaResponse(m.getId(), m.getNombre(), m.getActiva()))
+                .toList();
+    }
+
     private void aplicarTurno(TurnoEntity entity, TurnoRequest request) {
         entity.setNombre(limpiar(request.nombre()));
         entity.setHoraInicio(request.horaInicio());
@@ -328,6 +338,7 @@ public class CatalogoController {
         entity.setProducto(buscarProducto(request.idProducto()));
         entity.setMarca(buscarMarca(request.idMarca()));
         entity.setPesoNetoGr(request.pesoNetoGr());
+        entity.setUnidadMedida(limpiar(request.unidadMedida()));
         entity.setTipoEnvase(parseTipoEnvase(request.tipoEnvase()));
         entity.setUnidadesPorCaja(request.unidadesPorCaja());
         entity.setEsExport(request.esExport() != null ? request.esExport() : false);
@@ -486,7 +497,7 @@ public class CatalogoController {
     private SkuResponse toSkuResponse(CatalogoSkuEntity entity) {
         return new SkuResponse(entity.getId(), entity.getCodigoSku(), entity.getDescripcion(),
                 entity.getProducto().getId(), entity.getProducto().getNombre(), entity.getMarca().getId(),
-                entity.getMarca().getNombre(), entity.getPesoNetoGr(), entity.getTipoEnvase().name(),
+                entity.getMarca().getNombre(), entity.getPesoNetoGr(), entity.getUnidadMedida(), entity.getTipoEnvase().name(),
                 entity.getUnidadesPorCaja(), entity.getEsExport(), entity.getActivo(), entity.getCreatedAt(),
                 entity.getUpdatedAt());
     }

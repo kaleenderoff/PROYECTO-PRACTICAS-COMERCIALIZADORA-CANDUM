@@ -47,6 +47,7 @@ public final class CatalogoRequests {
             @NotNull Long idProducto,
             @NotNull Long idMarca,
             @NotNull @Min(1) Integer pesoNetoGr,
+            @NotBlank String unidadMedida,
             String tipoEnvase,
             Integer unidadesPorCaja,
             Boolean esExport,

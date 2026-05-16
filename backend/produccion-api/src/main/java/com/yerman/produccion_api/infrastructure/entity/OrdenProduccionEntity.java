@@ -4,8 +4,11 @@ import com.yerman.produccion_api.domain.model.EstadoOrdenProduccion;
 
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "orden_produccion", uniqueConstraints = {
@@ -55,11 +58,36 @@ public class OrdenProduccionEntity {
     @Column(name = "observaciones", length = 500)
     private String observaciones;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_tanque_leche")
+    private TanqueLecheEntity tanqueLeche;
+
     @Column(name = "fecha_inicio_real")
     private LocalDateTime fechaInicioReal;
 
     @Column(name = "fecha_fin_real")
     private LocalDateTime fechaFinReal;
+
+    @Column(name = "kg_entrada_real", precision = 12, scale = 2)
+    private BigDecimal kgEntradaReal;
+
+    @Column(name = "kg_producido_batches", precision = 12, scale = 2)
+    private BigDecimal kgProducidoBatches;
+
+    @Column(name = "kg_pt_real", precision = 12, scale = 2)
+    private BigDecimal kgPtReal;
+
+    @Column(name = "rendimiento_real", precision = 12, scale = 2)
+    private BigDecimal rendimientoReal;
+
+    @Column(name = "merma_real", precision = 12, scale = 2)
+    private BigDecimal mermaReal;
+
+    @Column(name = "merma_empaque", precision = 12, scale = 2)
+    private BigDecimal mermaEmpaque;
+
+    @OneToMany(mappedBy = "orden", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrdenProduccionDetalleEntity> detalles = new ArrayList<>();
 
     public OrdenProduccionEntity() {
     }
@@ -152,6 +180,14 @@ public class OrdenProduccionEntity {
         this.observaciones = observaciones;
     }
 
+    public TanqueLecheEntity getTanqueLeche() {
+        return tanqueLeche;
+    }
+
+    public void setTanqueLeche(TanqueLecheEntity tanqueLeche) {
+        this.tanqueLeche = tanqueLeche;
+    }
+
     public LocalDateTime getFechaInicioReal() {
         return fechaInicioReal;
     }
@@ -166,5 +202,61 @@ public class OrdenProduccionEntity {
 
     public void setFechaFinReal(LocalDateTime fechaFinReal) {
         this.fechaFinReal = fechaFinReal;
+    }
+
+    public BigDecimal getKgEntradaReal() {
+        return kgEntradaReal;
+    }
+
+    public void setKgEntradaReal(BigDecimal kgEntradaReal) {
+        this.kgEntradaReal = kgEntradaReal;
+    }
+
+    public BigDecimal getKgProducidoBatches() {
+        return kgProducidoBatches;
+    }
+
+    public void setKgProducidoBatches(BigDecimal kgProducidoBatches) {
+        this.kgProducidoBatches = kgProducidoBatches;
+    }
+
+    public BigDecimal getKgPtReal() {
+        return kgPtReal;
+    }
+
+    public void setKgPtReal(BigDecimal kgPtReal) {
+        this.kgPtReal = kgPtReal;
+    }
+
+    public BigDecimal getRendimientoReal() {
+        return rendimientoReal;
+    }
+
+    public void setRendimientoReal(BigDecimal rendimientoReal) {
+        this.rendimientoReal = rendimientoReal;
+    }
+
+    public BigDecimal getMermaReal() {
+        return mermaReal;
+    }
+
+    public void setMermaReal(BigDecimal mermaReal) {
+        this.mermaReal = mermaReal;
+    }
+
+    public BigDecimal getMermaEmpaque() {
+        return mermaEmpaque;
+    }
+
+    public void setMermaEmpaque(BigDecimal mermaEmpaque) {
+        this.mermaEmpaque = mermaEmpaque;
+    }
+
+    public List<OrdenProduccionDetalleEntity> getDetalles() {
+        return detalles;
+    }
+
+    public void setDetalles(List<OrdenProduccionDetalleEntity> detalles) {
+        this.detalles = detalles;
     }
 }

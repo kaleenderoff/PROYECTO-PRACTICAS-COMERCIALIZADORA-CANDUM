@@ -15,6 +15,7 @@ import jakarta.persistence.EntityManager;
 
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -35,12 +36,16 @@ public class OrdenProduccionJpaAdapter implements OrdenProduccionRepositoryPort 
     }
 
     @Override
-    public OrdenProduccion guardar(OrdenProduccion ordenProduccion) {
-
-        OrdenProduccionEntity entity = toEntity(ordenProduccion);
-
+    public OrdenProduccion guardar(OrdenProduccion domain) {
+        OrdenProduccionEntity entity;
+        if (domain.getId() != null) {
+            entity = repository.findById(domain.getId()).orElse(new OrdenProduccionEntity());
+        } else {
+            entity = new OrdenProduccionEntity();
+        }
+        
+        mapToEntity(domain, entity);
         OrdenProduccionEntity guardada = repository.save(entity);
-
         return OrdenProduccionMapper.toDomain(guardada);
     }
 
@@ -82,63 +87,36 @@ public class OrdenProduccionJpaAdapter implements OrdenProduccionRepositoryPort 
                 .map(OrdenProduccionMapper::toDomain);
     }
 
-    private OrdenProduccionEntity toEntity(OrdenProduccion orden) {
+    private void mapToEntity(OrdenProduccion domain, OrdenProduccionEntity entity) {
+        entity.setId(domain.getId());
+        entity.setNumeroOrden(domain.getNumeroOrden());
+        entity.setProgramacion(entityManager.getReference(ProgramacionProduccionEntity.class, domain.getIdProgramacion()));
+        entity.setLinea(entityManager.getReference(CatalogoLineaEntity.class, domain.getIdLinea()));
+        entity.setProducto(entityManager.getReference(CatalogoProductoEntity.class, domain.getIdProducto()));
+        entity.setTurno(entityManager.getReference(TurnoEntity.class, domain.getIdTurno()));
 
-        OrdenProduccionEntity entity = new OrdenProduccionEntity();
-
-        entity.setId(orden.getId());
-
-        entity.setNumeroOrden(
-                orden.getNumeroOrden());
-
-        entity.setProgramacion(
-                entityManager.getReference(
-                        ProgramacionProduccionEntity.class,
-                        orden.getIdProgramacion()));
-
-        entity.setLinea(
-                entityManager.getReference(
-                        CatalogoLineaEntity.class,
-                        orden.getIdLinea()));
-
-        entity.setProducto(
-                entityManager.getReference(
-                        CatalogoProductoEntity.class,
-                        orden.getIdProducto()));
-
-        entity.setTurno(
-                entityManager.getReference(
-                        TurnoEntity.class,
-                        orden.getIdTurno()));
-
-        if (orden.getIdJefeLineaEjecutor() != null) {
-
-            entity.setJefeLineaEjecutor(
-                    entityManager.getReference(
-                            UsuarioEntity.class,
-                            orden.getIdJefeLineaEjecutor()));
+        if (domain.getIdJefeLineaEjecutor() != null) {
+            entity.setJefeLineaEjecutor(entityManager.getReference(UsuarioEntity.class, domain.getIdJefeLineaEjecutor()));
         }
 
-        entity.setCreadaPor(
-                entityManager.getReference(
-                        UsuarioEntity.class,
-                        orden.getIdCreadaPor()));
+        entity.setCreadaPor(entityManager.getReference(UsuarioEntity.class, domain.getIdCreadaPor()));
+        entity.setFechaProduccion(domain.getFechaProduccion());
+        entity.setEstado(domain.getEstado());
+        entity.setObservaciones(domain.getObservaciones());
+        entity.setFechaInicioReal(domain.getFechaInicioReal());
+        entity.setFechaFinReal(domain.getFechaFinReal());
+        
+        if (domain.getIdTanqueLeche() != null) {
+            entity.setTanqueLeche(entityManager.getReference(com.yerman.produccion_api.infrastructure.entity.TanqueLecheEntity.class, domain.getIdTanqueLeche()));
+        } else {
+            entity.setTanqueLeche(null);
+        }
 
-        entity.setFechaProduccion(
-                orden.getFechaProduccion());
-
-        entity.setEstado(
-                orden.getEstado());
-
-        entity.setObservaciones(
-                orden.getObservaciones());
-
-        entity.setFechaInicioReal(
-                orden.getFechaInicioReal());
-
-        entity.setFechaFinReal(
-                orden.getFechaFinReal());
-
-        return entity;
+        entity.setKgEntradaReal(domain.getKgEntradaReal());
+        entity.setKgProducidoBatches(domain.getKgProducidoBatches());
+        entity.setKgPtReal(domain.getKgPtReal());
+        entity.setRendimientoReal(domain.getRendimientoReal());
+        entity.setMermaReal(domain.getMermaReal());
+        entity.setMermaEmpaque(domain.getMermaEmpaque());
     }
 }

@@ -8,7 +8,7 @@ CREATE TABLE orden_produccion (
   id_jefe_linea_ejecutor BIGINT NOT NULL,
   id_creada_por BIGINT NOT NULL,
   fecha_produccion DATE NOT NULL,
-  estado ENUM('PROGRAMADA', 'EN_EJECUCION', 'FINALIZADA', 'CERRADA', 'CANCELADA') NOT NULL DEFAULT 'PROGRAMADA',
+  estado ENUM('PROGRAMADA', 'EN_EJECUCION', 'FINALIZADA', 'CANCELADA') NOT NULL DEFAULT 'PROGRAMADA',
   observaciones VARCHAR(500) NULL,
   fecha_inicio_real DATETIME NULL,
   fecha_fin_real DATETIME NULL,

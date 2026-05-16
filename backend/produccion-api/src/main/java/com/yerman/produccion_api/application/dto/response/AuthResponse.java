@@ -7,14 +7,16 @@ public class AuthResponse {
     private String rol;
     private String primerNombre;
     private String primerApellido;
+    private Long idUsuario;
 
     public AuthResponse(String token, String cc, String rol,
-            String primerNombre, String primerApellido) {
+            String primerNombre, String primerApellido, Long idUsuario) {
         this.token = token;
         this.cc = cc;
         this.rol = rol;
         this.primerNombre = primerNombre;
         this.primerApellido = primerApellido;
+        this.idUsuario = idUsuario;
     }
 
     public String getToken() {
@@ -35,5 +37,9 @@ public class AuthResponse {
 
     public String getPrimerApellido() {
         return primerApellido;
+    }
+
+    public Long getIdUsuario() {
+        return idUsuario;
     }
 }

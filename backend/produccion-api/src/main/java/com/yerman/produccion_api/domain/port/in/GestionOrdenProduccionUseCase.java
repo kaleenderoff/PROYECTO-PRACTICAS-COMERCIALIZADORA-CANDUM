@@ -1,5 +1,6 @@
 package com.yerman.produccion_api.domain.port.in;
 
+import com.yerman.produccion_api.application.dto.request.RegistrarProduccionSkuRequest;
 import com.yerman.produccion_api.domain.model.OrdenProduccion;
 
 import java.time.LocalDate;
@@ -20,5 +21,9 @@ public interface GestionOrdenProduccionUseCase {
 
     OrdenProduccion finalizar(Long idOrden);
 
-    OrdenProduccion cancelar(Long idOrden, String observaciones);
+    OrdenProduccion cancelar(Long id, String observaciones);
+
+    void registrarProduccionSku(Long idOrden, List<RegistrarProduccionSkuRequest> producciones);
+
+    OrdenProduccion actualizarTanqueLeche(Long idOrden, Long idTanque);
 }

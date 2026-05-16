@@ -1,4 +1,5 @@
 package com.yerman.produccion_api.application.mapper;
+import com.yerman.produccion_api.infrastructure.entity.OrdenProduccionDetalleEntity;
 
 import com.yerman.produccion_api.application.dto.response.ProgramacionSkuResponse;
 import com.yerman.produccion_api.domain.model.ProgramacionSku;
@@ -15,17 +16,80 @@ public class ProgramacionSkuMapper {
     private ProgramacionSkuMapper() {
     }
 
+    public static ProgramacionSku toDomain(OrdenProduccionDetalleEntity entity) {
+        if (entity == null) {
+            return null;
+        }
+
+        // Primero mapeamos la parte de la programación original (si existe)
+        ProgramacionSku domain;
+        if (entity.getProgramacionSku() != null) {
+            domain = toDomain(entity.getProgramacionSku());
+            // El ID que nos importa es el del detalle de la orden para actualizaciones posteriores
+            domain.setId(entity.getId());
+        } else {
+            domain = new ProgramacionSku();
+            domain.setId(entity.getId());
+            domain.setIdSku(entity.getSku() != null ? entity.getSku().getId() : null);
+            if (entity.getSku() != null) {
+                domain.setCodigoSku(entity.getSku().getCodigoSku());
+                domain.setDescripcionSku(entity.getSku().getDescripcion());
+                domain.setPesoUnidadGr(entity.getSku().getPesoNetoGr());
+                domain.setKgProductoTerminado(calcularKgProductoTerminado(
+                    entity.getCantidadProgramada().intValue(), // Aproximación si no hay unidades
+                    entity.getSku().getPesoNetoGr()
+                ));
+            }
+        }
+
+        // Sobrescribimos con los valores reales de la ejecución
+        domain.setCantidadReal(entity.getCantidadReal());
+        domain.setUnidadesReales(entity.getUnidadesReales());
+        domain.setObservaciones(entity.getObservaciones());
+
+        return domain;
+    }
+
     public static ProgramacionSku toDomain(ProgramacionSkuEntity entity) {
         if (entity == null) {
             return null;
         }
 
-        return new ProgramacionSku(
+        ProgramacionSku domain = new ProgramacionSku(
                 entity.getId(),
                 entity.getProgramacion() != null ? entity.getProgramacion().getId() : null,
                 entity.getSku() != null ? entity.getSku().getId() : null,
                 entity.getUnidadesObjetivo(),
                 entity.getObservaciones());
+
+        if (entity.getSku() != null) {
+            domain.setCodigoSku(entity.getSku().getCodigoSku());
+            domain.setDescripcionSku(entity.getSku().getDescripcion());
+            domain.setPesoUnidadGr(entity.getSku().getPesoNetoGr());
+            
+            domain.setKgProductoTerminado(calcularKgProductoTerminado(
+                entity.getUnidadesObjetivo(), 
+                entity.getSku().getPesoNetoGr()
+            ));
+        }
+
+        if (entity.getProgramacion() != null && entity.getProgramacion().getFormulaVersion() != null) {
+            var formula = entity.getProgramacion().getFormulaVersion();
+            domain.setRendimientoTeoricoPct(formula.getRendimientoTeoricoPct());
+            domain.setKgBatchFormula(formula.getKgBatchTotal());
+            
+            domain.setKgBatchCalculado(calcularKgBatch(
+                domain.getKgProductoTerminado(), 
+                formula.getRendimientoTeoricoPct()
+            ));
+            
+            domain.setNumBachesCalculado(calcularNumeroBaches(
+                domain.getKgBatchCalculado(), 
+                formula.getKgBatchTotal()
+            ));
+        }
+
+        return domain;
     }
 
     public static ProgramacionSkuEntity toEntity(
@@ -53,15 +117,17 @@ public class ProgramacionSkuMapper {
                 domain.getId(),
                 domain.getIdProgramacion(),
                 domain.getIdSku(),
-                null,
-                null,
-                null,
+                domain.getCodigoSku(),
+                domain.getDescripcionSku(),
+                domain.getPesoUnidadGr(),
                 domain.getUnidadesObjetivo(),
-                null,
-                null,
-                null,
-                null,
-                null,
+                domain.getKgProductoTerminado(),
+                domain.getRendimientoTeoricoPct(),
+                domain.getKgBatchFormula(),
+                domain.getKgBatchCalculado(),
+                domain.getNumBachesCalculado() != null ? domain.getNumBachesCalculado() : null,
+                domain.getCantidadReal(),
+                domain.getUnidadesReales(),
                 domain.getObservaciones());
     }
 
@@ -103,6 +169,8 @@ public class ProgramacionSkuMapper {
                 kgBatchFormula,
                 kgBatchCalculado,
                 numBachesCalculado,
+                null, // cantidadReal
+                null, // unidadesReales
                 entity.getObservaciones());
     }
 

@@ -16,6 +16,8 @@ public class ProgramacionSkuResponse {
     private BigDecimal kgBatchFormula;
     private BigDecimal kgBatchCalculado;
     private BigDecimal numBachesCalculado;
+    private BigDecimal cantidadReal;
+    private Integer unidadesReales;
     private String observaciones;
 
     public ProgramacionSkuResponse(
@@ -31,6 +33,8 @@ public class ProgramacionSkuResponse {
             BigDecimal kgBatchFormula,
             BigDecimal kgBatchCalculado,
             BigDecimal numBachesCalculado,
+            BigDecimal cantidadReal,
+            Integer unidadesReales,
             String observaciones) {
         this.id = id;
         this.idProgramacion = idProgramacion;
@@ -44,6 +48,8 @@ public class ProgramacionSkuResponse {
         this.kgBatchFormula = kgBatchFormula;
         this.kgBatchCalculado = kgBatchCalculado;
         this.numBachesCalculado = numBachesCalculado;
+        this.cantidadReal = cantidadReal;
+        this.unidadesReales = unidadesReales;
         this.observaciones = observaciones;
     }
 
@@ -93,6 +99,14 @@ public class ProgramacionSkuResponse {
 
     public BigDecimal getNumBachesCalculado() {
         return numBachesCalculado;
+    }
+
+    public BigDecimal getCantidadReal() {
+        return cantidadReal;
+    }
+
+    public Integer getUnidadesReales() {
+        return unidadesReales;
     }
 
     public String getObservaciones() {

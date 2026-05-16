@@ -3,6 +3,7 @@ package com.yerman.produccion_api.infrastructure.adapter.in.rest;
 import com.yerman.produccion_api.application.dto.request.CancelarOrdenProduccionRequest;
 import com.yerman.produccion_api.application.dto.request.IniciarOrdenProduccionRequest;
 import com.yerman.produccion_api.application.dto.request.OrdenProduccionRequest;
+import com.yerman.produccion_api.application.dto.request.RegistrarProduccionSkuRequest;
 import com.yerman.produccion_api.application.dto.response.OrdenProduccionResponse;
 import com.yerman.produccion_api.application.mapper.OrdenProduccionRestMapper;
 import com.yerman.produccion_api.domain.port.in.GestionOrdenProduccionUseCase;
@@ -80,5 +81,17 @@ public class OrdenProduccionController {
 
         return OrdenProduccionRestMapper.toResponse(
                 gestionOrdenProduccionUseCase.cancelar(id, request.getObservaciones()));
+    }
+
+    @PatchMapping("/{id}/skus")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void registrarSkus(@PathVariable Long id, @RequestBody List<RegistrarProduccionSkuRequest> request) {
+        gestionOrdenProduccionUseCase.registrarProduccionSku(id, request);
+    }
+
+    @PatchMapping("/{id}/tanque")
+    public OrdenProduccionResponse actualizarTanque(@PathVariable Long id, @RequestParam Long idTanque) {
+        return OrdenProduccionRestMapper.toResponse(
+                gestionOrdenProduccionUseCase.actualizarTanqueLeche(id, idTanque));
     }
 }

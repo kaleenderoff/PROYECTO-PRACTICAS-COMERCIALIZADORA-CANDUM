@@ -53,6 +53,7 @@ public class LoginService implements LoginUseCase {
                                 usuario.getCc(),
                                 usuario.getRol().name(),
                                 usuario.getPrimerNombre(),
-                                usuario.getPrimerApellido());
+                                usuario.getPrimerApellido(),
+                                usuario.getIdUsuario());
         }
 }

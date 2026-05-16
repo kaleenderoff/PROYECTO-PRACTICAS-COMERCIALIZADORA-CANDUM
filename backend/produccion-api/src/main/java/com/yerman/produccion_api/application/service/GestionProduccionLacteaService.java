@@ -102,6 +102,7 @@ public class GestionProduccionLacteaService implements GestionProduccionLacteaUs
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public Produccion obtenerPorId(Long id) {
         return repository.obtenerPorId(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
@@ -109,11 +110,13 @@ public class GestionProduccionLacteaService implements GestionProduccionLacteaUs
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<Produccion> listarTodas() {
         return repository.listarTodas();
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<Produccion> listarPorFecha(LocalDate fechaProduccion) {
         return repository.listarPorFecha(fechaProduccion);
     }

@@ -14,42 +14,54 @@ public class OrdenProduccionRestMapper {
             return null;
         }
 
-        return new OrdenProduccionResponse(
+        var skus = orden.getSkus() != null
+                ? orden.getSkus().stream().map(ProgramacionSkuMapper::toResponse).toList()
+                : java.util.List.<com.yerman.produccion_api.application.dto.response.ProgramacionSkuResponse>of();
 
+        java.math.BigDecimal kgPTTotalPlan = skus.stream()
+                .map(s -> s.getKgProductoTerminado() != null ? s.getKgProductoTerminado() : java.math.BigDecimal.ZERO)
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+
+        java.math.BigDecimal kgEntradaTotalPlan = skus.stream()
+                .map(s -> s.getKgBatchCalculado() != null ? s.getKgBatchCalculado() : java.math.BigDecimal.ZERO)
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+
+        var response = new OrdenProduccionResponse(
                 orden.getId(),
-
                 orden.getNumeroOrden(),
-
                 orden.getIdProgramacion(),
-
                 orden.getIdLinea(),
-
-                null,
-
+                orden.getNombreLinea(),
                 orden.getIdProducto(),
-
-                null,
-
+                orden.getNombreProducto(),
                 orden.getIdTurno(),
-
-                null,
-
+                orden.getNombreTurno(),
                 orden.getIdJefeLineaEjecutor(),
-
-                null,
-
+                orden.getNombreJefeLineaEjecutor(),
                 orden.getIdCreadaPor(),
-
-                null,
-
+                orden.getNombreCreadaPor(),
                 orden.getFechaProduccion(),
-
                 orden.getEstado(),
-
                 orden.getObservaciones(),
-
                 orden.getFechaInicioReal(),
+                orden.getFechaFinReal(),
+                orden.getNumBachesPlan(),
+                orden.getKgBachePlan(),
+                kgPTTotalPlan,
+                kgEntradaTotalPlan,
+                orden.getNombreFormula(),
+                orden.getVersionFormula(),
+                skus);
 
-                orden.getFechaFinReal());
+        response.setKgEntradaReal(orden.getKgEntradaReal());
+        response.setKgProducidoBatches(orden.getKgProducidoBatches());
+        response.setKgPtReal(orden.getKgPtReal());
+        response.setRendimientoReal(orden.getRendimientoReal());
+        response.setMermaReal(orden.getMermaReal());
+        response.setMermaEmpaque(orden.getMermaEmpaque());
+        response.setIdTanqueLeche(orden.getIdTanqueLeche());
+        response.setNombreTanqueLeche(orden.getNombreTanqueLeche());
+
+        return response;
     }
 }

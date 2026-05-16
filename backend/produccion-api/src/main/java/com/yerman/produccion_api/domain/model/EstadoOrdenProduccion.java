@@ -4,6 +4,5 @@ public enum EstadoOrdenProduccion {
     PROGRAMADA,
     EN_EJECUCION,
     FINALIZADA,
-    CERRADA,
     CANCELADA
 }

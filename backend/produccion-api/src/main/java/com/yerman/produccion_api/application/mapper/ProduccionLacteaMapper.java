@@ -16,37 +16,39 @@ public class ProduccionLacteaMapper {
         if (entity == null)
             return null;
 
-        List<ProduccionBatch> batches = entity.getBatches() == null ? List.of()
-                : entity.getBatches().stream()
-                        .map(ProduccionLacteaMapper::toDomainBatch)
-                        .toList();
-
         Produccion produccion = new Produccion();
         produccion.setId(entity.getId());
         produccion.setIdOrdenProduccion(entity.getOrdenProduccion() != null ? entity.getOrdenProduccion().getId() : null);
         produccion.setFechaProduccion(entity.getFechaProduccion());
         produccion.setProducto(entity.getProducto());
-        produccion.setIdTanque(entity.getTanque().getId());
-        produccion.setIdUsuario(entity.getUsuario().getIdUsuario());
+        produccion.setIdTanque(entity.getTanque() != null ? entity.getTanque().getId() : null);
+        produccion.setIdUsuario(entity.getUsuario() != null ? entity.getUsuario().getIdUsuario() : null);
         produccion.setObservaciones(entity.getObservaciones());
-        produccion.setBatches(batches);
+
+        if (entity.getBatches() != null) {
+            produccion.setBatches(entity.getBatches().stream()
+                    .map(ProduccionLacteaMapper::toDomainBatch)
+                    .toList());
+        } else {
+            produccion.setBatches(java.util.List.of());
+        }
 
         return produccion;
     }
 
     private static ProduccionBatch toDomainBatch(ProduccionLacteaBatchEntity entity) {
+        if (entity == null) {
+            return null;
+        }
         ProduccionBatch batch = new ProduccionBatch();
         batch.setId(entity.getId());
+        batch.setIdMarmita(entity.getMarmita() != null ? entity.getMarmita().getId() : null);
         batch.setNumeroBatch(entity.getNumeroBatch());
-        batch.setIdMarmita(entity.getMarmita().getId());
         batch.setLitrosConsumidos(entity.getLitrosConsumidos());
         batch.setKilosProducidos(entity.getKilosProducidos());
         batch.setRendimiento(entity.getRendimiento());
-
-        if (entity.getMovimientoLeche() != null) {
-            batch.setIdMovimientoLeche(entity.getMovimientoLeche().getId());
-        }
-
+        batch.setIdMovimientoLeche(entity.getMovimientoLeche() != null ? entity.getMovimientoLeche().getId() : null);
+        batch.setObservaciones(entity.getObservaciones());
         return batch;
     }
 }

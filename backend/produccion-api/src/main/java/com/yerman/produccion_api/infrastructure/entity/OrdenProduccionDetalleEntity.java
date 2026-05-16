@@ -39,6 +39,12 @@ public class OrdenProduccionDetalleEntity {
     @Column(name = "observaciones", length = 500)
     private String observaciones;
 
+    @Column(name = "cantidad_real", precision = 14, scale = 3)
+    private BigDecimal cantidadReal;
+
+    @Column(name = "unidades_reales")
+    private Integer unidadesReales;
+
     @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -106,6 +112,22 @@ public class OrdenProduccionDetalleEntity {
 
     public void setObservaciones(String observaciones) {
         this.observaciones = observaciones;
+    }
+
+    public BigDecimal getCantidadReal() {
+        return cantidadReal;
+    }
+
+    public void setCantidadReal(BigDecimal cantidadReal) {
+        this.cantidadReal = cantidadReal;
+    }
+
+    public Integer getUnidadesReales() {
+        return unidadesReales;
+    }
+
+    public void setUnidadesReales(Integer unidadesReales) {
+        this.unidadesReales = unidadesReales;
     }
 
     public LocalDateTime getCreatedAt() {
