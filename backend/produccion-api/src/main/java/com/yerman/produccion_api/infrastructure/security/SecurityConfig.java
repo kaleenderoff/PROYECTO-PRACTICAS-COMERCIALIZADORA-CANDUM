@@ -128,6 +128,16 @@ public class SecurityConfig {
                                 ROL_JEFE_LINEA,
                                 ROL_AUXILIAR_CALIDAD)
 
+                        // CONSULTA DE ORDENES Y EJECUCION
+                        .requestMatchers(HttpMethod.GET, "/ordenes-produccion/**", "/ejecucion-batch/**")
+                        .hasAnyRole(
+                                ROL_ADMIN,
+                                ROL_DUENO_EMPRESA,
+                                ROL_JEFE_PLANTA,
+                                ROL_JEFE_PRODUCCION,
+                                ROL_JEFE_LINEA,
+                                ROL_AUXILIAR_CALIDAD)
+
                         // ORDENES Y EJECUCION
                         .requestMatchers("/ordenes-produccion/**", "/ejecucion-batch/**", "/producciones-lactea/**")
                         .hasAnyRole(
@@ -137,9 +147,17 @@ public class SecurityConfig {
                                 ROL_JEFE_PRODUCCION,
                                 ROL_JEFE_LINEA)
 
-                        // CALIDAD, EMPAQUE Y OTROS PROCESOS MES
+                        // CALIDAD
+                        .requestMatchers("/mediciones-calidad-lactea/**", "/controles-calidad-lactea/**")
+                        .hasAnyRole(
+                                ROL_ADMIN,
+                                ROL_DUENO_EMPRESA,
+                                ROL_JEFE_PLANTA,
+                                ROL_JEFE_PRODUCCION,
+                                ROL_AUXILIAR_CALIDAD)
+
+                        // EMPAQUE Y OTROS PROCESOS MES
                         .requestMatchers(
-                                "/mediciones-calidad-lactea/**",
                                 "/empaques-lacteos/**",
                                 "/productos-terminados-lacteos/**",
                                 "/registros-insumo-lacteo/**",

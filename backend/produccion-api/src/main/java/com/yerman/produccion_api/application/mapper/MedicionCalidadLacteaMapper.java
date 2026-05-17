@@ -17,6 +17,8 @@ public class MedicionCalidadLacteaMapper {
                 entity.getId(),
                 entity.getProduccionLactea() != null ? entity.getProduccionLactea().getId() : null,
                 entity.getProduccionLacteaBatch() != null ? entity.getProduccionLacteaBatch().getId() : null,
+                entity.getOrdenProduccion() != null ? entity.getOrdenProduccion().getId() : null,
+                entity.getEjecucionBatch() != null ? entity.getEjecucionBatch().getId() : null,
                 entity.getTipoMedicion(),
                 entity.getReferencia(),
                 entity.getBrix(),

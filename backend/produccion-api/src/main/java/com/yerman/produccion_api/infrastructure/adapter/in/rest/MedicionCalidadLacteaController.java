@@ -41,4 +41,12 @@ public class MedicionCalidadLacteaController {
                 .map(MedicionCalidadLacteaRestMapper::toResponse)
                 .toList();
     }
+
+    @GetMapping("/orden/{idOrdenProduccion}")
+    public List<MedicionCalidadLacteaResponse> listarPorOrden(@PathVariable Long idOrdenProduccion) {
+        return useCase.listarPorOrden(idOrdenProduccion)
+                .stream()
+                .map(MedicionCalidadLacteaRestMapper::toResponse)
+                .toList();
+    }
 }

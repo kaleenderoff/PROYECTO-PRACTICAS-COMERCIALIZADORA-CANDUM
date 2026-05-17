@@ -10,6 +10,8 @@ public class MedicionCalidadLacteaResponse {
     private Long id;
     private Long idProduccionLactea;
     private Long idProduccionLacteaBatch;
+    private Long idOrdenProduccion;
+    private Long idEjecucionBatch;
     private TipoMedicionCalidadLactea tipoMedicion;
     private String referencia;
     private BigDecimal brix;
@@ -19,11 +21,14 @@ public class MedicionCalidadLacteaResponse {
     private String observaciones;
 
     public MedicionCalidadLacteaResponse(Long id, Long idProduccionLactea, Long idProduccionLacteaBatch,
+            Long idOrdenProduccion, Long idEjecucionBatch,
             TipoMedicionCalidadLactea tipoMedicion, String referencia, BigDecimal brix, BigDecimal ph,
             LocalDateTime fechaHoraMedicion, Long idUsuarioCalidad, String observaciones) {
         this.id = id;
         this.idProduccionLactea = idProduccionLactea;
         this.idProduccionLacteaBatch = idProduccionLacteaBatch;
+        this.idOrdenProduccion = idOrdenProduccion;
+        this.idEjecucionBatch = idEjecucionBatch;
         this.tipoMedicion = tipoMedicion;
         this.referencia = referencia;
         this.brix = brix;
@@ -43,6 +48,14 @@ public class MedicionCalidadLacteaResponse {
 
     public Long getIdProduccionLacteaBatch() {
         return idProduccionLacteaBatch;
+    }
+
+    public Long getIdOrdenProduccion() {
+        return idOrdenProduccion;
+    }
+
+    public Long getIdEjecucionBatch() {
+        return idEjecucionBatch;
     }
 
     public TipoMedicionCalidadLactea getTipoMedicion() {

@@ -8,4 +8,6 @@ import java.util.List;
 public interface MedicionCalidadLacteaJpaRepository extends JpaRepository<MedicionCalidadLacteaEntity, Long> {
 
     List<MedicionCalidadLacteaEntity> findByProduccionLacteaIdOrderByFechaHoraMedicionDesc(Long idProduccionLactea);
+
+    List<MedicionCalidadLacteaEntity> findByOrdenProduccionIdOrderByFechaHoraMedicionDesc(Long idOrdenProduccion);
 }

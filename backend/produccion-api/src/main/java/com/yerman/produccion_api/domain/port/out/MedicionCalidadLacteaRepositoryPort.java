@@ -12,4 +12,6 @@ public interface MedicionCalidadLacteaRepositoryPort {
     Optional<MedicionCalidadLactea> obtenerPorId(Long id);
 
     List<MedicionCalidadLactea> listarPorProduccion(Long idProduccionLactea);
+
+    List<MedicionCalidadLactea> listarPorOrden(Long idOrdenProduccion);
 }

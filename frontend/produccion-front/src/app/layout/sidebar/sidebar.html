@@ -98,13 +98,24 @@
                 </div>
             </a>
 
-            <!-- Modulo 4: Reportes -->
+            <!-- Modulo 4: Calidad -->
+            <a *ngIf="authService.isGerencia() || authService.isJefeProduccion() || authService.isAuxiliarCalidad()"
+               routerLink="/mediciones-calidad-lactea" routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20"
+               class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-900 hover:text-white transition-all group mb-1">
+                <i class="bi bi-clipboard-pulse text-lg text-violet-500"></i>
+                <div class="flex flex-col leading-tight">
+                    <span class="font-bold text-sm">4. Calidad</span>
+                    <span class="text-[9px] text-slate-500 group-hover:text-slate-400">Brix y pH</span>
+                </div>
+            </a>
+
+            <!-- Modulo 5: Reportes -->
             <a *ngIf="authService.isGerencia() || authService.isJefeProduccion()"
                routerLink="/dashboard" routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" 
                class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-900 hover:text-white transition-all group">
                 <i class="bi bi-bar-chart-line text-lg text-indigo-500"></i>
                 <div class="flex flex-col leading-tight">
-                    <span class="font-bold text-sm">4. Reportes</span>
+                    <span class="font-bold text-sm">5. Reportes</span>
                     <span class="text-[9px] text-slate-500 group-hover:text-slate-400">Estadísticas y Gerencia</span>
                 </div>
             </a>

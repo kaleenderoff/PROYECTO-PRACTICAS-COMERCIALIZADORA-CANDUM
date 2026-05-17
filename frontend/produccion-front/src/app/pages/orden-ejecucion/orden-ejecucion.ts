@@ -304,6 +304,11 @@ export class OrdenEjecucion implements OnInit {
   }
 
   finalizarOrden(): void {
+    if (!this.orden?.idTanqueLeche) {
+      this.notification.warning('Debe seleccionar el tanque de leche descremada en el detalle de la orden antes de finalizar.');
+      return;
+    }
+
     if (this.totalBatchesActivos > 0) {
       this.notification.warning('No se puede finalizar la orden con batches activos.');
       return;

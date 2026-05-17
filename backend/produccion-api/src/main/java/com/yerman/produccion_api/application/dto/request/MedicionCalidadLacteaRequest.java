@@ -11,10 +11,13 @@ import java.time.LocalDateTime;
 
 public class MedicionCalidadLacteaRequest {
 
-    @NotNull
     private Long idProduccionLactea;
 
     private Long idProduccionLacteaBatch;
+
+    private Long idOrdenProduccion;
+
+    private Long idEjecucionBatch;
 
     @NotNull
     private TipoMedicionCalidadLactea tipoMedicion;
@@ -51,6 +54,22 @@ public class MedicionCalidadLacteaRequest {
 
     public void setIdProduccionLacteaBatch(Long idProduccionLacteaBatch) {
         this.idProduccionLacteaBatch = idProduccionLacteaBatch;
+    }
+
+    public Long getIdOrdenProduccion() {
+        return idOrdenProduccion;
+    }
+
+    public void setIdOrdenProduccion(Long idOrdenProduccion) {
+        this.idOrdenProduccion = idOrdenProduccion;
+    }
+
+    public Long getIdEjecucionBatch() {
+        return idEjecucionBatch;
+    }
+
+    public void setIdEjecucionBatch(Long idEjecucionBatch) {
+        this.idEjecucionBatch = idEjecucionBatch;
     }
 
     public TipoMedicionCalidadLactea getTipoMedicion() {

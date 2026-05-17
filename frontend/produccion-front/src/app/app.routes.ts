@@ -28,6 +28,7 @@ import { OrdenesProduccion } from './pages/ordenes-produccion/ordenes-produccion
 
 import { OrdenProduccionDetalle } from './pages/orden-produccion-detalle/orden-produccion-detalle';
 import { OrdenEjecucion } from './pages/orden-ejecucion/orden-ejecucion';
+import { MedicionesCalidadLactea } from './pages/mediciones-calidad-lactea/mediciones-calidad-lactea';
 
 export const routes: Routes = [
 
@@ -150,6 +151,12 @@ export const routes: Routes = [
             {
                 path: 'ordenes-produccion/:id/ejecutar',
                 component: OrdenEjecucion,
+                canActivate: [authGuard]
+            },
+
+            {
+                path: 'mediciones-calidad-lactea',
+                component: MedicionesCalidadLactea,
                 canActivate: [authGuard]
             },
 

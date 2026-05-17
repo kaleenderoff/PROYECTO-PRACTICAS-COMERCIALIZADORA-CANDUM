@@ -4,6 +4,8 @@ import com.yerman.produccion_api.application.mapper.MedicionCalidadLacteaMapper;
 import com.yerman.produccion_api.domain.model.MedicionCalidadLactea;
 import com.yerman.produccion_api.domain.port.out.MedicionCalidadLacteaRepositoryPort;
 import com.yerman.produccion_api.infrastructure.entity.MedicionCalidadLacteaEntity;
+import com.yerman.produccion_api.infrastructure.entity.EjecucionBatchEntity;
+import com.yerman.produccion_api.infrastructure.entity.OrdenProduccionEntity;
 import com.yerman.produccion_api.infrastructure.entity.ProduccionLacteaBatchEntity;
 import com.yerman.produccion_api.infrastructure.entity.ProduccionLacteaEntity;
 import com.yerman.produccion_api.infrastructure.entity.UsuarioEntity;
@@ -48,6 +50,14 @@ public class MedicionCalidadLacteaJpaAdapter implements MedicionCalidadLacteaRep
                 .toList();
     }
 
+    @Override
+    public List<MedicionCalidadLactea> listarPorOrden(Long idOrdenProduccion) {
+        return repository.findByOrdenProduccionIdOrderByFechaHoraMedicionDesc(idOrdenProduccion)
+                .stream()
+                .map(MedicionCalidadLacteaMapper::toDomain)
+                .toList();
+    }
+
     private MedicionCalidadLacteaEntity toEntity(MedicionCalidadLactea medicion) {
         MedicionCalidadLacteaEntity entity = new MedicionCalidadLacteaEntity();
 
@@ -59,14 +69,28 @@ public class MedicionCalidadLacteaJpaAdapter implements MedicionCalidadLacteaRep
         entity.setFechaHoraMedicion(medicion.getFechaHoraMedicion());
         entity.setObservaciones(medicion.getObservaciones());
 
-        entity.setProduccionLactea(entityManager.getReference(
-                ProduccionLacteaEntity.class,
-                medicion.getIdProduccionLactea()));
+        if (medicion.getIdProduccionLactea() != null) {
+            entity.setProduccionLactea(entityManager.getReference(
+                    ProduccionLacteaEntity.class,
+                    medicion.getIdProduccionLactea()));
+        }
 
         if (medicion.getIdProduccionLacteaBatch() != null) {
             entity.setProduccionLacteaBatch(entityManager.getReference(
                     ProduccionLacteaBatchEntity.class,
                     medicion.getIdProduccionLacteaBatch()));
+        }
+
+        if (medicion.getIdOrdenProduccion() != null) {
+            entity.setOrdenProduccion(entityManager.getReference(
+                    OrdenProduccionEntity.class,
+                    medicion.getIdOrdenProduccion()));
+        }
+
+        if (medicion.getIdEjecucionBatch() != null) {
+            entity.setEjecucionBatch(entityManager.getReference(
+                    EjecucionBatchEntity.class,
+                    medicion.getIdEjecucionBatch()));
         }
 
         entity.setUsuarioCalidad(entityManager.getReference(

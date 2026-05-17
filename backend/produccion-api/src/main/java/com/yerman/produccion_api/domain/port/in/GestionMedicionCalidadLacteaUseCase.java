@@ -11,4 +11,6 @@ public interface GestionMedicionCalidadLacteaUseCase {
     MedicionCalidadLactea obtenerPorId(Long id);
 
     List<MedicionCalidadLactea> listarPorProduccion(Long idProduccionLactea);
+
+    List<MedicionCalidadLactea> listarPorOrden(Long idOrdenProduccion);
 }

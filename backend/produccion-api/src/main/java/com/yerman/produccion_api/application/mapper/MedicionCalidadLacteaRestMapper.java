@@ -17,6 +17,8 @@ public class MedicionCalidadLacteaRestMapper {
         MedicionCalidadLactea medicion = new MedicionCalidadLactea();
         medicion.setIdProduccionLactea(request.getIdProduccionLactea());
         medicion.setIdProduccionLacteaBatch(request.getIdProduccionLacteaBatch());
+        medicion.setIdOrdenProduccion(request.getIdOrdenProduccion());
+        medicion.setIdEjecucionBatch(request.getIdEjecucionBatch());
         medicion.setTipoMedicion(request.getTipoMedicion());
         medicion.setReferencia(request.getReferencia());
         medicion.setBrix(request.getBrix());
@@ -37,6 +39,8 @@ public class MedicionCalidadLacteaRestMapper {
                 medicion.getId(),
                 medicion.getIdProduccionLactea(),
                 medicion.getIdProduccionLacteaBatch(),
+                medicion.getIdOrdenProduccion(),
+                medicion.getIdEjecucionBatch(),
                 medicion.getTipoMedicion(),
                 medicion.getReferencia(),
                 medicion.getBrix(),

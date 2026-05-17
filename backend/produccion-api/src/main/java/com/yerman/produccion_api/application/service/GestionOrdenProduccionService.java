@@ -1,4 +1,4 @@
-﻿package com.yerman.produccion_api.application.service;
+package com.yerman.produccion_api.application.service;
 
 import com.yerman.produccion_api.domain.model.EstadoOrdenProduccion;
 import com.yerman.produccion_api.domain.model.OrdenProduccion;
@@ -207,13 +207,13 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
 
     private void impactarInventario(OrdenProduccion orden) {
         if (orden.getIdTanqueLeche() == null) {
-            LOGGER.info("No se especifico tanque de origen para la orden {}. No se descuentan litros.", orden.getNumeroOrden());
-            return;
+            throw new ReglaNegocioException(
+                    "Debe seleccionar el tanque de leche descremada antes de finalizar la orden.");
         }
 
         if (orden.getKgEntradaReal() == null || orden.getKgEntradaReal().compareTo(BigDecimal.ZERO) <= 0) {
-            LOGGER.info("No hay entrada real registrada para la orden {}. No se descuentan litros.", orden.getNumeroOrden());
-            return;
+            throw new ReglaNegocioException(
+                    "No hay entrada real registrada para descontar leche del tanque.");
         }
 
         // ConversiÃ³n Kg -> Litros (Densidad Leche ~1.03 kg/L)
@@ -224,20 +224,14 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
         String referencia = "ORDEN-" + orden.getNumeroOrden();
         String obs = "Consumo automÃ¡tico por finalizaciÃ³n de orden de producciÃ³n.";
 
-        try {
-            movimientoLecheUseCase.registrarMovimiento(
-                    orden.getIdTanqueLeche(),
-                    com.yerman.produccion_api.domain.model.TipoMovimientoLeche.SALIDA_PRODUCCION,
-                    litrosConsumidos,
-                    orden.getIdJefeLineaEjecutor() != null ? orden.getIdJefeLineaEjecutor() : 1L,
-                    referencia,
-                    obs);
-            LOGGER.info("Descuento de {} L realizado del tanque ID: {}", litrosConsumidos, orden.getIdTanqueLeche());
-        } catch (Exception e) {
-            LOGGER.error("Error al descontar litros para la orden {}.", orden.getNumeroOrden(), e);
-            // No lanzamos excepciÃ³n para no bloquear la finalizaciÃ³n de la orden,
-            // pero en un entorno real esto deberÃ­a ser atÃ³mico o generar una alerta.
-        }
+        movimientoLecheUseCase.registrarMovimiento(
+                orden.getIdTanqueLeche(),
+                com.yerman.produccion_api.domain.model.TipoMovimientoLeche.SALIDA_PRODUCCION,
+                litrosConsumidos,
+                orden.getIdJefeLineaEjecutor() != null ? orden.getIdJefeLineaEjecutor() : 1L,
+                referencia,
+                obs);
+        LOGGER.info("Descuento de {} L realizado del tanque ID: {}", litrosConsumidos, orden.getIdTanqueLeche());
     }
 
     @Override

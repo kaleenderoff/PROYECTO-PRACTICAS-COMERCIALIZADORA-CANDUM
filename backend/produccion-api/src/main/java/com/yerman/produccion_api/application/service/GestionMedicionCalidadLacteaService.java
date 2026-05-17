@@ -5,7 +5,9 @@ import com.yerman.produccion_api.application.exception.ReglaNegocioException;
 import com.yerman.produccion_api.domain.model.MedicionCalidadLactea;
 import com.yerman.produccion_api.domain.port.in.GestionMedicionCalidadLacteaUseCase;
 import com.yerman.produccion_api.domain.port.in.GestionProduccionLacteaUseCase;
+import com.yerman.produccion_api.domain.port.out.EjecucionBatchRepositoryPort;
 import com.yerman.produccion_api.domain.port.out.MedicionCalidadLacteaRepositoryPort;
+import com.yerman.produccion_api.domain.port.out.OrdenProduccionRepositoryPort;
 import com.yerman.produccion_api.domain.port.out.ProduccionLacteaBatchRepositoryPort;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -20,14 +22,20 @@ public class GestionMedicionCalidadLacteaService implements GestionMedicionCalid
     private final MedicionCalidadLacteaRepositoryPort repository;
     private final GestionProduccionLacteaUseCase produccionLacteaUseCase;
     private final ProduccionLacteaBatchRepositoryPort batchRepositoryPort;
+    private final OrdenProduccionRepositoryPort ordenRepositoryPort;
+    private final EjecucionBatchRepositoryPort ejecucionBatchRepositoryPort;
 
     public GestionMedicionCalidadLacteaService(
             MedicionCalidadLacteaRepositoryPort repository,
             GestionProduccionLacteaUseCase produccionLacteaUseCase,
-            ProduccionLacteaBatchRepositoryPort batchRepositoryPort) {
+            ProduccionLacteaBatchRepositoryPort batchRepositoryPort,
+            OrdenProduccionRepositoryPort ordenRepositoryPort,
+            EjecucionBatchRepositoryPort ejecucionBatchRepositoryPort) {
         this.repository = repository;
         this.produccionLacteaUseCase = produccionLacteaUseCase;
         this.batchRepositoryPort = batchRepositoryPort;
+        this.ordenRepositoryPort = ordenRepositoryPort;
+        this.ejecucionBatchRepositoryPort = ejecucionBatchRepositoryPort;
     }
 
     @Override
@@ -54,22 +62,56 @@ public class GestionMedicionCalidadLacteaService implements GestionMedicionCalid
         return repository.listarPorProduccion(idProduccionLactea);
     }
 
+    @Override
+    public List<MedicionCalidadLactea> listarPorOrden(Long idOrdenProduccion) {
+        if (idOrdenProduccion == null) {
+            throw new ReglaNegocioException("La orden de produccion es obligatoria.");
+        }
+
+        ordenRepositoryPort.obtenerPorId(idOrdenProduccion)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No existe una orden de produccion con ID: " + idOrdenProduccion));
+
+        return repository.listarPorOrden(idOrdenProduccion);
+    }
+
     private void validarMedicion(MedicionCalidadLactea medicion) {
         if (medicion == null) {
             throw new ReglaNegocioException("La medicion de calidad es obligatoria.");
         }
 
-        if (medicion.getIdProduccionLactea() == null) {
-            throw new ReglaNegocioException("La produccion lactea es obligatoria.");
+        boolean tieneProduccionLactea = medicion.getIdProduccionLactea() != null;
+        boolean tieneOrdenProduccion = medicion.getIdOrdenProduccion() != null;
+
+        if (!tieneProduccionLactea && !tieneOrdenProduccion) {
+            throw new ReglaNegocioException("Debe asociar la medicion a una produccion lactea o a una orden de produccion.");
         }
 
-        produccionLacteaUseCase.obtenerPorId(medicion.getIdProduccionLactea());
+        if (tieneProduccionLactea) {
+            produccionLacteaUseCase.obtenerPorId(medicion.getIdProduccionLactea());
+        }
 
         if (medicion.getIdProduccionLacteaBatch() != null
                 && !batchRepositoryPort.existePorIdYProduccion(
                         medicion.getIdProduccionLacteaBatch(),
                         medicion.getIdProduccionLactea())) {
             throw new ReglaNegocioException("El batch no pertenece a la produccion lactea indicada.");
+        }
+
+        if (tieneOrdenProduccion) {
+            ordenRepositoryPort.obtenerPorId(medicion.getIdOrdenProduccion())
+                    .orElseThrow(() -> new RecursoNoEncontradoException(
+                            "No existe una orden de produccion con ID: " + medicion.getIdOrdenProduccion()));
+        }
+
+        if (medicion.getIdEjecucionBatch() != null) {
+            var batch = ejecucionBatchRepositoryPort.obtenerPorId(medicion.getIdEjecucionBatch())
+                    .orElseThrow(() -> new RecursoNoEncontradoException(
+                            "No existe un batch de ejecucion con ID: " + medicion.getIdEjecucionBatch()));
+
+            if (tieneOrdenProduccion && !medicion.getIdOrdenProduccion().equals(batch.getIdOrdenProduccion())) {
+                throw new ReglaNegocioException("El batch no pertenece a la orden de produccion indicada.");
+            }
         }
 
         if (medicion.getTipoMedicion() == null) {

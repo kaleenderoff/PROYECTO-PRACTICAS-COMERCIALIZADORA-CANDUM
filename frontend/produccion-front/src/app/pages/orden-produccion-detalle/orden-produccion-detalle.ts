@@ -7,6 +7,7 @@ import {
   OrdenProduccionService
 } from '../../core/services/orden-produccion';
 import { RecepcionLecheService, SaldoTanqueLeche } from '../../core/services/recepcion-leche';
+import { AuthService } from '../../core/services/auth';
 
 @Component({
   selector: 'app-orden-produccion-detalle',
@@ -25,7 +26,8 @@ export class OrdenProduccionDetalle implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private ordenService: OrdenProduccionService,
-    private recepcionService: RecepcionLecheService
+    private recepcionService: RecepcionLecheService,
+    private authService: AuthService
   ) { }
 
   ngOnInit(): void {
@@ -60,7 +62,11 @@ export class OrdenProduccionDetalle implements OnInit {
     // pero como el servicio pide un ID de jefe ejecutor, y el backend ya maneja 
     // seguridad, aquí pasamos un ID genérico o el del usuario si lo tuviéramos.
     // Usaremos el idUsuario del AuthService si fuera necesario.
-    const idJefe = 1; // Simplificación para demo
+    const idJefe = this.authService.getIdUsuario();
+    if (!idJefe) {
+      this.error = 'No se pudo identificar el usuario autenticado.';
+      return;
+    }
 
     this.cargando = true;
     this.ordenService.iniciar(this.orden.id, idJefe).subscribe({
@@ -77,6 +83,11 @@ export class OrdenProduccionDetalle implements OnInit {
 
   finalizarOrden(): void {
     if (!this.orden) return;
+
+    if (!this.orden.idTanqueLeche) {
+      this.error = 'Seleccione el tanque de leche descremada antes de finalizar la orden.';
+      return;
+    }
     
     this.cargando = true;
     this.ordenService.finalizar(this.orden.id).subscribe({
@@ -85,7 +96,7 @@ export class OrdenProduccionDetalle implements OnInit {
         this.cargando = false;
       },
       error: (err) => {
-        this.error = 'No se pudo finalizar la orden.';
+        this.error = err.error?.message || 'No se pudo finalizar la orden.';
         this.cargando = false;
       }
     });

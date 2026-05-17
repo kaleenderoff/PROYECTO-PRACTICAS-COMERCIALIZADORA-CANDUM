@@ -15,12 +15,20 @@ public class MedicionCalidadLacteaEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_produccion_lactea", nullable = false)
+    @JoinColumn(name = "id_produccion_lactea")
     private ProduccionLacteaEntity produccionLactea;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_produccion_lactea_batch")
     private ProduccionLacteaBatchEntity produccionLacteaBatch;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_orden_produccion")
+    private OrdenProduccionEntity ordenProduccion;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_ejecucion_batch")
+    private EjecucionBatchEntity ejecucionBatch;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_medicion", nullable = false, length = 20)
@@ -63,6 +71,14 @@ public class MedicionCalidadLacteaEntity {
         return produccionLacteaBatch;
     }
 
+    public OrdenProduccionEntity getOrdenProduccion() {
+        return ordenProduccion;
+    }
+
+    public EjecucionBatchEntity getEjecucionBatch() {
+        return ejecucionBatch;
+    }
+
     public TipoMedicionCalidadLactea getTipoMedicion() {
         return tipoMedicion;
     }
@@ -101,6 +117,14 @@ public class MedicionCalidadLacteaEntity {
 
     public void setProduccionLacteaBatch(ProduccionLacteaBatchEntity produccionLacteaBatch) {
         this.produccionLacteaBatch = produccionLacteaBatch;
+    }
+
+    public void setOrdenProduccion(OrdenProduccionEntity ordenProduccion) {
+        this.ordenProduccion = ordenProduccion;
+    }
+
+    public void setEjecucionBatch(EjecucionBatchEntity ejecucionBatch) {
+        this.ejecucionBatch = ejecucionBatch;
     }
 
     public void setTipoMedicion(TipoMedicionCalidadLactea tipoMedicion) {
