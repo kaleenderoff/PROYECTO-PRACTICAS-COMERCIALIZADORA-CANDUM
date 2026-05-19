@@ -81,6 +81,34 @@ public interface DashboardJpaRepository extends Repository<ProductoTerminadoLact
 
     @Query(value = """
                 SELECT
+                    CASE
+                        WHEN DAY(o.fecha_produccion) <= 7 THEN 1
+                        WHEN DAY(o.fecha_produccion) <= 14 THEN 2
+                        WHEN DAY(o.fecha_produccion) <= 21 THEN 3
+                        WHEN DAY(o.fecha_produccion) <= 28 THEN 4
+                        ELSE 5
+                    END AS semana,
+                    SUM(COALESCE(e.kg_reproceso, 0)) AS kgReproceso
+                FROM ejecucion_produccion e
+                JOIN orden_produccion o ON o.id = e.id_orden
+                WHERE MONTH(o.fecha_produccion) = :mes
+                  AND YEAR(o.fecha_produccion) = :anio
+                GROUP BY semana
+            """, nativeQuery = true)
+    List<Object[]> obtenerReprocesoSemanalGerencial(@Param("mes") int mes, @Param("anio") int anio);
+
+    @Query(value = """
+                SELECT
+                    SUM(COALESCE(e.kg_reproceso, 0)) AS kgReproceso
+                FROM ejecucion_produccion e
+                JOIN orden_produccion o ON o.id = e.id_orden
+                WHERE MONTH(o.fecha_produccion) = :mes
+                  AND YEAR(o.fecha_produccion) = :anio
+            """, nativeQuery = true)
+    java.math.BigDecimal obtenerReprocesoMensualGerencial(@Param("mes") int mes, @Param("anio") int anio);
+
+    @Query(value = """
+                SELECT
                     pt.lote AS lote,
                     pt.producto AS producto,
                     p.fecha_produccion AS fechaProduccion,

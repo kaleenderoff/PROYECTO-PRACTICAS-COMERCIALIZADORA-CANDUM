@@ -20,11 +20,11 @@ spring:
     baseline-description: "baseline esquema actual"
 
 jwt:
-  secret: yerman-produccion-secret-key-2024
-  expiration: 86400000
+  secret: ${JWT_SECRET:yerman-produccion-secret-key-2024}
+  expiration: ${JWT_EXPIRATION:86400000}
 
 server:
-  port: 8082
+  port: ${SERVER_PORT:8082}
   servlet:
     context-path: /api
   timezone: America/Bogota

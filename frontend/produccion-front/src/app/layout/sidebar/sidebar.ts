@@ -13,4 +13,18 @@ export class Sidebar {
 
   constructor(public authService: AuthService) { }
 
+  numeroModuloProduccion(modulo: 'programacion' | 'ordenes' | 'ejecucion' | 'calidad' | 'reportes'): number {
+    const modulos = [
+      { clave: 'programacion', visible: this.authService.canManageProgramacion() },
+      { clave: 'ordenes', visible: this.authService.canReadOperaciones() },
+      { clave: 'ejecucion', visible: this.authService.canReadOperaciones() },
+      { clave: 'calidad', visible: this.authService.canReadCalidad() },
+      { clave: 'reportes', visible: this.authService.canViewReportes() }
+    ];
+
+    return modulos
+      .filter(item => item.visible)
+      .findIndex(item => item.clave === modulo) + 1;
+  }
+
 }

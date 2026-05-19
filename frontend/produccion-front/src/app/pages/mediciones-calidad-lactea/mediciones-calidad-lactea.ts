@@ -53,7 +53,7 @@ export class MedicionesCalidadLactea implements OnInit {
     private batchService: EjecucionBatchService,
     private medicionService: MedicionCalidadLacteaService,
     private controlCalidadService: ControlCalidadLacteaService,
-    private authService: AuthService,
+    public authService: AuthService,
     private notification: NotificationService
   ) { }
 
@@ -149,6 +149,8 @@ export class MedicionesCalidadLactea implements OnInit {
   }
 
   registrar(): void {
+    if (!this.authService.canWriteCalidad()) return;
+
     const idUsuarioCalidad = this.authService.getIdUsuario();
 
     if (!this.idOrdenSeleccionada) {
@@ -211,6 +213,8 @@ export class MedicionesCalidadLactea implements OnInit {
   }
 
   registrarProceso(): void {
+    if (!this.authService.canWriteCalidad()) return;
+
     const idRealizadoPor = this.authService.getIdUsuario();
     if (!this.validarBase(idRealizadoPor)) return;
 
@@ -239,6 +243,8 @@ export class MedicionesCalidadLactea implements OnInit {
   }
 
   registrarPeso(): void {
+    if (!this.authService.canWriteCalidad()) return;
+
     const idRealizadoPor = this.authService.getIdUsuario();
     if (!this.validarBase(idRealizadoPor)) return;
 

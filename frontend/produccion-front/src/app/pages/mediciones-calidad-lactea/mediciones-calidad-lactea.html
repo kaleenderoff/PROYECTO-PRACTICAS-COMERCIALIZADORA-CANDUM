@@ -69,10 +69,9 @@
     </div>
 
     <div *ngIf="pestanaActiva === 'rapida'" class="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
-            <h3 class="text-lg font-black text-slate-900 mb-6 flex items-center gap-2">
-                <i class="bi bi-whatsapp text-emerald-600"></i>
-                Registro tipo WhatsApp
+        <div *ngIf="authService.canWriteCalidad()" class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+            <h3 class="text-lg font-black text-slate-900 mb-6">
+                Registro de medición rápida
             </h3>
 
             <div class="space-y-5">
@@ -121,7 +120,7 @@
     </div>
 
     <div *ngIf="pestanaActiva === 'proceso'" class="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        <div class="xl:col-span-2 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+        <div *ngIf="authService.canWriteCalidad()" class="xl:col-span-2 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
             <h3 class="text-lg font-black text-slate-900 mb-6">Formato de variables de calidad en proceso</h3>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <input type="date" [(ngModel)]="procesoForm.fechaProduccion" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
@@ -174,7 +173,7 @@
     </div>
 
     <div *ngIf="pestanaActiva === 'peso'" class="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        <div class="xl:col-span-2 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+        <div *ngIf="authService.canWriteCalidad()" class="xl:col-span-2 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
             <h3 class="text-lg font-black text-slate-900 mb-6">Control de peso y producto terminado</h3>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <input type="date" [(ngModel)]="pesoForm.fechaControl" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">

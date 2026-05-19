@@ -93,6 +93,68 @@ export class AuthService {
     return rol === 'ADMIN' || rol === 'DUENO_EMPRESA' || rol === 'JEFE_PLANTA';
   }
 
+  hasAnyRole(roles: string[]): boolean {
+    return roles.includes(this.getRol());
+  }
+
+  canReadOperaciones(): boolean {
+    return this.hasAnyRole([
+      'ADMIN',
+      'JEFE_LINEA',
+      'JEFE_PRODUCCION',
+      'JEFE_PLANTA',
+      'DUENO_EMPRESA'
+    ]);
+  }
+
+  canReadRecepcionLeche(): boolean {
+    return this.canReadOperaciones() || this.isAuxiliarCalidad();
+  }
+
+  canWriteOperaciones(): boolean {
+    return this.hasAnyRole(['ADMIN', 'JEFE_LINEA']);
+  }
+
+  canManageProgramacion(): boolean {
+    return this.hasAnyRole(['ADMIN', 'JEFE_PRODUCCION']);
+  }
+
+  canViewCatalogosTecnicos(): boolean {
+    return this.hasAnyRole([
+      'ADMIN',
+      'JEFE_PRODUCCION',
+      'JEFE_PLANTA',
+      'DUENO_EMPRESA'
+    ]);
+  }
+
+  canManageCatalogosTecnicos(): boolean {
+    return this.hasAnyRole(['ADMIN', 'JEFE_PRODUCCION']);
+  }
+
+  canViewReportes(): boolean {
+    return this.hasAnyRole([
+      'ADMIN',
+      'JEFE_PRODUCCION',
+      'JEFE_PLANTA',
+      'DUENO_EMPRESA'
+    ]);
+  }
+
+  canReadCalidad(): boolean {
+    return this.hasAnyRole([
+      'ADMIN',
+      'AUXILIAR_CALIDAD',
+      'JEFE_PRODUCCION',
+      'JEFE_PLANTA',
+      'DUENO_EMPRESA'
+    ]);
+  }
+
+  canWriteCalidad(): boolean {
+    return this.hasAnyRole(['ADMIN', 'AUXILIAR_CALIDAD']);
+  }
+
   logout(): void {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.userKey);

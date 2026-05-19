@@ -91,7 +91,7 @@
                                     <i class="bi bi-eye"></i>
                                 </a>
                                 
-                                <a *ngIf="orden.estado === 'PROGRAMADA' || orden.estado === 'EN_EJECUCION'"
+                                <a *ngIf="authService.canWriteOperaciones() && (orden.estado === 'PROGRAMADA' || orden.estado === 'EN_EJECUCION')"
                                    [routerLink]="['/ordenes-produccion', orden.id, 'ejecutar']"
                                    title="Gestionar Ejecución"
                                    class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl shadow-md shadow-amber-900/10 transition-all font-bold text-xs flex items-center gap-2">
@@ -99,7 +99,7 @@
                                     {{ orden.estado === 'EN_EJECUCION' ? 'Continuar' : 'Ejecutar' }}
                                 </a>
 
-                                <button *ngIf="orden.estado === 'EN_EJECUCION'" 
+                                <button *ngIf="authService.canWriteOperaciones() && orden.estado === 'EN_EJECUCION'" 
                                         (click)="finalizarOrden(orden)"
                                         title="Finalizar Proceso"
                                         class="p-2.5 bg-emerald-50 hover:bg-emerald-600 text-emerald-600 hover:text-white rounded-xl transition-all shadow-sm border border-emerald-100 hover:border-emerald-600">
@@ -116,7 +116,7 @@
                     <i class="bi bi-clipboard-x text-4xl"></i>
                 </div>
                 <p class="text-slate-500 font-medium">No se encontraron órdenes de producción</p>
-                <button routerLink="/programacion-produccion/nueva" class="mt-4 text-amber-600 text-sm font-bold hover:underline">Programar nueva orden</button>
+                <button *ngIf="authService.canManageProgramacion()" routerLink="/programacion-produccion/nueva" class="mt-4 text-amber-600 text-sm font-bold hover:underline">Programar nueva orden</button>
             </div>
         </div>
 

@@ -69,6 +69,8 @@ export class Skus implements OnInit {
     }
 
     guardarSku(): void {
+        if (!this.authService.canManageCatalogosTecnicos()) return;
+
         this.limpiarMensajes();
 
         if (!this.nuevoSku.codigoSku.trim() || !this.nuevoSku.idProducto || !this.nuevoSku.idMarca) {
@@ -84,6 +86,8 @@ export class Skus implements OnInit {
     }
 
     crearSku(): void {
+        if (!this.authService.canManageCatalogosTecnicos()) return;
+
         this.catalogoService.crearSku(this.nuevoSku).subscribe({
             next: () => {
                 this.mensajeOk = 'SKU creado correctamente.';
@@ -95,6 +99,8 @@ export class Skus implements OnInit {
     }
 
     editarSku(sku: any): void {
+        if (!this.authService.canManageCatalogosTecnicos()) return;
+
         this.limpiarMensajes();
         this.modoEdicion = true;
         this.idSkuEditando = sku.id;
@@ -116,6 +122,8 @@ export class Skus implements OnInit {
     }
 
     actualizarSku(): void {
+        if (!this.authService.canManageCatalogosTecnicos()) return;
+
         if (!this.idSkuEditando) return;
 
         this.catalogoService.actualizarSku(this.idSkuEditando, this.nuevoSku).subscribe({
@@ -129,6 +137,8 @@ export class Skus implements OnInit {
     }
 
     toggleEstado(sku: any): void {
+        if (!this.authService.canManageCatalogosTecnicos()) return;
+
         const body = { ...sku, activo: !sku.activo };
         this.catalogoService.actualizarSku(sku.id, body).subscribe({
             next: () => {

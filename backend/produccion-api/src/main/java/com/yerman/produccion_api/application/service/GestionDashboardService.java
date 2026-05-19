@@ -46,9 +46,8 @@ public class GestionDashboardService implements GestionDashboardUseCase {
         DashboardGerencialResponse.ResumenMesGerencial resumen = repository.obtenerResumenMensualGerencial(mes, anio);
         List<DashboardGerencialResponse.SemanaGerencialResponse> tablaSemanal = repository.obtenerDetalleSemanalGerencial(mes, anio);
 
-        // Calculate Average Yields (Simplified for now)
-        BigDecimal rendDL = new BigDecimal("46.5"); 
-        BigDecimal rendLC = new BigDecimal("43.8"); 
+        BigDecimal rendDL = promedioRendimientoDulceLeche(tablaSemanal);
+        BigDecimal rendLC = promedioRendimientoLecheCondensada(tablaSemanal);
 
         DashboardGerencialResponse.KpisRendimiento kpis = new DashboardGerencialResponse.KpisRendimiento(
                 rendDL,
@@ -60,6 +59,31 @@ public class GestionDashboardService implements GestionDashboardUseCase {
         );
 
         return new DashboardGerencialResponse(resumen, tablaSemanal, kpis);
+    }
+
+    private BigDecimal promedioRendimientoDulceLeche(List<DashboardGerencialResponse.SemanaGerencialResponse> tablaSemanal) {
+        List<BigDecimal> valores = tablaSemanal.stream()
+                .map(DashboardGerencialResponse.SemanaGerencialResponse::rend1DulceLeche)
+                .filter(valor -> valor != null && valor.compareTo(BigDecimal.ZERO) > 0)
+                .toList();
+        return promedio(valores);
+    }
+
+    private BigDecimal promedioRendimientoLecheCondensada(List<DashboardGerencialResponse.SemanaGerencialResponse> tablaSemanal) {
+        List<BigDecimal> valores = tablaSemanal.stream()
+                .map(DashboardGerencialResponse.SemanaGerencialResponse::rendLecheCondensada)
+                .filter(valor -> valor != null && valor.compareTo(BigDecimal.ZERO) > 0)
+                .toList();
+        return promedio(valores);
+    }
+
+    private BigDecimal promedio(List<BigDecimal> valores) {
+        if (valores.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+
+        BigDecimal total = valores.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        return total.divide(BigDecimal.valueOf(valores.size()), 2, java.math.RoundingMode.HALF_UP);
     }
 
     private String evaluarEstado(BigDecimal actual, BigDecimal meta) {

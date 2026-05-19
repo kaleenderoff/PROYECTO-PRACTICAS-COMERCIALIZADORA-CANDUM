@@ -11,4 +11,8 @@ public interface DescremadoRecepcionJpaRepository extends JpaRepository<Descrema
     List<DescremadoRecepcionEntity> findByRecepcionLecheIdOrderByIdDesc(Long idRecepcionLeche);
 
     List<DescremadoRecepcionEntity> findByRecepcionLecheFechaRecepcionOrderByIdDesc(LocalDate fechaRecepcion);
+
+    List<DescremadoRecepcionEntity> findByRecepcionLecheFechaRecepcionBetweenOrderByRecepcionLecheFechaRecepcionAscIdAsc(
+            LocalDate inicio,
+            LocalDate fin);
 }

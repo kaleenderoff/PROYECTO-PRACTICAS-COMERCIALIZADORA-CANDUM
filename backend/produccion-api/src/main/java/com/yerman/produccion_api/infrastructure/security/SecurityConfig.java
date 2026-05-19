@@ -86,9 +86,7 @@ public class SecurityConfig {
                                 ROL_JEFE_PRODUCCION)
 
                         .requestMatchers("/usuarios/**")
-                        .hasAnyRole(
-                                ROL_ADMIN,
-                                ROL_DUENO_EMPRESA)
+                        .hasRole(ROL_ADMIN)
 
                         // CATALOGOS
                         .requestMatchers(HttpMethod.GET, "/catalogos/**")
@@ -97,20 +95,50 @@ public class SecurityConfig {
                         .requestMatchers("/catalogos/**")
                         .hasAnyRole(
                                 ROL_ADMIN,
-                                ROL_DUENO_EMPRESA,
-                                ROL_JEFE_PLANTA,
                                 ROL_JEFE_PRODUCCION)
 
-                        // PROGRAMACIONES Y FORMULAS
-                        .requestMatchers("/programaciones/**", "/formulas/**", "/programacion-skus/**")
+                        // FORMULAS
+                        .requestMatchers(HttpMethod.GET, "/formulas/**")
                         .hasAnyRole(
                                 ROL_ADMIN,
                                 ROL_DUENO_EMPRESA,
                                 ROL_JEFE_PLANTA,
+                                ROL_JEFE_PRODUCCION,
+                                ROL_JEFE_LINEA,
+                                ROL_AUXILIAR_CALIDAD)
+
+                        .requestMatchers("/formulas/**")
+                        .hasAnyRole(
+                                ROL_ADMIN,
                                 ROL_JEFE_PRODUCCION)
 
-                        // RECEPCION LECHE, DESCREMADO, MOVIMIENTOS
-                        .requestMatchers("/recepciones-leche/**", "/descremados-recepcion/**", "/movimientos-leche/**")
+                        // PROGRAMACIONES
+                        .requestMatchers(HttpMethod.GET, "/programaciones/**", "/programacion-skus/**")
+                        .hasAnyRole(
+                                ROL_ADMIN,
+                                ROL_DUENO_EMPRESA,
+                                ROL_JEFE_PLANTA,
+                                ROL_JEFE_PRODUCCION,
+                                ROL_JEFE_LINEA,
+                                ROL_AUXILIAR_CALIDAD)
+
+                        .requestMatchers("/programaciones/**", "/programacion-skus/**")
+                        .hasAnyRole(
+                                ROL_ADMIN,
+                                ROL_JEFE_PRODUCCION)
+
+                        // RECEPCION LECHE
+                        .requestMatchers(HttpMethod.GET, "/recepciones-leche/**")
+                        .hasAnyRole(
+                                ROL_ADMIN,
+                                ROL_DUENO_EMPRESA,
+                                ROL_JEFE_PLANTA,
+                                ROL_JEFE_PRODUCCION,
+                                ROL_JEFE_LINEA,
+                                ROL_AUXILIAR_CALIDAD)
+
+                        // DESCREMADO Y MOVIMIENTOS
+                        .requestMatchers(HttpMethod.GET, "/descremados-recepcion/**", "/movimientos-leche/**")
                         .hasAnyRole(
                                 ROL_ADMIN,
                                 ROL_DUENO_EMPRESA,
@@ -118,8 +146,13 @@ public class SecurityConfig {
                                 ROL_JEFE_PRODUCCION,
                                 ROL_JEFE_LINEA)
 
+                        .requestMatchers("/recepciones-leche/**", "/descremados-recepcion/**", "/movimientos-leche/**")
+                        .hasAnyRole(
+                                ROL_ADMIN,
+                                ROL_JEFE_LINEA)
+
                         // TANQUES
-                        .requestMatchers("/tanques-leche/**")
+                        .requestMatchers(HttpMethod.GET, "/tanques-leche/**")
                         .hasAnyRole(
                                 ROL_ADMIN,
                                 ROL_DUENO_EMPRESA,
@@ -128,27 +161,26 @@ public class SecurityConfig {
                                 ROL_JEFE_LINEA,
                                 ROL_AUXILIAR_CALIDAD)
 
+                        .requestMatchers("/tanques-leche/**")
+                        .hasRole(ROL_ADMIN)
+
                         // CONSULTA DE ORDENES Y EJECUCION
-                        .requestMatchers(HttpMethod.GET, "/ordenes-produccion/**", "/ejecucion-batch/**")
+                        .requestMatchers(HttpMethod.GET, "/ordenes-produccion/**", "/ejecucion-batch/**", "/producciones-lactea/**")
                         .hasAnyRole(
                                 ROL_ADMIN,
                                 ROL_DUENO_EMPRESA,
                                 ROL_JEFE_PLANTA,
                                 ROL_JEFE_PRODUCCION,
-                                ROL_JEFE_LINEA,
-                                ROL_AUXILIAR_CALIDAD)
+                                ROL_JEFE_LINEA)
 
                         // ORDENES Y EJECUCION
                         .requestMatchers("/ordenes-produccion/**", "/ejecucion-batch/**", "/producciones-lactea/**")
                         .hasAnyRole(
                                 ROL_ADMIN,
-                                ROL_DUENO_EMPRESA,
-                                ROL_JEFE_PLANTA,
-                                ROL_JEFE_PRODUCCION,
                                 ROL_JEFE_LINEA)
 
                         // CALIDAD
-                        .requestMatchers("/mediciones-calidad-lactea/**", "/controles-calidad-lactea/**")
+                        .requestMatchers(HttpMethod.GET, "/mediciones-calidad-lactea/**", "/controles-calidad-lactea/**")
                         .hasAnyRole(
                                 ROL_ADMIN,
                                 ROL_DUENO_EMPRESA,
@@ -156,8 +188,13 @@ public class SecurityConfig {
                                 ROL_JEFE_PRODUCCION,
                                 ROL_AUXILIAR_CALIDAD)
 
+                        .requestMatchers("/mediciones-calidad-lactea/**", "/controles-calidad-lactea/**")
+                        .hasAnyRole(
+                                ROL_ADMIN,
+                                ROL_AUXILIAR_CALIDAD)
+
                         // EMPAQUE Y OTROS PROCESOS MES
-                        .requestMatchers(
+                        .requestMatchers(HttpMethod.GET,
                                 "/empaques-lacteos/**",
                                 "/productos-terminados-lacteos/**",
                                 "/registros-insumo-lacteo/**",
@@ -168,6 +205,12 @@ public class SecurityConfig {
                                 ROL_DUENO_EMPRESA,
                                 ROL_JEFE_PLANTA,
                                 ROL_JEFE_PRODUCCION)
+
+                        .requestMatchers(
+                                "/empaques-lacteos/**",
+                                "/productos-terminados-lacteos/**",
+                                "/registros-insumo-lacteo/**")
+                        .hasRole(ROL_ADMIN)
 
                         // DASHBOARD GENERAL
                         .requestMatchers("/dashboard/**")

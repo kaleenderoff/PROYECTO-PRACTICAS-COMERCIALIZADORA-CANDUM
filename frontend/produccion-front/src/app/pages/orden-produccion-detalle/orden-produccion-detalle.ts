@@ -27,7 +27,7 @@ export class OrdenProduccionDetalle implements OnInit {
     private router: Router,
     private ordenService: OrdenProduccionService,
     private recepcionService: RecepcionLecheService,
-    private authService: AuthService
+    public authService: AuthService
   ) { }
 
   ngOnInit(): void {
@@ -56,6 +56,8 @@ export class OrdenProduccionDetalle implements OnInit {
   }
 
   iniciarEjecucion(): void {
+    if (!this.authService.canWriteOperaciones()) return;
+
     if (!this.orden) return;
     
     // Para simplificar, usamos el ID del usuario actual si estuviera disponible, 
@@ -82,6 +84,8 @@ export class OrdenProduccionDetalle implements OnInit {
   }
 
   finalizarOrden(): void {
+    if (!this.authService.canWriteOperaciones()) return;
+
     if (!this.orden) return;
 
     if (!this.orden.idTanqueLeche) {
@@ -103,6 +107,8 @@ export class OrdenProduccionDetalle implements OnInit {
   }
 
   registrarBatch(): void {
+    if (!this.authService.canWriteOperaciones()) return;
+
     if (!this.orden) return;
     this.router.navigate([`/ordenes-produccion/${this.orden.id}/ejecutar`]);
   }
@@ -126,6 +132,8 @@ export class OrdenProduccionDetalle implements OnInit {
   }
 
   cambiarTanque(event: any): void {
+    if (!this.authService.canWriteOperaciones()) return;
+
     const idTanque = Number(event.target.value);
     if (!this.orden || !idTanque) return;
 

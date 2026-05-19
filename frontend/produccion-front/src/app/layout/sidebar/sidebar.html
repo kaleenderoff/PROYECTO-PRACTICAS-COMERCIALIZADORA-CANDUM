@@ -26,34 +26,35 @@
         <div class="pt-4">
             <p class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-2">Operaciones</p>
             
-            <a *ngIf="authService.isGerencia() || authService.isJefeProduccion() || authService.isJefeLinea()" 
+            <a *ngIf="authService.canReadRecepcionLeche()" 
                routerLink="/recepcion-leche" routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" 
                class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-900 hover:text-white transition-all group">
                 <i class="bi bi-truck text-lg"></i>
                 <span class="font-medium">Recepción Leche</span>
             </a>
 
-            <a routerLink="/descremado" routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" 
+            <a *ngIf="authService.canReadOperaciones()"
+               routerLink="/descremado" routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" 
                class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-900 hover:text-white transition-all group">
                 <i class="bi bi-water text-lg"></i>
                 <span class="font-medium">Descremado</span>
             </a>
 
-            <a *ngIf="authService.isJefeProduccion() || authService.isGerencia()" 
+            <a *ngIf="authService.canViewCatalogosTecnicos()" 
                routerLink="/insumos" routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" 
                class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-900 hover:text-white transition-all group">
                 <i class="bi bi-box-seam text-lg"></i>
                 <span class="font-medium">Insumos</span>
             </a>
 
-            <a *ngIf="authService.isJefeProduccion() || authService.isGerencia()" 
+            <a *ngIf="authService.canViewCatalogosTecnicos()" 
                routerLink="/formulas" routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" 
                class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-900 hover:text-white transition-all group">
                 <i class="bi bi-list-check text-lg"></i>
                 <span class="font-medium">Fórmulas</span>
             </a>
 
-            <a *ngIf="authService.isJefeProduccion() || authService.isGerencia()" 
+            <a *ngIf="authService.canViewCatalogosTecnicos()" 
                routerLink="/skus" routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" 
                class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-900 hover:text-white transition-all group">
                 <i class="bi bi-tags text-lg"></i>
@@ -66,56 +67,56 @@
             <p class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-2">Producción MES</p>
             
             <!-- Modulo 1: Programación -->
-            <a *ngIf="authService.isGerencia() || authService.isJefeProduccion()"
+            <a *ngIf="authService.canManageProgramacion()"
                routerLink="/programacion-produccion/nueva" routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" 
                class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-900 hover:text-white transition-all group mb-1">
                 <i class="bi bi-calendar-event text-lg text-amber-500"></i>
                 <div class="flex flex-col leading-tight">
-                    <span class="font-bold text-sm">1. Programación</span>
+                    <span class="font-bold text-sm">{{ numeroModuloProduccion('programacion') }}. Programación</span>
                     <span class="text-[9px] text-slate-500 group-hover:text-slate-400">Jefe de Producción</span>
                 </div>
             </a>
 
             <!-- Modulo 2: Órdenes -->
-            <a *ngIf="authService.isGerencia() || authService.isJefeProduccion() || authService.isJefeLinea()"
+            <a *ngIf="authService.canReadOperaciones()"
                routerLink="/ordenes-produccion" routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" 
                class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-900 hover:text-white transition-all group mb-1">
                 <i class="bi bi-clipboard-check text-lg text-blue-500"></i>
                 <div class="flex flex-col leading-tight">
-                    <span class="font-bold text-sm">2. Órdenes</span>
+                    <span class="font-bold text-sm">{{ numeroModuloProduccion('ordenes') }}. Órdenes</span>
                     <span class="text-[9px] text-slate-500 group-hover:text-slate-400">Jefe de Línea (Planes)</span>
                 </div>
             </a>
 
             <!-- Modulo 3: Ejecución -->
-            <a *ngIf="authService.isGerencia() || authService.isJefeProduccion() || authService.isJefeLinea()"
+            <a *ngIf="authService.canReadOperaciones()"
                routerLink="/ejecucion-produccion" routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" 
                class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-900 hover:text-white transition-all group mb-1">
                 <i class="bi bi-play-circle text-lg text-emerald-500"></i>
                 <div class="flex flex-col leading-tight">
-                    <span class="font-bold text-sm">3. Ejecución</span>
+                    <span class="font-bold text-sm">{{ numeroModuloProduccion('ejecucion') }}. Ejecución</span>
                     <span class="text-[9px] text-slate-500 group-hover:text-slate-400">Trazabilidad e Historial</span>
                 </div>
             </a>
 
             <!-- Modulo 4: Calidad -->
-            <a *ngIf="authService.isGerencia() || authService.isJefeProduccion() || authService.isAuxiliarCalidad()"
+            <a *ngIf="authService.canReadCalidad()"
                routerLink="/mediciones-calidad-lactea" routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20"
                class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-900 hover:text-white transition-all group mb-1">
                 <i class="bi bi-clipboard-pulse text-lg text-violet-500"></i>
                 <div class="flex flex-col leading-tight">
-                    <span class="font-bold text-sm">4. Calidad</span>
+                    <span class="font-bold text-sm">{{ numeroModuloProduccion('calidad') }}. Calidad</span>
                     <span class="text-[9px] text-slate-500 group-hover:text-slate-400">Brix y pH</span>
                 </div>
             </a>
 
             <!-- Modulo 5: Reportes -->
-            <a *ngIf="authService.isGerencia() || authService.isJefeProduccion()"
+            <a *ngIf="authService.canViewReportes()"
                routerLink="/dashboard" routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" 
                class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-900 hover:text-white transition-all group">
                 <i class="bi bi-bar-chart-line text-lg text-indigo-500"></i>
                 <div class="flex flex-col leading-tight">
-                    <span class="font-bold text-sm">5. Reportes</span>
+                    <span class="font-bold text-sm">{{ numeroModuloProduccion('reportes') }}. Reportes</span>
                     <span class="text-[9px] text-slate-500 group-hover:text-slate-400">Estadísticas y Gerencia</span>
                 </div>
             </a>

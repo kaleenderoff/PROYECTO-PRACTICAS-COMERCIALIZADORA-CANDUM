@@ -96,6 +96,8 @@ export class Formulas implements OnInit {
     }
 
     crearFormula(): void {
+        if (!this.authService.canManageCatalogosTecnicos()) return;
+
         if (!this.idProducto || !this.nuevaFormula.nombre.trim()) return;
 
         const body = {
@@ -143,6 +145,8 @@ export class Formulas implements OnInit {
     }
 
     crearVersion(): void {
+        if (!this.authService.canManageCatalogosTecnicos()) return;
+
         this.limpiarMensajes();
 
         if (!this.idFormula) {
@@ -207,6 +211,8 @@ export class Formulas implements OnInit {
     }
 
     puedeEditarFormula(): boolean {
+        if (!this.authService.canManageCatalogosTecnicos()) return false;
+
         if (!this.formulaSeleccionada) return false;
 
         return !['VIGENTE', 'REEMPLAZADA', 'INACTIVA'].includes(
@@ -290,6 +296,8 @@ export class Formulas implements OnInit {
     }
 
     agregarDetalle(): void {
+        if (!this.authService.canManageCatalogosTecnicos()) return;
+
         this.limpiarMensajes();
 
         if (!this.idFormulaVersion || !this.nuevoDetalle.idInsumo) {
@@ -338,6 +346,8 @@ export class Formulas implements OnInit {
     }
 
     eliminarDetalle(detalle: any): void {
+        if (!this.authService.canManageCatalogosTecnicos()) return;
+
         this.limpiarMensajes();
 
         if (!this.puedeEditarFormula()) {
@@ -370,6 +380,8 @@ export class Formulas implements OnInit {
     }
 
     marcarVigente(): void {
+        if (!this.authService.canManageCatalogosTecnicos()) return;
+
         this.limpiarMensajes();
 
         if (!this.idFormulaVersion) return;

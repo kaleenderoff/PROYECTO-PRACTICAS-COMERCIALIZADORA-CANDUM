@@ -12,6 +12,7 @@ import {
   RecepcionLecheService,
   SaldoTanqueLeche
 } from '../../core/services/recepcion-leche';
+import { AuthService } from '../../core/services/auth';
 
 @Component({
   selector: 'app-descremado',
@@ -30,7 +31,8 @@ export class Descremado implements OnInit {
 
   constructor(
     private descremadoService: DescremadoService,
-    private recepcionLecheService: RecepcionLecheService
+    private recepcionLecheService: RecepcionLecheService,
+    public authService: AuthService
   ) { }
 
   ngOnInit(): void {

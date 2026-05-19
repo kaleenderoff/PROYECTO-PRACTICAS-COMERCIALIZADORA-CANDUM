@@ -9,6 +9,7 @@ import {
 } from '../../core/services/recepcion-leche';
 
 import { FormsModule } from '@angular/forms';
+import { AuthService } from '../../core/services/auth';
 
 @Component({
   selector: 'app-recepcion-leche',
@@ -31,7 +32,10 @@ export class RecepcionLeche implements OnInit {
   promedioLitros = 0;
   maxLitros = 1; // Para la escala visual
 
-  constructor(private service: RecepcionLecheService) { }
+  constructor(
+    private service: RecepcionLecheService,
+    public authService: AuthService
+  ) { }
 
   ngOnInit(): void {
     this.cargarDatos();

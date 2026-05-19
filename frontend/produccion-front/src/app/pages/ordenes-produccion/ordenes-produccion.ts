@@ -6,6 +6,7 @@ import {
   OrdenProduccionResponse,
   OrdenProduccionService
 } from '../../core/services/orden-produccion';
+import { AuthService } from '../../core/services/auth';
 
 @Component({
   selector: 'app-ordenes-produccion',
@@ -21,7 +22,8 @@ export class OrdenesProduccion implements OnInit {
   error = '';
 
   constructor(
-    private ordenService: OrdenProduccionService
+    private ordenService: OrdenProduccionService,
+    public authService: AuthService
   ) { }
 
   ngOnInit(): void {
@@ -46,6 +48,10 @@ export class OrdenesProduccion implements OnInit {
   }
 
   finalizarOrden(orden: OrdenProduccionResponse): void {
+    if (!this.authService.canWriteOperaciones()) {
+      return;
+    }
+
     if (!confirm(`¿Desea finalizar la orden ${orden.numeroOrden}?`)) {
       return;
     }

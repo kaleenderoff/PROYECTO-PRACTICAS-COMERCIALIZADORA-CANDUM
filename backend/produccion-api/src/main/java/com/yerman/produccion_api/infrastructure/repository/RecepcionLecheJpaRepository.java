@@ -10,5 +10,9 @@ public interface RecepcionLecheJpaRepository extends JpaRepository<RecepcionLech
 
     List<RecepcionLecheEntity> findByFechaRecepcionOrderByIdDesc(LocalDate fechaRecepcion);
 
+    List<RecepcionLecheEntity> findByFechaRecepcionBetweenOrderByFechaRecepcionAscIdAsc(
+            LocalDate inicio,
+            LocalDate fin);
+
     List<RecepcionLecheEntity> findByProveedorContainingIgnoreCaseOrderByIdDesc(String proveedor);
 }
