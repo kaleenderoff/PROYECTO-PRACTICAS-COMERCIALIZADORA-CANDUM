@@ -12,6 +12,8 @@ public interface ReporteProduccionDiariaJpaRepository extends JpaRepository<Repo
 
     List<ReporteProduccionDiariaEntity> findByFechaBetweenOrderByFechaAsc(LocalDate start, LocalDate end);
 
+    void deleteByFechaAndFuente(LocalDate fecha, String fuente);
+
     @Query("SELECT r FROM ReporteProduccionDiariaEntity r WHERE r.fecha BETWEEN :start AND :end AND r.tipoProducto = :tipo ORDER BY r.fecha ASC")
     List<ReporteProduccionDiariaEntity> findByFechaBetweenAndTipo(@Param("start") LocalDate start, @Param("end") LocalDate end, @Param("tipo") ReporteProduccionDiariaEntity.TipoProducto tipo);
 }

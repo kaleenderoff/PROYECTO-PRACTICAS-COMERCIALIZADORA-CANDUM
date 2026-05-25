@@ -31,6 +31,9 @@ public class RecepcionLecheRequest {
     @NotNull
     private Long idUsuario;
 
+    @NotNull
+    private Long idTanque;
+
     @Size(max = 60)
     private String numeroRemision;
 
@@ -89,6 +92,14 @@ public class RecepcionLecheRequest {
 
     public void setIdUsuario(Long idUsuario) {
         this.idUsuario = idUsuario;
+    }
+
+    public Long getIdTanque() {
+        return idTanque;
+    }
+
+    public void setIdTanque(Long idTanque) {
+        this.idTanque = idTanque;
     }
 
     public String getNumeroRemision() {

@@ -16,6 +16,7 @@ public class EjecucionBatch {
     private String observaciones;
     private Boolean huboReproceso;
     private Boolean batchConforme;
+    private BigDecimal brixFinal;
     private LocalDateTime fechaInicio;
     private LocalDateTime fechaFin;
 
@@ -28,7 +29,7 @@ public class EjecucionBatch {
     public EjecucionBatch(Long id, Long idOrdenProduccion, Integer numeroBatch, Long idMarmita, 
                          BigDecimal kgEntrada, BigDecimal kgProducidos, BigDecimal rendimientoPct, 
                          EstadoBatch estado, String observaciones, Boolean huboReproceso, Boolean batchConforme,
-                         LocalDateTime fechaInicio, LocalDateTime fechaFin) {
+                         BigDecimal brixFinal, LocalDateTime fechaInicio, LocalDateTime fechaFin) {
         this.id = id;
         this.idOrdenProduccion = idOrdenProduccion;
         this.numeroBatch = numeroBatch;
@@ -40,6 +41,7 @@ public class EjecucionBatch {
         this.observaciones = observaciones;
         this.huboReproceso = huboReproceso;
         this.batchConforme = batchConforme;
+        this.brixFinal = brixFinal;
         this.fechaInicio = fechaInicio;
         this.fechaFin = fechaFin;
     }
@@ -80,6 +82,9 @@ public class EjecucionBatch {
 
     public Boolean getBatchConforme() { return batchConforme; }
     public void setBatchConforme(Boolean batchConforme) { this.batchConforme = batchConforme; }
+
+    public BigDecimal getBrixFinal() { return brixFinal; }
+    public void setBrixFinal(BigDecimal brixFinal) { this.brixFinal = brixFinal; }
 
     public LocalDateTime getFechaInicio() { return fechaInicio; }
     public void setFechaInicio(LocalDateTime fechaInicio) { this.fechaInicio = fechaInicio; }

@@ -2,6 +2,7 @@ package com.yerman.produccion_api.infrastructure.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -35,17 +36,20 @@ public class SecurityConfig {
     private static final String ROL_AUXILIAR_CALIDAD = "AUXILIAR_CALIDAD";
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final AuditoriaHttpFilter auditoriaHttpFilter;
     private final UserDetailsService userDetailsService;
     private final JwtAuthenticationEntryPoint authenticationEntryPoint;
     private final JwtAccessDeniedHandler accessDeniedHandler;
 
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthenticationFilter,
+            AuditoriaHttpFilter auditoriaHttpFilter,
             UserDetailsService userDetailsService,
             JwtAuthenticationEntryPoint authenticationEntryPoint,
             JwtAccessDeniedHandler accessDeniedHandler) {
 
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.auditoriaHttpFilter = auditoriaHttpFilter;
         this.userDetailsService = userDetailsService;
         this.authenticationEntryPoint = authenticationEntryPoint;
         this.accessDeniedHandler = accessDeniedHandler;
@@ -144,7 +148,8 @@ public class SecurityConfig {
                                 ROL_DUENO_EMPRESA,
                                 ROL_JEFE_PLANTA,
                                 ROL_JEFE_PRODUCCION,
-                                ROL_JEFE_LINEA)
+                                ROL_JEFE_LINEA,
+                                ROL_AUXILIAR_CALIDAD)
 
                         .requestMatchers("/recepciones-leche/**", "/descremados-recepcion/**", "/movimientos-leche/**")
                         .hasAnyRole(
@@ -171,7 +176,8 @@ public class SecurityConfig {
                                 ROL_DUENO_EMPRESA,
                                 ROL_JEFE_PLANTA,
                                 ROL_JEFE_PRODUCCION,
-                                ROL_JEFE_LINEA)
+                                ROL_JEFE_LINEA,
+                                ROL_AUXILIAR_CALIDAD)
 
                         // ORDENES Y EJECUCION
                         .requestMatchers("/ordenes-produccion/**", "/ejecucion-batch/**", "/producciones-lactea/**")
@@ -220,6 +226,26 @@ public class SecurityConfig {
                                 ROL_JEFE_PLANTA,
                                 ROL_JEFE_PRODUCCION)
 
+                        // VALIDACION FORMAL DE ORDENES
+                        .requestMatchers(HttpMethod.GET, "/validaciones-orden-produccion/**")
+                        .hasAnyRole(
+                                ROL_ADMIN,
+                                ROL_DUENO_EMPRESA,
+                                ROL_JEFE_PLANTA,
+                                ROL_JEFE_PRODUCCION)
+
+                        .requestMatchers("/validaciones-orden-produccion/**")
+                        .hasAnyRole(
+                                ROL_ADMIN,
+                                ROL_JEFE_PRODUCCION)
+
+                        // AUDITORIA
+                        .requestMatchers(HttpMethod.GET, "/auditoria/**")
+                        .hasAnyRole(
+                                ROL_ADMIN,
+                                ROL_DUENO_EMPRESA,
+                                ROL_JEFE_PLANTA)
+
                         // TODO LO DEMAS
                         .anyRequest().authenticated())
 
@@ -227,9 +253,21 @@ public class SecurityConfig {
 
                 .addFilterBefore(
                         jwtAuthenticationFilter,
-                        UsernamePasswordAuthenticationFilter.class);
+                        UsernamePasswordAuthenticationFilter.class)
+
+                .addFilterAfter(
+                        auditoriaHttpFilter,
+                        JwtAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public FilterRegistrationBean<AuditoriaHttpFilter> auditoriaHttpFilterRegistration(
+            AuditoriaHttpFilter filter) {
+        FilterRegistrationBean<AuditoriaHttpFilter> registration = new FilterRegistrationBean<>(filter);
+        registration.setEnabled(false);
+        return registration;
     }
 
     @Bean
@@ -250,8 +288,8 @@ public class SecurityConfig {
     @Bean
     public AuthenticationProvider authenticationProvider() {
 
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
-
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder());
 
         return provider;

@@ -53,7 +53,9 @@ export class Descremado implements OnInit {
 
             this.descremadoService.listar().subscribe({
               next: (data) => {
-                this.descremados = data;
+                this.descremados = data.slice().sort((a, b) =>
+                  this.fechaOrdenable(b).localeCompare(this.fechaOrdenable(a))
+                );
                 this.cargando = false;
               },
               error: (err) => {
@@ -114,5 +116,9 @@ export class Descremado implements OnInit {
     if (p >= 1 && p <= this.totalPaginas) {
       this.paginaActual = p;
     }
+  }
+
+  private fechaOrdenable(descremado: DescremadoRecepcion): string {
+    return `${descremado.createdAt || ''}-${String(descremado.id).padStart(8, '0')}`;
   }
 }

@@ -23,12 +23,14 @@ import { EjecucionProduccionForm } from './pages/ejecucion-produccion-form/ejecu
 import { ProgramacionProduccionForm } from './pages/programacion-produccion-form/programacion-produccion-form';
 
 import { Insumos } from './pages/insumos/insumos';
+import { Proveedores } from './pages/proveedores/proveedores';
 
 import { OrdenesProduccion } from './pages/ordenes-produccion/ordenes-produccion';
 
 import { OrdenProduccionDetalle } from './pages/orden-produccion-detalle/orden-produccion-detalle';
 import { OrdenEjecucion } from './pages/orden-ejecucion/orden-ejecucion';
 import { MedicionesCalidadLactea } from './pages/mediciones-calidad-lactea/mediciones-calidad-lactea';
+import { Auditoria } from './pages/auditoria/auditoria';
 
 const ADMIN = 'ADMIN';
 const DUENO_EMPRESA = 'DUENO_EMPRESA';
@@ -39,12 +41,14 @@ const AUXILIAR_CALIDAD = 'AUXILIAR_CALIDAD';
 
 const ROLES_OPERACION_LECTURA = [ADMIN, JEFE_LINEA, JEFE_PRODUCCION, JEFE_PLANTA, DUENO_EMPRESA];
 const ROLES_RECEPCION_LECHE_LECTURA = [ADMIN, JEFE_LINEA, JEFE_PRODUCCION, JEFE_PLANTA, DUENO_EMPRESA, AUXILIAR_CALIDAD];
-const ROLES_OPERACION_ESCRITURA = [ADMIN, JEFE_LINEA];
-const ROLES_PROGRAMACION_ESCRITURA = [ADMIN, JEFE_PRODUCCION];
+const ROLES_LINEA_ESCRITURA = [JEFE_LINEA];                    // Solo JEFE_LINEA crea recepciones y descremados
+const ROLES_OPERACION_ESCRITURA = [ADMIN, JEFE_LINEA];         // ADMIN + JEFE_LINEA pueden ejecutar/finalizar órdenes
+const ROLES_PROGRAMACION_ESCRITURA = [JEFE_PRODUCCION];
 const ROLES_CATALOGOS_TECNICOS = [ADMIN, JEFE_PRODUCCION, JEFE_PLANTA, DUENO_EMPRESA];
 const ROLES_REPORTES = [ADMIN, JEFE_PRODUCCION, JEFE_PLANTA, DUENO_EMPRESA];
-const ROLES_CALIDAD_LECTURA = [ADMIN, AUXILIAR_CALIDAD, JEFE_PRODUCCION, JEFE_PLANTA, DUENO_EMPRESA];
+const ROLES_CALIDAD_LECTURA = [ADMIN, AUXILIAR_CALIDAD, JEFE_PRODUCCION, JEFE_PLANTA, DUENO_EMPRESA, JEFE_LINEA];
 const ROLES_USUARIOS_ADMIN = [ADMIN];
+const ROLES_AUDITORIA = [ADMIN, JEFE_PLANTA, DUENO_EMPRESA];
 
 export const routes: Routes = [
 
@@ -82,7 +86,7 @@ export const routes: Routes = [
                 path: 'recepcion-leche/nueva',
                 component: RecepcionLecheForm,
                 canActivate: [authGuard],
-                data: { roles: ROLES_OPERACION_ESCRITURA }
+                data: { roles: ROLES_LINEA_ESCRITURA }
             },
 
             {
@@ -124,7 +128,14 @@ export const routes: Routes = [
                 path: 'descremado/nuevo',
                 component: DescremadoForm,
                 canActivate: [authGuard],
-                data: { roles: ROLES_OPERACION_ESCRITURA }
+                data: { roles: ROLES_LINEA_ESCRITURA }
+            },
+
+            {
+                path: 'proveedores',
+                component: Proveedores,
+                canActivate: [authGuard],
+                data: { roles: ROLES_CATALOGOS_TECNICOS }
             },
 
             {
@@ -192,6 +203,13 @@ export const routes: Routes = [
                 component: MedicionesCalidadLactea,
                 canActivate: [authGuard],
                 data: { roles: ROLES_CALIDAD_LECTURA }
+            },
+
+            {
+                path: 'auditoria',
+                component: Auditoria,
+                canActivate: [authGuard],
+                data: { roles: ROLES_AUDITORIA }
             },
 
         ]

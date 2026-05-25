@@ -35,7 +35,7 @@ public class EjecucionBatchController {
     @PatchMapping("/{id}/finalizar")
     public EjecucionBatchResponse finalizar(@PathVariable Long id, @RequestBody @Valid FinalizarBatchRequest request) {
         EjecucionBatch batch = useCase.finalizarBatch(id, request.kgProducidos(), request.observaciones(), 
-                request.conNovedad(), request.huboReproceso(), request.batchConforme());
+                request.conNovedad(), request.huboReproceso(), request.batchConforme(), request.brixFinal());
         return EjecucionBatchRestMapper.toResponse(batch);
     }
 

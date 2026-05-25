@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 
 import {
   OrdenProduccionResponse,
@@ -10,7 +11,7 @@ import { AuthService } from '../../core/services/auth';
 
 @Component({
   selector: 'app-ordenes-produccion',
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './ordenes-produccion.html',
   
 })
@@ -93,17 +94,28 @@ export class OrdenesProduccion implements OnInit {
     }
   }
 
-  // Paginación
+  // Paginación y Filtros
+  filtro = '';
   paginaActual = 1;
   itemsPorPagina = 10;
 
+  get ordenesFiltradas(): OrdenProduccionResponse[] {
+    const termino = this.filtro.toLowerCase().trim();
+    if (!termino) return this.ordenes;
+    return this.ordenes.filter(o =>
+      o.numeroOrden.toLowerCase().includes(termino) ||
+      (o.nombreProducto && o.nombreProducto.toLowerCase().includes(termino)) ||
+      o.estado.toLowerCase().includes(termino)
+    );
+  }
+
   get ordenesPaginadas(): OrdenProduccionResponse[] {
     const inicio = (this.paginaActual - 1) * this.itemsPorPagina;
-    return this.ordenes.slice(inicio, inicio + this.itemsPorPagina);
+    return this.ordenesFiltradas.slice(inicio, inicio + this.itemsPorPagina);
   }
 
   get totalPaginas(): number {
-    return Math.ceil(this.ordenes.length / this.itemsPorPagina);
+    return Math.ceil(this.ordenesFiltradas.length / this.itemsPorPagina);
   }
 
   get paginas(): number[] {

@@ -1,9 +1,13 @@
 package com.yerman.produccion_api.application.service;
 
 import com.yerman.produccion_api.domain.model.EstadoOrdenProduccion;
+import com.yerman.produccion_api.domain.model.EjecucionBatch;
 import com.yerman.produccion_api.domain.model.OrdenProduccion;
 import com.yerman.produccion_api.domain.model.ProgramacionProduccion;
+import com.yerman.produccion_api.domain.model.TipoMovimientoLeche;
+import com.yerman.produccion_api.domain.port.in.GestionMovimientoLecheUseCase;
 import com.yerman.produccion_api.domain.port.in.GestionOrdenProduccionUseCase;
+import com.yerman.produccion_api.domain.port.out.EjecucionBatchRepositoryPort;
 import com.yerman.produccion_api.domain.port.out.OrdenProduccionRepositoryPort;
 import com.yerman.produccion_api.domain.port.out.ProgramacionProduccionRepositoryPort;
 import com.yerman.produccion_api.application.dto.request.RegistrarProduccionSkuRequest;
@@ -11,6 +15,9 @@ import com.yerman.produccion_api.application.exception.RecursoDuplicadoException
 import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
 import com.yerman.produccion_api.application.exception.ReglaNegocioException;
 import com.yerman.produccion_api.infrastructure.repository.OrdenProduccionDetalleJpaRepository;
+import com.yerman.produccion_api.infrastructure.entity.OrdenProduccionDetalleEntity;
+import com.yerman.produccion_api.infrastructure.entity.ReporteProduccionDiariaEntity;
+import com.yerman.produccion_api.infrastructure.repository.ReporteProduccionDiariaJpaRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -21,7 +28,9 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class GestionOrdenProduccionService implements GestionOrdenProduccionUseCase {
@@ -31,31 +40,37 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
     private final OrdenProduccionRepositoryPort ordenRepository;
     private final ProgramacionProduccionRepositoryPort programacionRepository;
     private final OrdenProduccionDetalleJpaRepository detalleRepository;
-    private final com.yerman.produccion_api.domain.port.out.EjecucionBatchRepositoryPort batchRepository;
-    private final com.yerman.produccion_api.domain.port.in.GestionMovimientoLecheUseCase movimientoLecheUseCase;
+    private final EjecucionBatchRepositoryPort batchRepository;
+    private final GestionMovimientoLecheUseCase movimientoLecheUseCase;
+    private final ValidacionOrdenProduccionGuardService validacionGuardService;
+    private final ReporteProduccionDiariaJpaRepository reporteProduccionDiariaRepository;
 
     public GestionOrdenProduccionService(
             OrdenProduccionRepositoryPort ordenRepository,
             ProgramacionProduccionRepositoryPort programacionRepository,
             OrdenProduccionDetalleJpaRepository detalleRepository,
-            com.yerman.produccion_api.domain.port.out.EjecucionBatchRepositoryPort batchRepository,
-            com.yerman.produccion_api.domain.port.in.GestionMovimientoLecheUseCase movimientoLecheUseCase) {
+            EjecucionBatchRepositoryPort batchRepository,
+            GestionMovimientoLecheUseCase movimientoLecheUseCase,
+            ValidacionOrdenProduccionGuardService validacionGuardService,
+            ReporteProduccionDiariaJpaRepository reporteProduccionDiariaRepository) {
         this.ordenRepository = ordenRepository;
         this.programacionRepository = programacionRepository;
         this.detalleRepository = detalleRepository;
         this.batchRepository = batchRepository;
         this.movimientoLecheUseCase = movimientoLecheUseCase;
+        this.validacionGuardService = validacionGuardService;
+        this.reporteProduccionDiariaRepository = reporteProduccionDiariaRepository;
     }
 
     @Override
     public OrdenProduccion crearDesdeProgramacion(Long idProgramacion, Long idCreadaPor, String observaciones) {
         ProgramacionProduccion programacion = programacionRepository.obtenerPorId(idProgramacion)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
-                        "No existe una programaciÃ³n de producciÃ³n con ID: " + idProgramacion));
+                        "No existe una programacion de produccion con ID: " + idProgramacion));
 
         if (ordenRepository.existePorProgramacion(idProgramacion)) {
             throw new RecursoDuplicadoException(
-                    "Ya existe una orden de producciÃ³n para la programaciÃ³n con ID: " + idProgramacion);
+                    "Ya existe una orden de produccion para la programacion con ID: " + idProgramacion);
         }
 
         OrdenProduccion orden = new OrdenProduccion();
@@ -91,8 +106,10 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
     }
 
     @Override
+    @Transactional
     public OrdenProduccion iniciar(Long idOrden, Long idJefeLineaEjecutor) {
         OrdenProduccion orden = buscarOrden(idOrden);
+        validacionGuardService.validarOrdenNoAprobada(idOrden);
 
         if (orden.getEstado() != EstadoOrdenProduccion.PROGRAMADA) {
             throw new ReglaNegocioException("Solo se puede iniciar una orden en estado PROGRAMADA.");
@@ -110,13 +127,14 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
     public OrdenProduccion finalizar(Long idOrden) {
         LOGGER.info("Iniciando proceso de finalizacion para orden ID: {}", idOrden);
         OrdenProduccion orden = buscarOrden(idOrden);
+        validacionGuardService.validarOrdenNoAprobada(idOrden);
 
         if (orden.getEstado() != EstadoOrdenProduccion.EN_EJECUCION
                 && orden.getEstado() != EstadoOrdenProduccion.PROGRAMADA) {
             throw new ReglaNegocioException("Solo se puede finalizar una orden en estado PROGRAMADA o EN_EJECUCION.");
         }
 
-        // 1. Validar que todos los batches estÃ©n FINALIZADOS
+        // 1. Validar que todos los batches esten FINALIZADOS.
         var batches = batchRepository.listarPorOrden(idOrden);
 
         if (batches.isEmpty()) {
@@ -124,8 +142,7 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
         }
 
         boolean hayBatchesAbiertos = batches.stream()
-                .anyMatch(b -> b
-                        .getEstado() == com.yerman.produccion_api.domain.model.EjecucionBatch.EstadoBatch.EN_PROCESO);
+                .anyMatch(b -> b.getEstado() == EjecucionBatch.EstadoBatch.EN_PROCESO);
 
         if (hayBatchesAbiertos) {
             throw new ReglaNegocioException(
@@ -140,24 +157,23 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
 
         if (totalUnidadesReales.compareTo(BigDecimal.ZERO) <= 0) {
             throw new ReglaNegocioException(
-                    "No se puede finalizar la orden porque no se han registrado unidades reales producidas para ningÃºn SKU. Por favor, guarde los resultados de producciÃ³n al final de la pÃ¡gina.");
+                    "No se puede finalizar la orden porque no se han registrado unidades reales producidas para ningun SKU. Por favor, guarde los resultados de produccion al final de la pagina.");
         }
 
-        // 3. Consolidar batches (Asegurar que todos queden en estado FINALIZADO o
-        // CON_NOVEDAD)
+        // 3. Consolidar batches.
         // Esto ya se valida arriba, pero podemos asegurar que no haya nada PENDIENTE.
 
-        // 4. Calcular MÃ©tricas Reales Finales
+        // 4. Calcular metricas reales finales.
         BigDecimal kgEntradaReal = batches.stream()
                 .map(b -> b.getKgEntrada() != null ? b.getKgEntrada() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // A. ProducciÃ³n de proceso (Marmitas)
+        // A. Produccion de proceso (marmitas).
         BigDecimal kgProducidoBatches = batches.stream()
                 .map(b -> b.getKgProducidos() != null ? b.getKgProducidos() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // B. ProducciÃ³n empacada (SKUs)
+        // B. Produccion empacada (SKUs).
         BigDecimal kgPtReal = detalles.stream()
                 .map(d -> d.getCantidadReal() != null ? d.getCantidadReal() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -168,7 +184,7 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
 
         if (kgEntradaReal.compareTo(BigDecimal.ZERO) > 0) {
             // Rendimiento = (Kg Producido Batches / Kg Entrada) * 100
-            // Usamos la producciÃ³n de marmitas para medir eficiencia de cocciÃ³n
+            // Usamos la produccion de marmitas para medir eficiencia de coccion.
             BigDecimal rendimiento = kgProducidoBatches.multiply(new BigDecimal("100"))
                     .divide(kgEntradaReal, 2, RoundingMode.HALF_UP);
             orden.setRendimientoReal(rendimiento);
@@ -188,17 +204,17 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
         orden.setEstado(EstadoOrdenProduccion.FINALIZADA);
         orden.setFechaFinReal(LocalDateTime.now());
 
-        // Asegurar fecha de inicio si por alguna razÃ³n no se registrÃ³ automÃ¡ticamente
+        // Asegurar fecha de inicio si por alguna razon no se registro automaticamente.
         if (orden.getFechaInicioReal() == null) {
             LocalDateTime fechaPrimerBatch = batches.stream()
-                    .map(com.yerman.produccion_api.domain.model.EjecucionBatch::getFechaInicio)
+                    .map(EjecucionBatch::getFechaInicio)
                     .filter(java.util.Objects::nonNull)
                     .min(LocalDateTime::compareTo)
                     .orElse(LocalDateTime.now());
             orden.setFechaInicioReal(fechaPrimerBatch);
         }
 
-        // 5. Impactar Inventario (Consumo de insumos e incremento de PT)
+        // 5. Impactar inventario de leche disponible en tanque.
         impactarInventario(orden);
 
         LOGGER.info("Orden {} finalizada exitosamente.", orden.getNumeroOrden());
@@ -216,17 +232,17 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
                     "No hay entrada real registrada para descontar leche del tanque.");
         }
 
-        // ConversiÃ³n Kg -> Litros (Densidad Leche ~1.03 kg/L)
+        // Conversion Kg -> Litros (densidad leche ~1.03 kg/L).
         // Litros = Kg / 1.03
         BigDecimal litrosConsumidos = orden.getKgEntradaReal()
                 .divide(new BigDecimal("1.03"), 2, RoundingMode.HALF_UP);
 
         String referencia = "ORDEN-" + orden.getNumeroOrden();
-        String obs = "Consumo automÃ¡tico por finalizaciÃ³n de orden de producciÃ³n.";
+        String obs = "Consumo automatico por finalizacion de orden de produccion.";
 
         movimientoLecheUseCase.registrarMovimiento(
                 orden.getIdTanqueLeche(),
-                com.yerman.produccion_api.domain.model.TipoMovimientoLeche.SALIDA_PRODUCCION,
+                TipoMovimientoLeche.SALIDA_PRODUCCION,
                 litrosConsumidos,
                 orden.getIdJefeLineaEjecutor() != null ? orden.getIdJefeLineaEjecutor() : 1L,
                 referencia,
@@ -237,6 +253,7 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
     @Override
     public OrdenProduccion cancelar(Long idOrden, String observaciones) {
         OrdenProduccion orden = buscarOrden(idOrden);
+        validacionGuardService.validarOrdenNoAprobada(idOrden);
 
         if (orden.getEstado() == EstadoOrdenProduccion.FINALIZADA) {
             throw new ReglaNegocioException("No se puede cancelar una orden FINALIZADA.");
@@ -252,9 +269,10 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
     @Transactional
     public void registrarProduccionSku(Long idOrden, List<RegistrarProduccionSkuRequest> producciones) {
         OrdenProduccion orden = buscarOrden(idOrden);
+        validacionGuardService.validarOrdenNoAprobada(idOrden);
 
         if (orden.getEstado() == EstadoOrdenProduccion.FINALIZADA) {
-            throw new ReglaNegocioException("No se pueden registrar SKUs porque la orden ya estÃ¡ FINALIZADA.");
+            throw new ReglaNegocioException("No se pueden registrar SKUs porque la orden ya está FINALIZADA.");
         }
 
         for (RegistrarProduccionSkuRequest prod : producciones) {
@@ -272,11 +290,15 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
 
             detalleRepository.save(detalle);
         }
+
+        sincronizarReporteProduccionDiaria(orden.getFechaProduccion());
     }
 
     @Override
+    @Transactional
     public OrdenProduccion actualizarTanqueLeche(Long idOrden, Long idTanque) {
         OrdenProduccion orden = buscarOrden(idOrden);
+        validacionGuardService.validarOrdenNoAprobada(idOrden);
         if (orden.getEstado() == EstadoOrdenProduccion.FINALIZADA) {
             throw new ReglaNegocioException("No se puede cambiar el tanque de una orden ya finalizada.");
         }
@@ -287,11 +309,84 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
     private OrdenProduccion buscarOrden(Long idOrden) {
         return ordenRepository.obtenerPorId(idOrden)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
-                        "No existe una orden de producciÃ³n con ID: " + idOrden));
+                        "No existe una orden de produccion con ID: " + idOrden));
+    }
+
+    private void sincronizarReporteProduccionDiaria(LocalDate fechaProduccion) {
+        if (fechaProduccion == null) {
+            return;
+        }
+
+        List<OrdenProduccionDetalleEntity> detalles =
+                detalleRepository.findProduccionRealParaReporteDiario(fechaProduccion);
+
+        reporteProduccionDiariaRepository.deleteByFechaAndFuente(fechaProduccion, "SISTEMA");
+
+        Map<ReporteSkuKey, List<OrdenProduccionDetalleEntity>> agrupado = detalles.stream()
+                .collect(Collectors.groupingBy(this::crearKeyReporte));
+
+        List<ReporteProduccionDiariaEntity> reportes = agrupado.entrySet().stream()
+                .map(entry -> construirReporteDiario(fechaProduccion, entry.getKey(), entry.getValue()))
+                .toList();
+
+        reporteProduccionDiariaRepository.saveAll(reportes);
+        LOGGER.info("Reporte produccion diaria sincronizado para {} con {} SKUs.", fechaProduccion, reportes.size());
+    }
+
+    private ReporteSkuKey crearKeyReporte(OrdenProduccionDetalleEntity detalle) {
+        String descripcion = detalle.getSku().getDescripcion();
+        Integer pesoNeto = detalle.getSku().getPesoNetoGr();
+        ReporteProduccionDiariaEntity.TipoProducto tipo = inferirTipoProducto(
+                detalle.getSku().getProducto().getNombre(),
+                descripcion);
+        return new ReporteSkuKey(descripcion, pesoNeto, tipo);
+    }
+
+    private ReporteProduccionDiariaEntity construirReporteDiario(
+            LocalDate fechaProduccion,
+            ReporteSkuKey key,
+            List<OrdenProduccionDetalleEntity> detalles) {
+        int unidades = detalles.stream()
+                .map(OrdenProduccionDetalleEntity::getUnidadesReales)
+                .filter(java.util.Objects::nonNull)
+                .mapToInt(Integer::intValue)
+                .sum();
+
+        BigDecimal kilos = detalles.stream()
+                .map(OrdenProduccionDetalleEntity::getCantidadReal)
+                .filter(java.util.Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        ReporteProduccionDiariaEntity reporte = new ReporteProduccionDiariaEntity();
+        reporte.setFecha(fechaProduccion);
+        reporte.setSkuDescripcion(key.skuDescripcion());
+        reporte.setTipoProducto(key.tipoProducto());
+        reporte.setPesoNetoGr(key.pesoNetoGr());
+        reporte.setUnidadesReales(unidades);
+        reporte.setKgPtReales(kilos);
+        reporte.setFuente("SISTEMA");
+        return reporte;
+    }
+
+    private ReporteProduccionDiariaEntity.TipoProducto inferirTipoProducto(String producto, String sku) {
+        String texto = ((producto != null ? producto : "") + " " + (sku != null ? sku : "")).toUpperCase();
+        if (texto.contains("CONDENSADA") || texto.contains("LC")) {
+            return ReporteProduccionDiariaEntity.TipoProducto.LC;
+        }
+        if (texto.contains("DULCE") || texto.contains("DL") || texto.contains("AREQUIPE")) {
+            return ReporteProduccionDiariaEntity.TipoProducto.DL;
+        }
+        return ReporteProduccionDiariaEntity.TipoProducto.OTRO;
     }
 
     private String generarNumeroOrden(ProgramacionProduccion programacion) {
         return "OP-" + programacion.getFechaProduccion().toString().replace("-", "")
                 + "-" + programacion.getId();
+    }
+
+    private record ReporteSkuKey(
+            String skuDescripcion,
+            Integer pesoNetoGr,
+            ReporteProduccionDiariaEntity.TipoProducto tipoProducto) {
     }
 }

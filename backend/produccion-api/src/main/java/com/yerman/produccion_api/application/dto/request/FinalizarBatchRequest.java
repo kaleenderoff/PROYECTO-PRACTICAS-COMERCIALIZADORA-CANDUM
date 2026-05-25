@@ -8,5 +8,6 @@ public record FinalizarBatchRequest(
     String observaciones,
     Boolean conNovedad,
     Boolean huboReproceso,
-    Boolean batchConforme
+    Boolean batchConforme,
+    BigDecimal brixFinal
 ) {}

@@ -1,4 +1,49 @@
 <div class="space-y-8 animate-in fade-in duration-500 pb-20">
+    <ng-template #selectorTanqueOrden>
+        <div *ngIf="orden && !estaFinalizada"
+             class="bg-white p-6 rounded-[2rem] border shadow-sm transition-all"
+             [ngClass]="orden.idTanqueLeche ? 'border-blue-100' : 'border-amber-200 bg-amber-50/40'">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+                <div class="flex items-start gap-4">
+                    <div class="w-11 h-11 rounded-2xl flex items-center justify-center"
+                         [ngClass]="orden.idTanqueLeche ? 'bg-blue-50 text-blue-600' : 'bg-amber-100 text-amber-600'">
+                        <i class="bi bi-water text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-widest"
+                           [ngClass]="orden.idTanqueLeche ? 'text-blue-500' : 'text-amber-600'">
+                            Tanque de leche descremada
+                        </p>
+                        <h3 class="text-base font-black text-slate-900 mt-1">
+                            {{ orden.nombreTanqueLeche || 'Seleccione el tanque antes de finalizar' }}
+                        </h3>
+                        <p class="text-xs text-slate-500 font-medium mt-1">
+                            De este tanque se descontara la leche usada al cerrar la orden.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="w-full lg:w-96">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">
+                        Tanque origen
+                    </label>
+                    <div class="relative">
+                        <select [ngModel]="orden.idTanqueLeche || ''"
+                                (change)="cambiarTanqueOrden($event)"
+                                class="w-full px-5 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-black text-slate-800 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none appearance-none transition-all">
+                            <option value="">Seleccionar tanque...</option>
+                            <option *ngFor="let tanque of tanques" [value]="tanque.idTanque">
+                                {{ tanque.nombre }} - {{ tanque.saldoLitros | number:'1.0-2' }} L
+                            </option>
+                        </select>
+                        <i class="bi bi-chevron-down absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </ng-template>
+
+    <ng-container *ngTemplateOutlet="selectorTanqueOrden"></ng-container>
     
     <!-- Page Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
@@ -22,6 +67,23 @@
                 <i class="bi bi-arrow-left"></i>
                 Volver al Detalle
             </a>
+        </div>
+    </div>
+
+    <!-- Banner de recuperación de sesión: se muestra cuando hay batches EN_PROCESO -->
+    <div *ngIf="totalBatchesActivos > 0 && !estaFinalizada"
+         class="bg-amber-50 border border-amber-200 rounded-[2rem] p-5 flex items-start gap-4">
+        <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+            <i class="bi bi-exclamation-triangle-fill text-amber-600 text-xl"></i>
+        </div>
+        <div class="flex-1">
+            <p class="text-sm font-black text-amber-800 mb-1">
+                {{ totalBatchesActivos }} batch{{ totalBatchesActivos > 1 ? 'es' : '' }} en proceso activo{{ totalBatchesActivos > 1 ? 's' : '' }}
+            </p>
+            <p class="text-xs text-amber-700 font-medium leading-relaxed">
+                Puede continuar la producción normalmente. Si algún batch quedó abierto por una caída de sesión o error,
+                usa el botón <strong>🗑️ eliminar</strong> en la tarjeta del batch para anularlo y volver a iniciarlo correctamente.
+            </p>
         </div>
     </div>
 
@@ -143,8 +205,8 @@
                             <i class="bi bi-cpu absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
                             <select [(ngModel)]="nuevoBatch.idMarmita"
                                 class="w-full pl-10 pr-4 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 font-bold text-slate-700 appearance-none">
-                                <option [value]="0" disabled>Seleccionar Marmita</option>
-                                <option *ngFor="let m of marmitas" [value]="m.id">{{ m.nombre }}</option>
+                                <option [ngValue]="0" disabled>Seleccionar Marmita</option>
+                                <option *ngFor="let m of marmitas" [ngValue]="m.id">{{ m.nombre }}</option>
                             </select>
                         </div>
                     </div>
@@ -231,21 +293,56 @@
                             <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Entrada</span>
                             <span class="text-sm font-black text-slate-700">{{ b.kgEntrada }} Kg</span>
                         </div>
-                        <div class="p-3 bg-slate-50 rounded-2xl">
-                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Salida</span>
-                            <span class="text-sm font-black text-emerald-600">{{ b.kgProducidos || '--' }} Kg</span>
+                        
+                        <ng-container *ngIf="b.estado === 'EN_PROCESO' && !estaFinalizada">
+                            <div class="p-3 bg-white border border-blue-100 rounded-2xl shadow-sm focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:border-blue-500 transition-all">
+                                <span class="text-[9px] font-bold text-blue-500 uppercase tracking-widest block mb-2">Salida (Kg)</span>
+                                <div class="flex items-center gap-2">
+                                    <i class="bi bi-box-arrow-up-right text-blue-300 text-sm"></i>
+                                    <input type="number" [(ngModel)]="b.kgProducidos"
+                                           class="number-clean min-w-0 flex-1 bg-transparent border-none p-0 text-lg font-black text-slate-900 focus:ring-0 outline-none placeholder:text-slate-300"
+                                           placeholder="35">
+                                    <span class="text-[10px] font-black text-blue-500 uppercase">kg</span>
+                                </div>
+                            </div>
+                        </ng-container>
+
+                        <ng-container *ngIf="b.estado !== 'EN_PROCESO' || estaFinalizada">
+                            <div class="p-3 bg-slate-50 rounded-2xl">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Salida</span>
+                                <span class="text-sm font-black text-emerald-600">{{ b.kgProducidos || '--' }} Kg</span>
+                            </div>
+                        </ng-container>
+                    </div>
+
+                    <div *ngIf="b.estado === 'FINALIZADO'" class="mb-6 space-y-2 px-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase">Rendimiento</span>
+                            <span class="text-xs font-black" [ngClass]="(b.rendimientoPct || 0) > 85 ? 'text-emerald-600' : 'text-amber-600'">
+                                {{ b.rendimientoPct | number:'1.1-2' }}%
+                            </span>
+                        </div>
+                        <div *ngIf="b.brixFinal" class="flex items-center justify-between">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase">Brix Final</span>
+                            <span class="text-xs font-black text-slate-700">{{ b.brixFinal | number:'1.1-2' }}</span>
                         </div>
                     </div>
 
-                    <div *ngIf="b.estado === 'FINALIZADO'" class="mb-6 flex items-center justify-between px-2">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase">Rendimiento</span>
-                        <span class="text-xs font-black" [ngClass]="(b.rendimientoPct || 0) > 85 ? 'text-emerald-600' : 'text-amber-600'">
-                            {{ b.rendimientoPct | number:'1.1-2' }}%
-                        </span>
+                    <div *ngIf="b.estado === 'EN_PROCESO' && !estaFinalizada" class="mb-6">
+                        <div class="p-4 bg-white border border-amber-100 rounded-2xl shadow-sm focus-within:ring-4 focus-within:ring-amber-500/10 focus-within:border-amber-500 transition-all">
+                            <span class="text-[9px] font-bold text-amber-500 uppercase tracking-widest block mb-2">Brix final</span>
+                            <div class="flex items-center gap-2">
+                                <i class="bi bi-droplet-half text-amber-300 text-sm"></i>
+                                <input type="number" [(ngModel)]="b.brixFinal"
+                                       class="number-clean min-w-0 flex-1 bg-transparent border-none p-0 text-lg font-black text-slate-900 focus:ring-0 outline-none placeholder:text-slate-300"
+                                       placeholder="70">
+                                <span class="text-[10px] font-black text-amber-500 uppercase">°Bx</span>
+                            </div>
+                        </div>
                     </div>
 
                     <div *ngIf="b.estado === 'EN_PROCESO' && !estaFinalizada" class="flex gap-2">
-                        <button (click)="prepararFinalizacion(b)"
+                        <button (click)="finalizarInline(b)"
                             class="flex-1 py-3 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-black transition-all flex items-center justify-center gap-2">
                             <i class="bi bi-check-circle"></i>
                             FINALIZAR
@@ -264,76 +361,6 @@
         </div>
     </div>
 
-    <!-- Modal Finalizar Batch -->
-    <div *ngIf="batchAFinalizar" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-        <div class="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-8 animate-in zoom-in-95 duration-300">
-            <h3 class="text-xl font-black text-slate-900 mb-2">Finalizar Batch #{{ batchAFinalizar.numeroBatch }}</h3>
-            <p class="text-sm text-slate-500 mb-8 font-medium">Ingrese los datos de producción real obtenidos en la marmita.</p>
-
-            <div class="space-y-6">
-                <div>
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 px-1">Kg Producidos</label>
-                    <div class="relative">
-                        <i class="bi bi-award absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <input type="number" [(ngModel)]="finalizacion.kgProducidos"
-                            class="w-full pl-10 pr-4 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 font-bold text-slate-700">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 px-1">Observaciones</label>
-                    <textarea [(ngModel)]="finalizacion.observaciones"
-                        class="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 font-medium text-slate-700 text-sm"
-                        placeholder="Cualquier novedad durante el proceso..." rows="3"></textarea>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                        <label class="flex flex-col gap-2 cursor-pointer group">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">¿Batch Conforme?</span>
-                            <div class="flex items-center gap-2">
-                                <input type="checkbox" [(ngModel)]="finalizacion.batchConforme" 
-                                       class="w-5 h-5 text-emerald-600 border-slate-300 rounded-lg focus:ring-emerald-500 transition-all">
-                                <span class="text-xs font-bold" [ngClass]="finalizacion.batchConforme ? 'text-emerald-700' : 'text-slate-400'">
-                                    {{ finalizacion.batchConforme ? 'SÍ' : 'NO' }}
-                                </span>
-                            </div>
-                        </label>
-                    </div>
-                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                        <label class="flex flex-col gap-2 cursor-pointer group">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">¿Hubo Reproceso?</span>
-                            <div class="flex items-center gap-2">
-                                <input type="checkbox" [(ngModel)]="finalizacion.huboReproceso" 
-                                       class="w-5 h-5 text-amber-600 border-slate-300 rounded-lg focus:ring-amber-500 transition-all">
-                                <span class="text-xs font-bold" [ngClass]="finalizacion.huboReproceso ? 'text-amber-700' : 'text-slate-400'">
-                                    {{ finalizacion.huboReproceso ? 'SÍ' : 'NO' }}
-                                </span>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="p-4 bg-orange-50 rounded-2xl border border-orange-100 mb-6">
-                    <label class="flex items-center gap-3 cursor-pointer group">
-                        <input type="checkbox" [(ngModel)]="finalizacion.conNovedad" 
-                               class="w-5 h-5 text-orange-600 border-slate-300 rounded-lg focus:ring-orange-500 transition-all">
-                        <span class="text-xs font-black text-orange-800 uppercase tracking-widest">¿Batch con novedad?</span>
-                    </label>
-                </div>
-
-                <div class="flex gap-3 pt-2">
-                    <button (click)="cancelarFinalizacion()"
-                        class="flex-1 py-4 bg-slate-100 text-slate-600 font-bold rounded-2xl hover:bg-slate-200 transition-all">
-                        Cancelar
-                    </button>
-                    <button (click)="confirmarFinalizacion()"
-                        class="flex-1 py-4 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-200 hover:bg-blue-700 transition-all">
-                        Confirmar
-                    </button>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- Bitácora de Tiempos (Prioridad 1 - Timeline Operacional) -->
@@ -502,8 +529,6 @@
                 </div>
             </div>
     </div>
-</div>
-
 <!-- Modal Confirmación Cierre de Orden -->
 <div *ngIf="mostrarConfirmacionCierre" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
     <div class="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl p-10 animate-in zoom-in-95 duration-300">
@@ -608,4 +633,3 @@
         </div>
     </div>
 </div>
-

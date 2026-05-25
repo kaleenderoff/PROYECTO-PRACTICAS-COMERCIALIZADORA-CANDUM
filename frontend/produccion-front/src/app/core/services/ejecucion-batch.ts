@@ -15,6 +15,7 @@ export interface FinalizarBatchRequest {
   conNovedad?: boolean;
   huboReproceso?: boolean;
   batchConforme?: boolean;
+  brixFinal?: number;
 }
 
 export interface EjecucionBatch {
@@ -30,6 +31,7 @@ export interface EjecucionBatch {
   observaciones?: string;
   fechaInicio?: string;
   fechaFin?: string;
+  brixFinal?: number;
 }
 
 @Injectable({
@@ -41,7 +43,7 @@ export class EjecucionBatchService {
   constructor(private http: HttpClient) {}
 
   iniciar(request: IniciarBatchRequest): Observable<EjecucionBatch> {
-    return this.http.post<EjecucionBatch>(this.apiUrl, request);
+    return this.http.post<EjecucionBatch>(`${this.apiUrl}/iniciar`, request);
   }
 
   finalizar(id: number, request: FinalizarBatchRequest): Observable<EjecucionBatch> {

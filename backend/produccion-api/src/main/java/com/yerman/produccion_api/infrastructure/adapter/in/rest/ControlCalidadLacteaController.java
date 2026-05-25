@@ -23,6 +23,7 @@ public class ControlCalidadLacteaController {
 
     @PostMapping("/proceso")
     @ResponseStatus(HttpStatus.CREATED)
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('AUXILIAR_CALIDAD')")
     public ControlCalidadProcesoResponse registrarProceso(@Valid @RequestBody ControlCalidadProcesoRequest request) {
         return service.registrarProceso(request);
     }
@@ -34,6 +35,7 @@ public class ControlCalidadLacteaController {
 
     @PostMapping("/peso")
     @ResponseStatus(HttpStatus.CREATED)
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('AUXILIAR_CALIDAD')")
     public ControlPesoProductoResponse registrarPeso(@Valid @RequestBody ControlPesoProductoRequest request) {
         return service.registrarPeso(request);
     }

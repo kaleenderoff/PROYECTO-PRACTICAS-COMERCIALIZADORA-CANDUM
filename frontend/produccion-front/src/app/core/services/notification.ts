@@ -6,14 +6,12 @@ import Swal from 'sweetalert2';
 })
 export class NotificationService {
 
-  constructor() { }
-
-  success(message: string, title: string = '¡Éxito!'): void {
+  success(message: string, title: string = 'Exito'): void {
     Swal.fire({
       title,
       text: message,
       icon: 'success',
-      confirmButtonColor: '#2563eb', // blue-600
+      confirmButtonColor: '#2563eb',
       timer: 3000,
       timerProgressBar: true
     });
@@ -24,42 +22,42 @@ export class NotificationService {
       title,
       text: message,
       icon: 'error',
-      confirmButtonColor: '#dc2626', // red-600
+      confirmButtonColor: '#dc2626'
     });
   }
 
-  warning(message: string, title: string = 'Atención'): void {
+  warning(message: string, title: string = 'Atencion'): void {
     Swal.fire({
       title,
       text: message,
       icon: 'warning',
-      confirmButtonColor: '#f59e0b', // amber-500
+      confirmButtonColor: '#f59e0b'
     });
   }
 
-  info(message: string, title: string = 'Información'): void {
+  info(message: string, title: string = 'Informacion'): void {
     Swal.fire({
       title,
       text: message,
       icon: 'info',
-      confirmButtonColor: '#2563eb',
+      confirmButtonColor: '#2563eb'
     });
   }
 
   toast(message: string, icon: 'success' | 'error' | 'warning' | 'info' = 'success'): void {
-    const Toast = Swal.mixin({
+    const toast = Swal.mixin({
       toast: true,
       position: 'top-end',
       showConfirmButton: false,
       timer: 3000,
       timerProgressBar: true,
-      didOpen: (toast) => {
-        toast.addEventListener('mouseenter', Swal.stopTimer);
-        toast.addEventListener('mouseleave', Swal.resumeTimer);
+      didOpen: (element) => {
+        element.addEventListener('mouseenter', Swal.stopTimer);
+        element.addEventListener('mouseleave', Swal.resumeTimer);
       }
     });
 
-    Toast.fire({
+    toast.fire({
       icon,
       title: message
     });

@@ -33,12 +33,12 @@ export class UsuarioForm implements OnInit {
   error = '';
 
   roles = [
-    'ADMIN',
-    'DUENO_EMPRESA',
-    'JEFE_PLANTA',
-    'JEFE_PRODUCCION',
-    'JEFE_LINEA',
-    'AUXILIAR_CALIDAD'
+    { value: 'ADMIN', label: 'Administrador del Sistema' },
+    { value: 'DUENO_EMPRESA', label: 'Dueño de Empresa' },
+    { value: 'JEFE_PLANTA', label: 'Jefe de Planta' },
+    { value: 'JEFE_PRODUCCION', label: 'Jefe de Producción' },
+    { value: 'JEFE_LINEA', label: 'Jefe de Línea' },
+    { value: 'AUXILIAR_CALIDAD', label: 'Auxiliar de Calidad' }
   ];
 
   form;

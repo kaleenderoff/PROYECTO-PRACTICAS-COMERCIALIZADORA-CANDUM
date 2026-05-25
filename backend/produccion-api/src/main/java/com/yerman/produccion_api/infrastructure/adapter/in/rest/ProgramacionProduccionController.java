@@ -82,6 +82,7 @@ public class ProgramacionProduccionController {
 
     @PostMapping
     @Transactional
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('JEFE_PRODUCCION')")
     public ResponseEntity<ProgramacionProduccionResponse> crear(
             @Valid @RequestBody ProgramacionProduccionRequest request) {
 
@@ -138,6 +139,7 @@ public class ProgramacionProduccionController {
     }
 
     @PostMapping("/simular")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('JEFE_PRODUCCION')")
     public ResponseEntity<SimularProgramacionResponse> simular(
             @Valid @RequestBody SimularProgramacionRequest request) {
 
@@ -184,6 +186,7 @@ public class ProgramacionProduccionController {
     }
 
     @PatchMapping("/{id}/estado")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('JEFE_PRODUCCION')")
     public ResponseEntity<ProgramacionProduccionResponse> cambiarEstado(
             @PathVariable Long id,
             @RequestParam String estado) {

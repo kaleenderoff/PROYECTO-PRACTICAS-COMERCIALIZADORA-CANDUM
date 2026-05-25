@@ -12,7 +12,7 @@
             </div>
         </div>
         <div class="flex items-center gap-3">
-            <button class="px-6 py-3.5 bg-slate-100 text-slate-600 font-bold rounded-2xl hover:bg-slate-200 transition-all active:scale-95">
+            <button routerLink="/ordenes-produccion" class="px-6 py-3.5 bg-slate-100 text-slate-600 font-bold rounded-2xl hover:bg-slate-200 transition-all active:scale-95">
                 Ver Programaciones
             </button>
         </div>
@@ -69,7 +69,7 @@
                 </div>
 
                 <!-- Jefe Responsable -->
-                <div class="md:col-span-1 space-y-2">
+                <div class="space-y-2">
                     <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Jefe de Línea</label>
                     <div class="relative">
                         <select [(ngModel)]="idJefeLineaEjecutor"
@@ -83,8 +83,15 @@
                     </div>
                 </div>
 
+                <!-- Número de Baches (Manual) -->
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest ml-1">Baches a Programar</label>
+                    <input type="number" [(ngModel)]="numBachesPlanManual" placeholder="Opcional"
+                           class="w-full px-4 py-3 bg-indigo-50 border border-indigo-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-indigo-900 font-bold shadow-inner">
+                </div>
+
                 <!-- Observaciones -->
-                <div class="md:col-span-3 space-y-2">
+                <div class="md:col-span-2 space-y-2">
                     <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Observaciones Operativas</label>
                     <textarea [(ngModel)]="observaciones" rows="1" placeholder="Ej: Producción prioritaria para cliente X..."
                               class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-slate-900 resize-none"></textarea>
@@ -242,7 +249,8 @@
                     </div>
                     <div>
                         <p class="text-sm font-medium leading-relaxed opacity-90">
-                            La programación operativa se ajusta a baches completos (<strong>{{ calcularTotalBatchesOperativos() }} batches</strong>). 
+                            <strong class="block text-lg text-white mb-1">Número de baches plan: {{ numBachesPlanManual !== null ? numBachesPlanManual : calcularTotalBatchesOperativos() }}</strong>
+                            La programación operativa se ajusta a baches completos. 
                             Cualquier diferencia entre kg requeridos y kg de entrada reales deberá ser gestionada por el supervisor en planta.
                         </p>
                     </div>

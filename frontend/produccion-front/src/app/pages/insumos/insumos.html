@@ -1,5 +1,5 @@
-<div *ngIf="authService.canViewCatalogosTecnicos()" class="space-y-10 animate-in fade-in duration-500">
-    
+<div *ngIf="authService.canViewCatalogosTecnicos()" class="space-y-8 animate-in fade-in duration-500">
+
     <!-- Page Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
         <div class="flex items-center gap-5">
@@ -10,6 +10,14 @@
                 <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Gestión de Insumos</h1>
                 <p class="text-slate-500 text-sm">Control de materias primas, aditivos y empaques</p>
             </div>
+        </div>
+        <div *ngIf="authService.canManageCatalogosTecnicos()" class="flex items-center gap-3">
+            <button (click)="toggleFormulario()"
+                    [class]="mostrarFormulario ? 'bg-slate-200 text-slate-700 hover:bg-slate-300' : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-900/20'"
+                    class="px-6 py-3.5 font-bold rounded-2xl transition-all active:scale-95 flex items-center gap-2">
+                <i class="bi" [class]="mostrarFormulario ? 'bi-x-lg' : 'bi-plus-lg'"></i>
+                {{ mostrarFormulario ? 'Cancelar' : 'Agregar Insumo' }}
+            </button>
         </div>
     </div>
 
@@ -24,13 +32,14 @@
         <span class="text-sm font-medium">{{ mensajeError }}</span>
     </div>
 
-    <!-- Creation/Edition Card -->
-    <div *ngIf="authService.canManageCatalogosTecnicos()" class="bg-white rounded-[2.5rem] border border-slate-100 shadow-lg shadow-slate-200/50 overflow-hidden">
-        <div class="px-8 py-5 border-b border-slate-50 bg-slate-50/30 flex items-center gap-2">
+    <!-- Creation/Edition Panel (collapsible) -->
+    <div *ngIf="mostrarFormulario && authService.canManageCatalogosTecnicos()"
+         class="bg-white rounded-[2.5rem] border border-emerald-100 shadow-lg shadow-emerald-100/50 overflow-hidden animate-in slide-in-from-top-4 duration-300">
+        <div class="px-8 py-5 border-b border-slate-50 bg-emerald-50/40 flex items-center gap-2">
             <div class="w-2 h-6 bg-emerald-500 rounded-full"></div>
             <h2 class="font-bold text-slate-800">{{ modoEdicion ? 'Actualizar Insumo' : 'Registrar Nuevo Insumo' }}</h2>
         </div>
-        
+
         <div class="p-8 md:p-10">
             <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
                 <!-- Nombre -->
@@ -91,7 +100,7 @@
                         <i class="bi" [class]="modoEdicion ? 'bi-check-all' : 'bi-plus-circle'"></i>
                         {{ modoEdicion ? 'Actualizar Insumo' : 'Crear Insumo' }}
                     </button>
-                    <button *ngIf="modoEdicion" (click)="cancelarEdicion()"
+                    <button (click)="cancelarEdicion()"
                             class="px-8 py-3 bg-slate-100 text-slate-600 font-bold rounded-2xl border border-slate-200 hover:bg-slate-200 transition-all active:scale-95">
                         Cancelar
                     </button>
@@ -106,10 +115,11 @@
             <h3 class="font-bold text-slate-800 flex items-center gap-2">
                 <i class="bi bi-archive text-emerald-500"></i>
                 Catálogo de Insumos
+                <span class="text-xs font-normal text-slate-400">({{ insumosFiltrados.length }} registros)</span>
             </h3>
             <div class="relative">
                 <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                <input [(ngModel)]="filtro" (ngModelChange)="paginaActual = 1" placeholder="Filtrar por nombre..." 
+                <input [(ngModel)]="filtro" (ngModelChange)="paginaActual = 1" placeholder="Filtrar por nombre..."
                        class="pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all w-full md:w-80 shadow-inner">
             </div>
         </div>
@@ -123,7 +133,7 @@
                         <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Categoría</th>
                         <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Unidad</th>
                         <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Estado</th>
-                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Acciones</th>
+                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50">
@@ -143,24 +153,41 @@
                             <span class="text-sm font-medium text-slate-500">{{ insumo.unidadMedida }}</span>
                         </td>
                         <td class="px-8 py-5 text-center">
-                            <span [class]="insumo.activo ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-100'" 
+                            <span [class]="insumo.activo ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-100'"
                                   class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border">
                                 {{ insumo.activo ? 'Activo' : 'Inactivo' }}
                             </span>
                         </td>
-                        <td class="px-8 py-5 text-right">
-                            <button *ngIf="authService.canManageCatalogosTecnicos()" (click)="editarInsumo(insumo)"
-                                    class="inline-flex items-center gap-2 px-4 py-2 bg-slate-50 hover:bg-emerald-600 text-slate-600 hover:text-white rounded-xl border border-slate-100 transition-all font-semibold text-xs active:scale-95">
-                                <i class="bi bi-pencil"></i>
-                                Editar
-                            </button>
+                        <td class="px-8 py-5">
+                            <div class="flex justify-center gap-2">
+                                <button *ngIf="authService.canManageCatalogosTecnicos()" type="button" (click)="editarInsumo(insumo)"
+                                        class="w-10 h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:shadow-md transition-all"
+                                        title="Editar insumo">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </button>
+                                <button *ngIf="authService.canManageCatalogosTecnicos()" type="button" (click)="toggleEstado(insumo)"
+                                        class="w-10 h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:shadow-md transition-all"
+                                        [title]="insumo.activo ? 'Inactivar' : 'Activar'">
+                                    <i class="bi" [ngClass]="insumo.activo ? 'bi-toggle-on text-emerald-600' : 'bi-toggle-off text-slate-400'"></i>
+                                </button>
+                                <button *ngIf="authService.canManageCatalogosTecnicos()" type="button" (click)="eliminarInsumo(insumo.id)"
+                                        class="w-10 h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 hover:shadow-md transition-all"
+                                        title="Eliminar insumo">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </button>
+                                <span *ngIf="!authService.canManageCatalogosTecnicos()" class="text-xs text-slate-300 italic">Solo lectura</span>
+                            </div>
                         </td>
                     </tr>
                     <tr *ngIf="insumosFiltrados.length === 0">
                         <td colspan="6" class="px-8 py-20 text-center">
                             <div class="flex flex-col items-center justify-center text-slate-400">
-                                <i class="bi bi-search text-5xl mb-4"></i>
-                                <p class="text-sm font-medium">No se encontraron resultados para "{{ filtro }}"</p>
+                                <i class="bi bi-box-seam text-5xl mb-4"></i>
+                                <p class="text-sm font-medium">No se encontraron insumos</p>
+                                <button *ngIf="authService.canManageCatalogosTecnicos()" (click)="toggleFormulario()"
+                                        class="mt-4 text-emerald-600 font-bold hover:underline text-sm">
+                                    Agregar el primer insumo
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -177,7 +204,6 @@
                     class="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-white border border-transparent hover:border-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all text-slate-600">
                     <i class="bi bi-chevron-left"></i>
                 </button>
-                
                 <div class="flex items-center gap-1">
                     <button *ngFor="let p of paginas" (click)="cambiarPagina(p)"
                         [ngClass]="paginaActual === p ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200' : 'hover:bg-white border border-transparent hover:border-slate-200 text-slate-600 font-medium'"
@@ -185,7 +211,6 @@
                         {{ p }}
                     </button>
                 </div>
-
                 <button (click)="cambiarPagina(paginaActual + 1)" [disabled]="paginaActual === totalPaginas"
                     class="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-white border border-transparent hover:border-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all text-slate-600">
                     <i class="bi bi-chevron-right"></i>

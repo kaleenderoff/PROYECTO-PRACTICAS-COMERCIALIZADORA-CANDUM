@@ -122,9 +122,9 @@
                     <div class="space-y-1.5">
                         <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Brix Objetivo</label>
                         <div class="flex items-center gap-2">
-                            <input type="number" [(ngModel)]="nuevaVersion.brixObjetivoMin" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                            <input type="number" [(ngModel)]="nuevaVersion.brixObjetivoMin" placeholder="Min" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs">
                             <span class="text-slate-300">-</span>
-                            <input type="number" [(ngModel)]="nuevaVersion.brixObjetivoMax" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                            <input type="number" [(ngModel)]="nuevaVersion.brixObjetivoMax" placeholder="Max" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs">
                         </div>
                     </div>
                 </div>
@@ -250,9 +250,13 @@
                                         <span *ngIf="detalle.esCritico" class="px-2 py-1 bg-red-50 text-red-600 rounded text-[10px] font-black uppercase tracking-tighter">CRÍTICO</span>
                                     </td>
                                     <td class="px-6 py-4 text-right">
-                                        <button *ngIf="puedeEditarFormula()" (click)="eliminarDetalle(detalle)" class="p-2 text-slate-300 hover:text-red-500 transition-colors">
-                                            <i class="bi bi-trash3"></i>
-                                        </button>
+                                        <div class="flex justify-center gap-2">
+                                            <button *ngIf="puedeEditarFormula()" (click)="eliminarDetalle(detalle)"
+                                                    class="w-10 h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 hover:shadow-md transition-all"
+                                                    title="Eliminar ingrediente">
+                                                <i class="bi bi-trash3-fill"></i>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>

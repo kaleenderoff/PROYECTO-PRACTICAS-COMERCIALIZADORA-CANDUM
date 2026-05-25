@@ -15,5 +15,6 @@ public record EjecucionBatchResponse(
     String estado,
     String observaciones,
     LocalDateTime fechaInicio,
-    LocalDateTime fechaFin
+    LocalDateTime fechaFin,
+    BigDecimal brixFinal
 ) {}

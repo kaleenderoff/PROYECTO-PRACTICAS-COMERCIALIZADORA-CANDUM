@@ -37,11 +37,17 @@
 
     <!-- Orders Table Container -->
     <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
-        <div class="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
+        <div class="px-8 py-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/30">
             <h3 class="font-bold text-slate-800 flex items-center gap-2">
                 <i class="bi bi-list-stars text-amber-500"></i>
                 Historial de Órdenes
+                <span class="text-xs font-normal text-slate-400">({{ ordenesFiltradas.length }} registros)</span>
             </h3>
+            <div class="relative w-full md:w-96">
+                <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="text" [(ngModel)]="filtro" (ngModelChange)="paginaActual = 1" placeholder="Buscar por # Orden, Producto o Estado..."
+                       class="w-full pl-12 pr-6 py-3 bg-white border border-slate-100 rounded-2xl text-sm focus:ring-4 focus:ring-amber-500/10 outline-none transition-all font-medium shadow-inner">
+            </div>
         </div>
 
         <div class="overflow-x-auto">

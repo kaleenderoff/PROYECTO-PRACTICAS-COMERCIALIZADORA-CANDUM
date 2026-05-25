@@ -8,6 +8,10 @@ import {
 } from '../../core/services/orden-produccion';
 import { RecepcionLecheService, SaldoTanqueLeche } from '../../core/services/recepcion-leche';
 import { AuthService } from '../../core/services/auth';
+import {
+  ValidacionOrdenProduccionResponse,
+  ValidacionOrdenProduccionService
+} from '../../core/services/validacion-orden-produccion';
 
 @Component({
   selector: 'app-orden-produccion-detalle',
@@ -21,12 +25,14 @@ export class OrdenProduccionDetalle implements OnInit {
   cargando = false;
   error = '';
   tanques: SaldoTanqueLeche[] = [];
+  validacion: ValidacionOrdenProduccionResponse | null = null;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private ordenService: OrdenProduccionService,
     private recepcionService: RecepcionLecheService,
+    private validacionService: ValidacionOrdenProduccionService,
     public authService: AuthService
   ) { }
 
@@ -45,6 +51,7 @@ export class OrdenProduccionDetalle implements OnInit {
     this.ordenService.obtenerPorId(id).subscribe({
       next: (data) => {
         this.orden = data;
+        this.cargarValidacion(data.id);
         this.cargando = false;
       },
       error: (err) => {
@@ -56,7 +63,7 @@ export class OrdenProduccionDetalle implements OnInit {
   }
 
   iniciarEjecucion(): void {
-    if (!this.authService.canWriteOperaciones()) return;
+    if (!this.authService.canWriteOperaciones() || this.ordenAprobada()) return;
 
     if (!this.orden) return;
     
@@ -84,7 +91,7 @@ export class OrdenProduccionDetalle implements OnInit {
   }
 
   finalizarOrden(): void {
-    if (!this.authService.canWriteOperaciones()) return;
+    if (!this.authService.canWriteOperaciones() || this.ordenAprobada()) return;
 
     if (!this.orden) return;
 
@@ -107,7 +114,7 @@ export class OrdenProduccionDetalle implements OnInit {
   }
 
   registrarBatch(): void {
-    if (!this.authService.canWriteOperaciones()) return;
+    if (!this.authService.canWriteOperaciones() || this.ordenAprobada()) return;
 
     if (!this.orden) return;
     this.router.navigate([`/ordenes-produccion/${this.orden.id}/ejecutar`]);
@@ -132,7 +139,7 @@ export class OrdenProduccionDetalle implements OnInit {
   }
 
   cambiarTanque(event: any): void {
-    if (!this.authService.canWriteOperaciones()) return;
+    if (!this.authService.canWriteOperaciones() || this.ordenAprobada()) return;
 
     const idTanque = Number(event.target.value);
     if (!this.orden || !idTanque) return;
@@ -146,5 +153,62 @@ export class OrdenProduccionDetalle implements OnInit {
         this.error = 'No se pudo actualizar el tanque de origen.';
       }
     });
+  }
+
+  cargarValidacion(idOrden: number): void {
+    this.validacionService.obtenerPorOrden(idOrden).subscribe({
+      next: (data) => this.validacion = data,
+      error: () => this.validacion = null
+    });
+  }
+
+  aprobarOrden(): void {
+    this.registrarValidacion(true);
+  }
+
+  solicitarRevision(): void {
+    this.registrarValidacion(false);
+  }
+
+  registrarValidacion(aprobado: boolean): void {
+    if (!this.orden || !this.authService.canValidateProduccion()) return;
+
+    const idJefeProduccion = this.authService.getIdUsuario();
+    if (!idJefeProduccion) {
+      this.error = 'No se pudo identificar el usuario autenticado.';
+      return;
+    }
+
+    const observacion = window.prompt(
+      aprobado
+        ? 'Observacion de aprobacion (opcional)'
+        : 'Indique que debe revisar la linea'
+    ) || '';
+
+    this.cargando = true;
+    this.validacionService.validar({
+      idOrden: this.orden.id,
+      aprobado,
+      idJefeProduccion,
+      observacion,
+      requiereRevision: !aprobado
+    }).subscribe({
+      next: (data) => {
+        this.validacion = data;
+        this.cargando = false;
+      },
+      error: (err) => {
+        this.error = err.error?.message || 'No se pudo registrar la validacion de la orden.';
+        this.cargando = false;
+      }
+    });
+  }
+
+  ordenAprobada(): boolean {
+    return !!this.validacion?.aprobado;
+  }
+
+  puedeOperarOrden(): boolean {
+    return this.authService.canWriteOperaciones() && !this.ordenAprobada();
   }
 }

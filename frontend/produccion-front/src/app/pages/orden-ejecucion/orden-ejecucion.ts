@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { 
   EjecucionBatch, 
   EjecucionBatchService 
@@ -9,6 +10,7 @@ import {
 import { OrdenProduccionService, OrdenProduccionResponse } from '../../core/services/orden-produccion';
 import { CatalogoService } from '../../core/services/catalogo';
 import { NotificationService } from '../../core/services/notification';
+import { RecepcionLecheService, SaldoTanqueLeche } from '../../core/services/recepcion-leche';
 
 @Component({
   selector: 'app-orden-ejecucion',
@@ -22,6 +24,7 @@ export class OrdenEjecucion implements OnInit {
   orden: OrdenProduccionResponse | null = null;
   batches: EjecucionBatch[] = [];
   marmitas: any[] = [];
+  tanques: SaldoTanqueLeche[] = [];
   Math = Math;
   
   cargando = false;
@@ -42,7 +45,8 @@ export class OrdenEjecucion implements OnInit {
     observaciones: '',
     conNovedad: false,
     huboReproceso: false,
-    batchConforme: true
+    batchConforme: true,
+    brixFinal: null as number | null
   };
 
   // Formulario para producción real por SKU
@@ -57,6 +61,7 @@ export class OrdenEjecucion implements OnInit {
     private batchService: EjecucionBatchService,
     private ordenService: OrdenProduccionService,
     private catalogoService: CatalogoService,
+    private recepcionLecheService: RecepcionLecheService,
     private notification: NotificationService
   ) { }
 
@@ -69,28 +74,56 @@ export class OrdenEjecucion implements OnInit {
 
   cargarDatos(): void {
     this.cargando = true;
-    
-    // Carga paralela de orden, batches y marmitas
-    this.ordenService.obtenerPorId(this.idOrden).subscribe(o => {
-      this.orden = o;
-      this.prepararSkusEditables();
-    });
-    this.batchService.listarPorOrden(this.idOrden).subscribe(b => {
-      this.batches = b;
-      // Sugerir siguiente número de batch
-      if (this.batches.length > 0) {
-        this.nuevoBatch.numeroBatch = Math.max(...this.batches.map(x => x.numeroBatch)) + 1;
-      } else {
-        this.nuevoBatch.numeroBatch = 1;
+
+    forkJoin({
+      orden: this.ordenService.obtenerPorId(this.idOrden),
+      batches: this.batchService.listarPorOrden(this.idOrden),
+      marmitas: this.catalogoService.listarMarmitas(),
+      tanques: this.recepcionLecheService.listarSaldosTanques()
+    }).subscribe({
+      next: ({ orden, batches, marmitas, tanques }) => {
+        this.orden = orden;
+        this.batches = batches;
+        this.marmitas = marmitas;
+        this.tanques = tanques.filter(t => t.activo);
+
+        // Sugerir siguiente número de batch
+        if (this.batches.length > 0) {
+          this.nuevoBatch.numeroBatch = Math.max(...this.batches.map(x => x.numeroBatch)) + 1;
+        } else {
+          this.nuevoBatch.numeroBatch = 1;
+        }
+
+        this.actualizarMarmitaSugerida();
+        this.prepararSkusEditables();
+        this.cargando = false;
+      },
+      error: () => {
+        this.notification.error('Error al cargar los datos de la orden.');
+        this.cargando = false;
       }
-      
-      this.actualizarMarmitaSugerida();
     });
-    
-    this.catalogoService.listarMarmitas().subscribe(m => {
-      this.marmitas = m;
-      this.actualizarMarmitaSugerida();
-      this.cargando = false;
+  }
+
+  cambiarTanqueOrden(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    const idTanque = Number(select.value);
+
+    if (!this.orden || !idTanque || this.estaFinalizada) {
+      return;
+    }
+
+    this.cargando = true;
+    this.ordenService.actualizarTanqueLeche(this.orden.id, idTanque).subscribe({
+      next: (ordenActualizada) => {
+        this.orden = ordenActualizada;
+        this.notification.toast('Tanque de leche descremada actualizado.');
+        this.cargando = false;
+      },
+      error: (err) => {
+        this.notification.error(err.error?.message || 'No se pudo actualizar el tanque de leche descremada.');
+        this.cargando = false;
+      }
     });
   }
 
@@ -105,12 +138,19 @@ export class OrdenEjecucion implements OnInit {
   }
 
   iniciarBatch(): void {
-    if (this.nuevoBatch.idMarmita <= 0) {
+    const idMarmita = Number(this.nuevoBatch.idMarmita);
+    const kgEntrada = Number(this.nuevoBatch.kgEntrada);
+    
+    console.log('[IniciarBatch] idMarmita:', idMarmita, 'kgEntrada:', kgEntrada, 'idOrden:', this.idOrden);
+    console.log('[IniciarBatch] limiteAlcanzado:', this.limiteAlcanzado, 'cargando:', this.cargando, 'estaFinalizada:', this.estaFinalizada);
+    console.log('[IniciarBatch] orden?.numBachesPlan:', this.orden?.numBachesPlan, 'batches.length:', this.batches.length);
+
+    if (idMarmita <= 0) {
       this.notification.warning('Debe seleccionar una marmita.');
       return;
     }
     
-    if (this.nuevoBatch.kgEntrada <= 0) {
+    if (kgEntrada <= 0) {
       this.notification.warning('La cantidad de entrada debe ser mayor a 0 kg.');
       return;
     }
@@ -118,9 +158,9 @@ export class OrdenEjecucion implements OnInit {
     this.cargando = true;
     
     this.batchService.iniciar({
-      idOrdenProduccion: this.idOrden,
-      idMarmita: this.nuevoBatch.idMarmita,
-      kgEntrada: this.nuevoBatch.kgEntrada
+      idOrdenProduccion: Number(this.idOrden),
+      idMarmita: idMarmita,
+      kgEntrada: kgEntrada
     }).subscribe({
       next: () => {
         this.notification.toast('Batch iniciado correctamente');
@@ -128,6 +168,7 @@ export class OrdenEjecucion implements OnInit {
         this.nuevoBatch.kgEntrada = 0;
       },
       error: (err) => {
+        console.error('[IniciarBatch] Error:', err);
         const msg = err.error?.message || 'Error al iniciar el batch.';
         this.notification.error(msg);
         this.cargando = false;
@@ -193,31 +234,27 @@ export class OrdenEjecucion implements OnInit {
   }
 
   get limiteAlcanzado(): boolean {
-    return this.batches.length >= (this.orden?.numBachesPlan || 0);
+    const plan = this.orden?.numBachesPlan;
+    if (!plan || plan <= 0) return false;
+    return this.batches.length >= plan;
   }
 
-  prepararFinalizacion(batch: EjecucionBatch): void {
-    this.batchAFinalizar = batch;
-    this.finalizacion.kgProducidos = batch.kgEntrada; // Sugerencia inicial
-    this.finalizacion.observaciones = '';
-    this.finalizacion.conNovedad = false;
-    this.finalizacion.huboReproceso = false;
-    this.finalizacion.batchConforme = true;
-  }
-
-  confirmarFinalizacion(): void {
-    if (!this.batchAFinalizar) return;
+  finalizarInline(batch: EjecucionBatch): void {
+    if (!batch.kgProducidos || batch.kgProducidos <= 0) {
+      this.notification.warning('Debe ingresar los Kg producidos (Salida).');
+      return;
+    }
     
     this.cargando = true;
-    this.batchService.finalizar(this.batchAFinalizar.id, {
-      kgProducidos: this.finalizacion.kgProducidos,
-      observaciones: this.finalizacion.observaciones,
-      conNovedad: this.finalizacion.conNovedad,
-      huboReproceso: this.finalizacion.huboReproceso,
-      batchConforme: this.finalizacion.batchConforme
+    this.batchService.finalizar(batch.id, {
+      kgProducidos: Number(batch.kgProducidos),
+      observaciones: '',
+      conNovedad: false,
+      huboReproceso: false,
+      batchConforme: true,
+      brixFinal: batch.brixFinal != null ? Number(batch.brixFinal) : undefined
     }).subscribe({
       next: () => {
-        this.batchAFinalizar = null;
         this.notification.toast('Batch finalizado correctamente');
         this.cargarDatos();
       },
@@ -229,10 +266,6 @@ export class OrdenEjecucion implements OnInit {
     });
   }
 
-  cancelarFinalizacion(): void {
-    this.batchAFinalizar = null;
-  }
-
   eliminarBatch(batch: EjecucionBatch): void {
     this.notification.warning(`¿Está seguro de eliminar el batch #${batch.numeroBatch}? Esta acción es irreversible.`);
     // Nota: NotificationService no tiene confirm aún, pero SweetAlert2 sí. 
@@ -242,13 +275,14 @@ export class OrdenEjecucion implements OnInit {
     
     import('sweetalert2').then(Swal => {
       Swal.default.fire({
-        title: '¿Confirmar eliminación?',
-        text: `Se eliminará el batch #${batch.numeroBatch}.`,
+        title: '¿Anular este batch?',
+        html: `<p>Se anulará el <strong>Batch #${batch.numeroBatch}</strong> de la marmita <strong>${batch.nombreMarmita}</strong>.<br><br>
+               <span style="color:#6b7280; font-size:0.85em;">Usa esta opción si el batch fue iniciado por error, por caída de sesión, o si necesitas reiniciarlo desde cero.</span></p>`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#dc2626',
         cancelButtonColor: '#6b7280',
-        confirmButtonText: 'Sí, eliminar',
+        confirmButtonText: 'Sí, anular batch',
         cancelButtonText: 'Cancelar'
       }).then((result) => {
         if (result.isConfirmed) {

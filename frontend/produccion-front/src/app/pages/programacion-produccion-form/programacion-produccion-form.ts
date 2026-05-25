@@ -14,10 +14,12 @@ import {
   UsuarioService
 } from '../../core/services/usuario';
 
+import { RouterModule } from '@angular/router';
+
 @Component({
   selector: 'app-programacion-produccion-form',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './programacion-produccion-form.html',
 })
 export class ProgramacionProduccionForm implements OnInit {
@@ -38,6 +40,7 @@ export class ProgramacionProduccionForm implements OnInit {
 
   fechaProduccion = new Date().toISOString().substring(0, 10);
   observaciones = '';
+  numBachesPlanManual: number | null = null;
 
   skus: SimularSkuRequest[] = [
     {
@@ -244,7 +247,7 @@ export class ProgramacionProduccionForm implements OnInit {
       idProducto: Number(this.idProducto),
       idTurno: Number(this.idTurno),
       idJefeLineaEjecutor: Number(this.idJefeLineaEjecutor),
-      numBachesPlan: this.calcularTotalBatchesOperativos(),
+      numBachesPlan: this.numBachesPlanManual !== null ? this.numBachesPlanManual : this.calcularTotalBatchesOperativos(),
       kgBachePlan: this.obtenerKgBatchFormula(),
       idFormulaVersion: Number(this.formulaVigente.idFormulaVersion ?? this.formulaVigente.id),
       observaciones: this.observaciones?.trim() || 'Programación generada desde pantalla tipo Excel',
@@ -263,6 +266,7 @@ export class ProgramacionProduccionForm implements OnInit {
         this.idTurno = null;
         this.fechaProduccion = new Date().toISOString().substring(0, 10);
         this.observaciones = '';
+        this.numBachesPlanManual = null;
         this.formulaVigente = null;
         this.skusDisponibles = [];
         this.skus = [{ idSku: 0, unidades: 0 }];

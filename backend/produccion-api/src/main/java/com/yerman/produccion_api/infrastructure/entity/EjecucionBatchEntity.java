@@ -53,6 +53,9 @@ public class EjecucionBatchEntity {
     @Column(name = "batch_conforme")
     private Boolean batchConforme;
 
+    @Column(name = "brix_final")
+    private BigDecimal brixFinal;
+
     @Column(name = "fecha_inicio")
     private LocalDateTime fechaInicio;
 

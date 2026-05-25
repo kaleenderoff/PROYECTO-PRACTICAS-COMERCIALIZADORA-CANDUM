@@ -14,7 +14,7 @@
         </div>
 
         <!-- Dynamic Action Buttons -->
-        <div *ngIf="orden && authService.canWriteOperaciones()" class="flex items-center gap-3">
+        <div *ngIf="orden && puedeOperarOrden()" class="flex items-center gap-3">
             <button *ngIf="orden.estado === 'PROGRAMADA'"
                     (click)="iniciarEjecucion()"
                     class="px-6 py-2.5 bg-blue-600 text-white rounded-2xl text-sm font-black hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95 flex items-center gap-2">
@@ -50,6 +50,29 @@
     <div *ngIf="error" class="p-6 bg-red-50 text-red-700 rounded-[2rem] border border-red-100 shadow-sm flex items-center gap-4 font-bold animate-in zoom-in duration-300">
         <i class="bi bi-exclamation-octagon-fill text-xl"></i>
         {{ error }}
+    </div>
+
+    <div *ngIf="orden && validacion"
+         class="p-6 rounded-[2rem] border shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4"
+         [ngClass]="validacion.aprobado ? 'bg-emerald-50 text-emerald-800 border-emerald-100' : 'bg-amber-50 text-amber-800 border-amber-100'">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl flex items-center justify-center"
+                 [ngClass]="validacion.aprobado ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'">
+                <i class="bi" [ngClass]="validacion.aprobado ? 'bi-shield-check' : 'bi-exclamation-triangle'"></i>
+            </div>
+            <div>
+                <p class="text-sm font-black uppercase tracking-widest">
+                    {{ validacion.aprobado ? 'Orden aprobada por produccion' : 'Orden enviada a revision' }}
+                </p>
+                <p class="text-xs font-semibold opacity-80">
+                    {{ validacion.fechaValidacion | date:'dd/MM/yyyy HH:mm' }}
+                    <span *ngIf="validacion.observacion"> - {{ validacion.observacion }}</span>
+                </p>
+            </div>
+        </div>
+        <span *ngIf="validacion.aprobado" class="text-xs font-black uppercase tracking-widest">
+            Bloqueo operativo activo
+        </span>
     </div>
 
     <!-- MAIN OPERATIONAL VIEW -->
@@ -172,7 +195,7 @@
                                         Tanque de Leche Descremada
                                     </p>
                                     
-                                    <div *ngIf="authService.canWriteOperaciones() && (orden.estado === 'PROGRAMADA' || orden.estado === 'EN_EJECUCION'); else verTanque">
+                                    <div *ngIf="puedeOperarOrden() && (orden.estado === 'PROGRAMADA' || orden.estado === 'EN_EJECUCION'); else verTanque">
                                         <select (change)="cambiarTanque($event)" 
                                                 class="w-full bg-transparent border-none p-0 text-sm font-black text-slate-900 focus:ring-0 cursor-pointer outline-none">
                                             <option value="">Seleccionar Tanque...</option>
@@ -191,6 +214,31 @@
                                 DEBE SELECCIONAR EL TANQUE DE LECHE DESCREMADA PARA EL DESCUENTO DE INVENTARIO
                             </p>
                         </div>
+                    </div>
+                </div>
+
+                <div *ngIf="orden.estado === 'FINALIZADA' && authService.canValidateProduccion() && !validacion"
+                     class="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm space-y-5">
+                    <div>
+                        <h3 class="text-sm font-black text-slate-900 flex items-center gap-2">
+                            <i class="bi bi-shield-check text-emerald-600"></i>
+                            Validacion de Produccion
+                        </h3>
+                        <p class="mt-2 text-xs font-medium text-slate-500">
+                            Registre la aprobacion formal o solicite revision antes de cerrar el ciclo administrativo.
+                        </p>
+                    </div>
+                    <div class="grid grid-cols-1 gap-3">
+                        <button (click)="aprobarOrden()"
+                                class="px-5 py-3 bg-emerald-600 text-white rounded-2xl text-sm font-black hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 active:scale-95 flex items-center justify-center gap-2">
+                            <i class="bi bi-check-circle"></i>
+                            Aprobar Orden
+                        </button>
+                        <button (click)="solicitarRevision()"
+                                class="px-5 py-3 bg-white border border-amber-200 text-amber-700 rounded-2xl text-sm font-black hover:bg-amber-50 transition-all active:scale-95 flex items-center justify-center gap-2">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                            Solicitar Revision
+                        </button>
                     </div>
                 </div>
             </div>

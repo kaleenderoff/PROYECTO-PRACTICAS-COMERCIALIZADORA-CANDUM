@@ -27,7 +27,8 @@
                         </span>
                         <input type="text" 
                                name="cc" 
-                               [(ngModel)]="cc" 
+                               [(ngModel)]="cc"
+                               (input)="error = ''"
                                placeholder="123456789"
                                class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all placeholder:text-slate-400 text-slate-900">
                     </div>
@@ -43,6 +44,7 @@
                         <input type="password" 
                                name="password" 
                                [(ngModel)]="password"
+                               (input)="error = ''"
                                placeholder="••••••••"
                                class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all placeholder:text-slate-400 text-slate-900">
                     </div>
@@ -50,9 +52,9 @@
 
                 <!-- Error Alert -->
                 <div *ngIf="error" 
-                     class="flex items-center gap-3 p-4 bg-red-50 border border-red-100 text-red-600 rounded-2xl text-sm animate-in fade-in slide-in-from-top-2 duration-300">
-                    <i class="bi bi-exclamation-circle-fill"></i>
-                    <span>{{ error }}</span>
+                     class="flex items-start gap-3 p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-sm animate-in fade-in slide-in-from-top-2 duration-300">
+                    <i class="bi bi-exclamation-circle-fill text-base shrink-0 mt-0.5"></i>
+                    <span class="leading-snug font-medium">{{ error }}</span>
                 </div>
 
                 <!-- Submit Button -->

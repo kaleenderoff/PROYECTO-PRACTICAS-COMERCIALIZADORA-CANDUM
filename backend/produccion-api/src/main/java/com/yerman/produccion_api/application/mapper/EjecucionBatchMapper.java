@@ -24,6 +24,7 @@ public class EjecucionBatchMapper {
                 entity.getObservaciones(),
                 entity.getHuboReproceso(),
                 entity.getBatchConforme(),
+                entity.getBrixFinal(),
                 entity.getFechaInicio(),
                 entity.getFechaFin()
         );
@@ -50,6 +51,7 @@ public class EjecucionBatchMapper {
         entity.setObservaciones(domain.getObservaciones());
         entity.setHuboReproceso(domain.getHuboReproceso());
         entity.setBatchConforme(domain.getBatchConforme());
+        entity.setBrixFinal(domain.getBrixFinal());
         entity.setFechaInicio(domain.getFechaInicio());
         entity.setFechaFin(domain.getFechaFin());
         

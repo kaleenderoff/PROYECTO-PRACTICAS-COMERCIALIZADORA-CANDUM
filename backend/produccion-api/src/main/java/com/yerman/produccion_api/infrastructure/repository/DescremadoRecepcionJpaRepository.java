@@ -15,4 +15,6 @@ public interface DescremadoRecepcionJpaRepository extends JpaRepository<Descrema
     List<DescremadoRecepcionEntity> findByRecepcionLecheFechaRecepcionBetweenOrderByRecepcionLecheFechaRecepcionAscIdAsc(
             LocalDate inicio,
             LocalDate fin);
+
+    boolean existsByLoteCremaIgnoreCase(String loteCrema);
 }

@@ -57,6 +57,24 @@ export interface SkuProduccionMensual {
   detalleDiario: any[];
 }
 
+export interface MovimientoLecheOperativo {
+  id: number;
+  idTanque: number;
+  nombreTanque: string;
+  tipoMovimiento: string;
+  fechaHora: string;
+  cantidadLitros: number;
+  saldoResultanteLitros: number;
+  referencia: string;
+  observaciones: string;
+}
+
+export interface DashboardOperativoLacteo {
+  fecha: string;
+  movimientosLeche: MovimientoLecheOperativo[];
+  // Omitimos otros campos por ahora
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -86,5 +104,13 @@ export class DashboardService {
     return this.http.get<RendimientoAnual[]>(`${this.apiUrl}/rendimiento-anual`, {
       params: { anio: anio.toString() }
     });
+  }
+
+  obtenerTrazabilidadPorLote(lote: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/trazabilidad-por-lote/${encodeURIComponent(lote)}`);
+  }
+
+  obtenerDashboardOperativoLacteo(): Observable<DashboardOperativoLacteo> {
+    return this.http.get<DashboardOperativoLacteo>(`${environment.apiUrl}/dashboard-operativo/lacteos`);
   }
 }

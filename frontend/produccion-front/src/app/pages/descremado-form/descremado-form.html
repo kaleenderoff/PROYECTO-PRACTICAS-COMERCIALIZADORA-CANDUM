@@ -1,18 +1,16 @@
 <div class="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500 pb-24">
-    
-    <!-- Page Header -->
+
     <div class="flex items-center gap-4">
-        <button routerLink="/descremado" 
+        <button routerLink="/descremado"
                 class="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-500 hover:text-amber-600 hover:border-amber-100 transition-all">
             <i class="bi bi-arrow-left"></i>
         </button>
         <div>
             <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Registro de Descremado</h1>
-            <p class="text-slate-500 text-sm">Control de extracción de crema y balance de saldos en tanques</p>
+            <p class="text-slate-500 text-sm">Control de extraccion de crema y balance de saldos en tanques</p>
         </div>
     </div>
 
-    <!-- Alert Messages -->
     <div *ngIf="cargandoDatos" class="flex items-center gap-3 p-4 bg-amber-50 text-amber-700 rounded-2xl border border-amber-100 shadow-sm animate-pulse">
         <div class="w-10 h-10 bg-amber-100 rounded-xl"></div>
         <div class="h-3 bg-amber-200/50 rounded w-1/4"></div>
@@ -23,26 +21,23 @@
         {{ error }}
     </div>
 
-    <!-- Form Container -->
     <form [formGroup]="form" (ngSubmit)="guardar()" class="space-y-8">
-        
-        <!-- Section: Origen y Destino -->
+
         <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-8 md:p-10 space-y-8">
             <div class="flex items-center gap-3">
                 <div class="w-1.5 h-6 bg-amber-500 rounded-full"></div>
-                <h2 class="font-bold text-slate-800 uppercase tracking-wider text-sm">Configuración del Proceso</h2>
+                <h2 class="font-bold text-slate-800 uppercase tracking-wider text-sm">Configuracion del Proceso</h2>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Recepción -->
                 <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Lote de Recepción</label>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Recepcion pendiente de descremar</label>
                     <div class="relative">
                         <select formControlName="idRecepcionLeche"
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all text-slate-900 appearance-none text-sm">
-                            <option [ngValue]="null">Seleccione recepción...</option>
+                            <option [ngValue]="null">Seleccione recepcion...</option>
                             <option *ngFor="let recepcion of recepciones" [value]="recepcion.id">
-                                {{ recepcion.fechaRecepcion | date:'dd/MM' }} - {{ recepcion.proveedor }} ({{ recepcion.cantidadRecibidaLitros }}L)
+                                {{ recepcion.fechaRecepcion | date:'dd/MM' }} - {{ recepcion.proveedor }} ({{ recepcion.cantidadRecibidaLitros | number:'1.0-2' }} L)
                             </option>
                         </select>
                         <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
@@ -50,16 +45,14 @@
                     <p *ngIf="form.get('idRecepcionLeche')?.invalid && form.get('idRecepcionLeche')?.touched" class="text-[10px] text-red-500 font-bold ml-1 uppercase">Requerido</p>
                 </div>
 
-                <!-- Tanque Destino -->
                 <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Tanque de Descremado</label>
-                    <input type="text" readonly [value]="tanqueRefrigeracion ? (tanqueRefrigeracion.nombre + ' (' + tanqueRefrigeracion.saldoLitros + 'L)') : 'Sin tanque asignado'"
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Tanque destino</label>
+                    <input type="text" readonly [value]="tanqueRefrigeracion ? (tanqueRefrigeracion.nombre + ' (' + tanqueRefrigeracion.saldoLitros + ' L)') : 'Sin tanque asignado'"
                            class="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-2xl text-slate-500 cursor-not-allowed text-sm font-medium">
                 </div>
 
-                <!-- Cantidades -->
                 <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Litros a Descremar</label>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Litros a descremar</label>
                     <div class="relative">
                         <input type="number" formControlName="litrosDescremados" placeholder="0.00"
                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all text-slate-900 font-bold">
@@ -68,16 +61,26 @@
                 </div>
 
                 <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Crema Obtenida (Kg)</label>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Crema obtenida real (kg)</label>
                     <div class="relative">
                         <input type="number" formControlName="cremaObtenidaKg" placeholder="0.00"
                                class="w-full px-4 py-3 bg-amber-50 border border-amber-100 rounded-2xl focus:ring-4 focus:ring-amber-500/20 focus:border-amber-500 outline-none transition-all text-amber-900 font-bold">
                         <span class="absolute right-4 top-1/2 -translate-y-1/2 text-amber-300 font-bold">KG</span>
                     </div>
                 </div>
+
+                <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Litros recepcion</span>
+                        <p class="mt-1 text-xl font-black text-slate-900">{{ litrosDisponiblesRecepcion() | number:'1.0-2' }} L</p>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-blue-50 border border-blue-100">
+                        <span class="text-[10px] font-black text-blue-500 uppercase tracking-widest">Leche al tanque</span>
+                        <p class="mt-1 text-sm font-black text-blue-700">{{ tanqueRefrigeracion?.nombre || 'Sin tanque' }}</p>
+                    </div>
+                </div>
             </div>
 
-            <!-- Checkbox Toggle -->
             <div class="pt-4 flex items-center gap-3">
                 <input type="checkbox" id="registraCremaEmpacada" formControlName="registraCremaEmpacada"
                        class="w-5 h-5 rounded-lg text-amber-600 focus:ring-amber-500 border-slate-300 transition-all cursor-pointer">
@@ -85,18 +88,16 @@
             </div>
         </div>
 
-        <!-- Section: Detalles de Empaque (Conditional) -->
-        <div *ngIf="form.get('registraCremaEmpacada')?.value" 
+        <div *ngIf="form.get('registraCremaEmpacada')?.value"
              class="bg-white rounded-[2.5rem] border border-amber-100 shadow-xl shadow-amber-900/5 p-8 md:p-10 space-y-8 animate-in slide-in-from-top-4 duration-300">
             <div class="flex items-center gap-3">
                 <div class="w-1.5 h-6 bg-amber-600 rounded-full"></div>
-                <h2 class="font-bold text-slate-800 uppercase tracking-wider text-sm">Información de Empaque</h2>
+                <h2 class="font-bold text-slate-800 uppercase tracking-wider text-sm">Informacion de Empaque</h2>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- SKU Crema -->
                 <div class="md:col-span-2 space-y-2">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Presentación (SKU)</label>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Presentacion (SKU)</label>
                     <div class="relative">
                         <select formControlName="idSkuCrema"
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all text-slate-900 appearance-none text-sm font-medium">
@@ -109,14 +110,12 @@
                     </div>
                 </div>
 
-                <!-- Lote Crema -->
                 <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Lote Producción</label>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Lote produccion</label>
                     <input type="text" formControlName="loteCrema" placeholder="Ej: CR-001"
                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all text-sm font-mono font-bold">
                 </div>
 
-                <!-- Unidades y Peso -->
                 <div class="space-y-2">
                     <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Unidades</label>
                     <input type="number" formControlName="unidadesCrema" placeholder="0"
@@ -124,29 +123,32 @@
                 </div>
 
                 <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Kg / Unidad</label>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Kg / unidad</label>
                     <input type="number" formControlName="kgPorUnidadCrema" placeholder="0.00"
                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all text-sm">
+                </div>
+
+                <div class="md:col-span-3 p-4 rounded-2xl bg-amber-50 border border-amber-100">
+                    <span class="text-[10px] font-black text-amber-500 uppercase tracking-widest">Crema empacada calculada</span>
+                    <p class="mt-1 text-xl font-black text-amber-700">{{ cremaEmpacadaKg() | number:'1.0-2' }} kg</p>
                 </div>
             </div>
         </div>
 
-        <!-- Section: Notas -->
         <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-8 md:p-10 space-y-4">
-            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Observaciones Operativas</label>
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Observaciones operativas</label>
             <textarea formControlName="observaciones" rows="3" placeholder="Detalles sobre el proceso, temperatura, etc..."
                       class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-[2rem] focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all text-sm resize-none"></textarea>
         </div>
 
-        <!-- Action Footer (Floating-like) -->
         <div class="fixed bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-4xl bg-slate-900/90 backdrop-blur-xl px-8 py-4 rounded-3xl border border-slate-700/50 flex items-center justify-between shadow-2xl z-50 animate-in slide-in-from-bottom-8 duration-700">
-            <button type="button" routerLink="/descremado" 
+            <button type="button" routerLink="/descremado"
                     class="px-6 py-3 text-slate-400 font-bold hover:text-white transition-colors">
                 Cancelar
             </button>
             <button type="submit" [disabled]="cargando || cargandoDatos"
                     class="px-10 py-3 bg-amber-600 text-white font-black rounded-2xl shadow-xl shadow-amber-900/20 hover:bg-amber-500 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center gap-3">
-                <span *ngIf="!cargando">Confirmar Registro</span>
+                <span *ngIf="!cargando">Confirmar registro</span>
                 <span *ngIf="cargando" class="flex items-center gap-2">
                     <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -156,6 +158,5 @@
                 </span>
             </button>
         </div>
-
     </form>
 </div>

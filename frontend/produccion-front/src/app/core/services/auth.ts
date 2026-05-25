@@ -68,6 +68,20 @@ export class AuthService {
     return this.getRol() === 'ADMIN';
   }
 
+  obtenerNombreRol(): string {
+    const rol = this.getRol();
+    const roles: { [key: string]: string } = {
+      'ADMIN': 'Administrador del Sistema',
+      'DUENO_EMPRESA': 'Dueño de Empresa',
+      'JEFE_PLANTA': 'Jefe de Planta',
+      'JEFE_PRODUCCION': 'Jefe de Producción',
+      'JEFE_LINEA': 'Jefe de Línea',
+      'AUXILIAR_CALIDAD': 'Auxiliar de Calidad'
+    };
+    return roles[rol] || rol.replace('_', ' ');
+  }
+
+
   isDuenoEmpresa(): boolean {
     return this.getRol() === 'DUENO_EMPRESA';
   }
@@ -115,8 +129,21 @@ export class AuthService {
     return this.hasAnyRole(['ADMIN', 'JEFE_LINEA']);
   }
 
-  canManageProgramacion(): boolean {
+  // Solo JEFE_LINEA puede registrar recepciones de leche y descremados
+  canCreateOperacionesLinea(): boolean {
+    return this.isJefeLinea();
+  }
+
+  canValidateProduccion(): boolean {
     return this.hasAnyRole(['ADMIN', 'JEFE_PRODUCCION']);
+  }
+
+  canViewAuditoria(): boolean {
+    return this.hasAnyRole(['ADMIN', 'JEFE_PLANTA', 'DUENO_EMPRESA']);
+  }
+
+  canManageProgramacion(): boolean {
+    return this.isJefeProduccion();
   }
 
   canViewCatalogosTecnicos(): boolean {
@@ -129,7 +156,7 @@ export class AuthService {
   }
 
   canManageCatalogosTecnicos(): boolean {
-    return this.hasAnyRole(['ADMIN', 'JEFE_PRODUCCION']);
+    return this.isJefeProduccion();
   }
 
   canViewReportes(): boolean {
@@ -147,12 +174,13 @@ export class AuthService {
       'AUXILIAR_CALIDAD',
       'JEFE_PRODUCCION',
       'JEFE_PLANTA',
-      'DUENO_EMPRESA'
+      'DUENO_EMPRESA',
+      'JEFE_LINEA'
     ]);
   }
 
   canWriteCalidad(): boolean {
-    return this.hasAnyRole(['ADMIN', 'AUXILIAR_CALIDAD']);
+    return this.isAuxiliarCalidad();
   }
 
   logout(): void {

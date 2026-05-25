@@ -10,6 +10,7 @@ import {
 
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth';
+import { NotificationService } from '../../core/services/notification';
 
 @Component({
   selector: 'app-recepcion-leche',
@@ -25,6 +26,9 @@ export class RecepcionLeche implements OnInit {
   cargando = false;
   error = '';
   filtro = '';
+  filtroProveedor = '';
+  filtroFecha = '';
+  recepcionSeleccionada: RecepcionLecheModel | null = null;
 
   // Métricas para el Panel Superior
   totalLitrosMes = 0;
@@ -34,7 +38,8 @@ export class RecepcionLeche implements OnInit {
 
   constructor(
     private service: RecepcionLecheService,
-    public authService: AuthService
+    public authService: AuthService,
+    private notification: NotificationService
   ) { }
 
   ngOnInit(): void {
@@ -47,13 +52,17 @@ export class RecepcionLeche implements OnInit {
 
     this.service.listarRecepciones().subscribe({
       next: (data) => {
-        this.recepciones = data;
+        this.recepciones = data
+          .slice()
+          .sort((a, b) => this.fechaOrdenable(b).localeCompare(this.fechaOrdenable(a)));
         this.paginaActual = 1;
         this.calcularMetricas(data);
         this.cargando = false;
       },
-      error: () => {
-        this.error = 'No se pudieron cargar las recepciones de leche.';
+      error: (err) => {
+        const mensaje = err.error?.message || 'No se pudieron cargar las recepciones de leche.';
+        this.error = mensaje;
+        this.notification.error(mensaje);
         this.cargando = false;
       }
     });
@@ -70,13 +79,23 @@ export class RecepcionLeche implements OnInit {
   itemsPorPagina = 10;
 
   get recepcionesFiltradas(): RecepcionLecheModel[] {
-    if (!this.filtro.trim()) return this.recepciones;
-    const f = this.filtro.toLowerCase();
-    return this.recepciones.filter((r: RecepcionLecheModel) => 
-      (r.proveedor && r.proveedor.toLowerCase().includes(f)) ||
-      (r.idTanque && r.idTanque.toString().includes(f)) ||
-      (r.numeroRemision && r.numeroRemision.toLowerCase().includes(f))
-    );
+    const f = this.filtro.toLowerCase().trim();
+    const proveedor = this.filtroProveedor.toLowerCase().trim();
+    const fecha = this.filtroFecha;
+
+    return this.recepciones.filter((r: RecepcionLecheModel) => {
+      const coincideTexto = !f
+        || (r.proveedor && r.proveedor.toLowerCase().includes(f))
+        || (r.numeroRemision && r.numeroRemision.toLowerCase().includes(f))
+        || (r.observaciones && r.observaciones.toLowerCase().includes(f));
+
+      const coincideProveedor = !proveedor
+        || (r.proveedor && r.proveedor.toLowerCase() === proveedor);
+
+      const coincideFecha = !fecha || r.fechaRecepcion === fecha;
+
+      return coincideTexto && coincideProveedor && coincideFecha;
+    });
   }
 
   get recepcionesPaginadas(): RecepcionLecheModel[] {
@@ -123,6 +142,59 @@ export class RecepcionLeche implements OnInit {
     if (typeof p === 'number' && p >= 1 && p <= this.totalPaginas) {
       this.paginaActual = p;
     }
+  }
+
+  limpiarFiltros(): void {
+    this.filtro = '';
+    this.filtroProveedor = '';
+    this.filtroFecha = '';
+    this.paginaActual = 1;
+  }
+
+  abrirDetalle(recepcion: RecepcionLecheModel): void {
+    this.recepcionSeleccionada = recepcion;
+  }
+
+  cerrarDetalle(): void {
+    this.recepcionSeleccionada = null;
+  }
+
+  get proveedoresDisponibles(): string[] {
+    return Array.from(new Set(this.recepciones.map(r => r.proveedor).filter(Boolean))).sort();
+  }
+
+  diferenciaLitros(recepcion: RecepcionLecheModel): number {
+    return Number(recepcion.cantidadRecibidaLitros || 0) - Number(recepcion.cantidadRemisionLitros || 0);
+  }
+
+  porcentajeDiferencia(recepcion: RecepcionLecheModel): number {
+    const remision = Number(recepcion.cantidadRemisionLitros || 0);
+    if (remision <= 0) return 0;
+    return (this.diferenciaLitros(recepcion) / remision) * 100;
+  }
+
+  claseDiferencia(recepcion: RecepcionLecheModel): string {
+    const porcentaje = Math.abs(this.porcentajeDiferencia(recepcion));
+    if (porcentaje >= 5) return 'text-red-700 bg-red-50 border-red-100';
+    if (porcentaje >= 2) return 'text-amber-700 bg-amber-50 border-amber-100';
+    return 'text-emerald-700 bg-emerald-50 border-emerald-100';
+  }
+
+  colorProveedor(proveedor: string): string {
+    const colores = [
+      'bg-blue-100 text-blue-700',
+      'bg-emerald-100 text-emerald-700',
+      'bg-amber-100 text-amber-700',
+      'bg-violet-100 text-violet-700',
+      'bg-rose-100 text-rose-700',
+      'bg-cyan-100 text-cyan-700'
+    ];
+    const total = (proveedor || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return colores[total % colores.length];
+  }
+
+  private fechaOrdenable(recepcion: RecepcionLecheModel): string {
+    return `${recepcion.fechaRecepcion || ''}-${String(recepcion.id || 0).padStart(8, '0')}`;
   }
 
   private calcularMetricas(data: RecepcionLecheModel[]): void {

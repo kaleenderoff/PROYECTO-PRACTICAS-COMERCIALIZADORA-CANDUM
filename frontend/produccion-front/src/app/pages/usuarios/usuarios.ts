@@ -85,4 +85,16 @@ export class Usuarios implements OnInit {
       this.paginaActual = p;
     }
   }
+
+  obtenerNombreRol(rol: string): string {
+    const roles: { [key: string]: string } = {
+      'ADMIN': 'Administrador del Sistema',
+      'DUENO_EMPRESA': 'Dueño de Empresa',
+      'JEFE_PLANTA': 'Jefe de Planta',
+      'JEFE_PRODUCCION': 'Jefe de Producción',
+      'JEFE_LINEA': 'Jefe de Línea',
+      'AUXILIAR_CALIDAD': 'Auxiliar de Calidad'
+    };
+    return roles[rol] || rol;
+  }
 }

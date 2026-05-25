@@ -23,14 +23,17 @@ public class GestionControlCalidadLacteaService {
     private final ControlCalidadProcesoJpaRepository procesoRepository;
     private final ControlPesoProductoJpaRepository pesoRepository;
     private final EntityManager entityManager;
+    private final ValidacionOrdenProduccionGuardService validacionGuardService;
 
     public GestionControlCalidadLacteaService(
             ControlCalidadProcesoJpaRepository procesoRepository,
             ControlPesoProductoJpaRepository pesoRepository,
-            EntityManager entityManager) {
+            EntityManager entityManager,
+            ValidacionOrdenProduccionGuardService validacionGuardService) {
         this.procesoRepository = procesoRepository;
         this.pesoRepository = pesoRepository;
         this.entityManager = entityManager;
+        this.validacionGuardService = validacionGuardService;
     }
 
     @Transactional
@@ -160,6 +163,7 @@ public class GestionControlCalidadLacteaService {
         if (orden == null) {
             throw new RecursoNoEncontradoException("No existe una orden de produccion con ID: " + idOrdenProduccion);
         }
+        validacionGuardService.validarOrdenNoAprobada(idOrdenProduccion);
 
         if (idEjecucionBatch != null) {
             EjecucionBatchEntity batch = entityManager.find(EjecucionBatchEntity.class, idEjecucionBatch);

@@ -14,4 +14,6 @@ public interface DescremadoRecepcionRepositoryPort {
     List<DescremadoRecepcion> listarTodos();
 
     List<DescremadoRecepcion> listarPorRecepcion(Long idRecepcionLeche);
+
+    boolean existeLoteCrema(String loteCrema);
 }

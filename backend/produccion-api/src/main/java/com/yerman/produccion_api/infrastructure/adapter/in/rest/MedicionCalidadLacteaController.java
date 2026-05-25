@@ -22,6 +22,7 @@ public class MedicionCalidadLacteaController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('AUXILIAR_CALIDAD')")
     public MedicionCalidadLacteaResponse registrar(@Valid @RequestBody MedicionCalidadLacteaRequest request) {
         return MedicionCalidadLacteaRestMapper.toResponse(
                 useCase.registrar(

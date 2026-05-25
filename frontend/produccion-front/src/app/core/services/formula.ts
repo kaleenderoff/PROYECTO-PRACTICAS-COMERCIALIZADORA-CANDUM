@@ -26,6 +26,10 @@ export class FormulaService {
         return this.http.put(`${this.catalogosUrl}/insumos/${idInsumo}`, body);
     }
 
+    eliminarInsumo(idInsumo: number): Observable<void> {
+        return this.http.delete<void>(`${this.catalogosUrl}/insumos/${idInsumo}`);
+    }
+
     listarFormulasPorProducto(idProducto: number): Observable<any[]> {
         return this.http.get<any[]>(
             `${this.formulasUrl}/producto/${idProducto}`

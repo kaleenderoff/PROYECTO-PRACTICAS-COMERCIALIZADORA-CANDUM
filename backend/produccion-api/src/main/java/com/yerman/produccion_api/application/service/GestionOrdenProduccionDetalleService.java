@@ -20,19 +20,24 @@ public class GestionOrdenProduccionDetalleService implements GestionOrdenProducc
 
     private final OrdenProduccionDetalleRepositoryPort detalleRepository;
     private final OrdenProduccionRepositoryPort ordenRepository;
+    private final ValidacionOrdenProduccionGuardService validacionGuardService;
 
     public GestionOrdenProduccionDetalleService(
             OrdenProduccionDetalleRepositoryPort detalleRepository,
-            OrdenProduccionRepositoryPort ordenRepository) {
+            OrdenProduccionRepositoryPort ordenRepository,
+            ValidacionOrdenProduccionGuardService validacionGuardService) {
         this.detalleRepository = detalleRepository;
         this.ordenRepository = ordenRepository;
+        this.validacionGuardService = validacionGuardService;
     }
 
     @Override
     public OrdenProduccionDetalle agregarDetalle(OrdenProduccionDetalle detalle) {
+        validacionGuardService.validarOrdenNoAprobada(detalle.getIdOrden());
+
         OrdenProduccion orden = ordenRepository.obtenerPorId(detalle.getIdOrden())
                 .orElseThrow(() -> new RecursoNoEncontradoException(
-                        "No existe una orden de producción con ID: " + detalle.getIdOrden()));
+                        "No existe una orden de produccion con ID: " + detalle.getIdOrden()));
 
         if (orden.getEstado() != EstadoOrdenProduccion.PROGRAMADA) {
             throw new ReglaNegocioException("Solo se pueden agregar detalles a una orden en estado PROGRAMADA.");
@@ -74,11 +79,12 @@ public class GestionOrdenProduccionDetalleService implements GestionOrdenProducc
     public void eliminar(Long id) {
         OrdenProduccionDetalle detalle = detalleRepository.obtenerPorId(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
-                        "No existe un detalle de orden de producción con ID: " + id));
+                        "No existe un detalle de orden de produccion con ID: " + id));
+        validacionGuardService.validarOrdenNoAprobada(detalle.getIdOrden());
 
         OrdenProduccion orden = ordenRepository.obtenerPorId(detalle.getIdOrden())
                 .orElseThrow(() -> new RecursoNoEncontradoException(
-                        "No existe una orden de producción con ID: " + detalle.getIdOrden()));
+                        "No existe una orden de produccion con ID: " + detalle.getIdOrden()));
 
         if (orden.getEstado() != EstadoOrdenProduccion.PROGRAMADA) {
             throw new ReglaNegocioException("Solo se pueden eliminar detalles de una orden en estado PROGRAMADA.");

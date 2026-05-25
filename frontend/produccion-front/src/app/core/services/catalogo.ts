@@ -39,6 +39,10 @@ export class CatalogoService {
         return this.http.put(`${this.baseUrl}/skus/${id}`, body);
     }
 
+    eliminarSku(id: number): Observable<void> {
+        return this.http.delete<void>(`${this.baseUrl}/skus/${id}`);
+    }
+
     listarMarmitas(activos: boolean = true): Observable<any[]> {
         return this.http.get<any[]>(`${this.baseUrl}/marmitas?activos=${activos}`);
     }

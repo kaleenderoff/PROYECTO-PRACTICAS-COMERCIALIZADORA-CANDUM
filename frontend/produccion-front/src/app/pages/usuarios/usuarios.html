@@ -58,7 +58,7 @@
                         <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Colaborador</th>
                         <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Rol de Sistema</th>
                         <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Estado</th>
-                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Acciones</th>
+                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50">
@@ -84,7 +84,7 @@
                         </td>
                         <td class="px-8 py-5">
                             <span class="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-slate-200">
-                                {{ usuario.rol }}
+                                {{ obtenerNombreRol(usuario.rol) }}
                             </span>
                         </td>
                         <td class="px-8 py-5 text-center">
@@ -93,29 +93,24 @@
                                 {{ usuario.activo ? 'Activo' : 'Inactivo' }}
                             </span>
                         </td>
-                        <td class="px-8 py-5 text-right">
-                            <div class="flex items-center justify-end gap-2">
+                        <td class="px-8 py-5">
+                            <div class="flex justify-center gap-2">
                                 <a [routerLink]="['/usuarios', usuario.idUsuario, 'reset-password']"
                                    title="Reiniciar Contraseña"
-                                   class="p-2 hover:bg-white hover:text-amber-600 rounded-lg transition-all text-slate-400 shadow-sm border border-transparent hover:border-slate-100">
-                                    <i class="bi bi-key"></i>
+                                   class="w-10 h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:text-amber-600 hover:shadow-md transition-all">
+                                    <i class="bi bi-key-fill"></i>
                                 </a>
                                 <a [routerLink]="['/usuarios', usuario.idUsuario, 'editar']"
                                    title="Editar Usuario"
-                                   class="p-2 hover:bg-white hover:text-indigo-600 rounded-lg transition-all text-slate-400 shadow-sm border border-transparent hover:border-slate-100">
-                                    <i class="bi bi-pencil-square"></i>
+                                   class="w-10 h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:shadow-md transition-all">
+                                    <i class="bi bi-pencil-fill"></i>
                                 </a>
-                                <button *ngIf="usuario.activo && usuario.rol !== 'ADMIN'"
-                                        (click)="desactivar(usuario)"
-                                        title="Desactivar"
-                                        class="p-2 hover:bg-white hover:text-red-600 rounded-lg transition-all text-slate-400 shadow-sm border border-transparent hover:border-slate-100">
-                                    <i class="bi bi-person-x"></i>
-                                </button>
-                                <button *ngIf="!usuario.activo && usuario.rol !== 'ADMIN'"
-                                        (click)="activar(usuario)"
-                                        title="Activar"
-                                        class="p-2 hover:bg-white hover:text-emerald-600 rounded-lg transition-all text-slate-400 shadow-sm border border-transparent hover:border-slate-100">
-                                    <i class="bi bi-person-check"></i>
+                                <button *ngIf="usuario.rol !== 'ADMIN'"
+                                        (click)="usuario.activo ? desactivar(usuario) : activar(usuario)"
+                                        class="w-10 h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center transition-all shadow-sm hover:shadow-md"
+                                        [ngClass]="usuario.activo ? 'hover:text-rose-600 hover:bg-rose-50 hover:border-rose-100' : 'hover:text-emerald-600 hover:bg-emerald-50 hover:border-emerald-100'"
+                                        [title]="usuario.activo ? 'Desactivar' : 'Activar'">
+                                    <i class="bi text-lg" [ngClass]="usuario.activo ? 'bi-toggle-on text-emerald-600' : 'bi-toggle-off text-slate-400'"></i>
                                 </button>
                             </div>
                         </td>

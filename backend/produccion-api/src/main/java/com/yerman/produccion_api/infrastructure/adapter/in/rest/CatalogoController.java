@@ -115,6 +115,15 @@ public class CatalogoController {
         return toProveedorResponse(proveedorRepository.save(entity));
     }
 
+    @DeleteMapping("/proveedores/{id}")
+    @PreAuthorize("hasRole('JEFE_PRODUCCION')")
+    @Transactional
+    public ResponseEntity<Void> eliminarProveedor(@PathVariable Long id) {
+        ProveedorEntity entity = buscarProveedor(id);
+        proveedorRepository.delete(entity);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/marcas")
     public List<MarcaResponse> listarMarcas(@RequestParam(defaultValue = "true") boolean activos) {
         return (activos ? marcaRepository.findByActivoTrue() : marcaRepository.findAll())
@@ -258,6 +267,15 @@ public class CatalogoController {
         return toSkuResponse(skuRepository.save(entity));
     }
 
+    @DeleteMapping("/skus/{id}")
+    @PreAuthorize("hasRole('JEFE_PRODUCCION')")
+    @Transactional
+    public ResponseEntity<Void> eliminarSku(@PathVariable Long id) {
+        CatalogoSkuEntity entity = buscarSku(id);
+        skuRepository.delete(entity);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/insumos")
     public List<InsumoResponse> listarInsumos(@RequestParam(defaultValue = "true") boolean activos) {
         return (activos ? insumoRepository.findByActivoTrue() : insumoRepository.findAll())
@@ -294,6 +312,15 @@ public class CatalogoController {
         }
         aplicarInsumo(entity, request);
         return toInsumoResponse(insumoRepository.save(entity));
+    }
+
+    @DeleteMapping("/insumos/{id}")
+    @PreAuthorize("hasRole('JEFE_PRODUCCION')")
+    @Transactional
+    public ResponseEntity<Void> eliminarInsumo(@PathVariable Long id) {
+        InsumoEntity entity = buscarInsumo(id);
+        insumoRepository.delete(entity);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/marmitas")

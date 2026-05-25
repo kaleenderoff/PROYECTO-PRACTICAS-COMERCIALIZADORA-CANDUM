@@ -24,18 +24,21 @@ public class GestionMedicionCalidadLacteaService implements GestionMedicionCalid
     private final ProduccionLacteaBatchRepositoryPort batchRepositoryPort;
     private final OrdenProduccionRepositoryPort ordenRepositoryPort;
     private final EjecucionBatchRepositoryPort ejecucionBatchRepositoryPort;
+    private final ValidacionOrdenProduccionGuardService validacionGuardService;
 
     public GestionMedicionCalidadLacteaService(
             MedicionCalidadLacteaRepositoryPort repository,
             GestionProduccionLacteaUseCase produccionLacteaUseCase,
             ProduccionLacteaBatchRepositoryPort batchRepositoryPort,
             OrdenProduccionRepositoryPort ordenRepositoryPort,
-            EjecucionBatchRepositoryPort ejecucionBatchRepositoryPort) {
+            EjecucionBatchRepositoryPort ejecucionBatchRepositoryPort,
+            ValidacionOrdenProduccionGuardService validacionGuardService) {
         this.repository = repository;
         this.produccionLacteaUseCase = produccionLacteaUseCase;
         this.batchRepositoryPort = batchRepositoryPort;
         this.ordenRepositoryPort = ordenRepositoryPort;
         this.ejecucionBatchRepositoryPort = ejecucionBatchRepositoryPort;
+        this.validacionGuardService = validacionGuardService;
     }
 
     @Override
@@ -102,6 +105,7 @@ public class GestionMedicionCalidadLacteaService implements GestionMedicionCalid
             ordenRepositoryPort.obtenerPorId(medicion.getIdOrdenProduccion())
                     .orElseThrow(() -> new RecursoNoEncontradoException(
                             "No existe una orden de produccion con ID: " + medicion.getIdOrdenProduccion()));
+            validacionGuardService.validarOrdenNoAprobada(medicion.getIdOrdenProduccion());
         }
 
         if (medicion.getIdEjecucionBatch() != null) {

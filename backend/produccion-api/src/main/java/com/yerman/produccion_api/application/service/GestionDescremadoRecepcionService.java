@@ -128,6 +128,8 @@ public class GestionDescremadoRecepcionService implements GestionDescremadoRecep
     }
 
     private void validarCremaEmpacada(DescremadoRecepcion descremadoRecepcion) {
+        normalizarLoteCrema(descremadoRecepcion);
+
         boolean tieneCremaEmpacada = descremadoRecepcion.getIdSkuCrema() != null
                 || descremadoRecepcion.getUnidadesCrema() != null
                 || descremadoRecepcion.getKgPorUnidadCrema() != null
@@ -155,6 +157,24 @@ public class GestionDescremadoRecepcionService implements GestionDescremadoRecep
                 || descremadoRecepcion.getCremaObtenidaKg().compareTo(BigDecimal.ZERO) <= 0) {
             throw new ReglaNegocioException("La crema obtenida en kg es obligatoria si se registra crema empacada.");
         }
+
+        if (descremadoRecepcion.getLoteCrema() == null || descremadoRecepcion.getLoteCrema().isBlank()) {
+            throw new ReglaNegocioException("El lote de crema es obligatorio si se registra crema empacada.");
+        }
+
+        if (repository.existeLoteCrema(descremadoRecepcion.getLoteCrema())) {
+            throw new ReglaNegocioException(
+                    "Ya existe un registro de crema empacada con el lote: " + descremadoRecepcion.getLoteCrema());
+        }
+    }
+
+    private void normalizarLoteCrema(DescremadoRecepcion descremadoRecepcion) {
+        if (descremadoRecepcion.getLoteCrema() == null) {
+            return;
+        }
+
+        String lote = descremadoRecepcion.getLoteCrema().trim();
+        descremadoRecepcion.setLoteCrema(lote.isBlank() ? null : lote);
     }
 
     private String construirReferenciaEntrada(RecepcionLeche recepcion) {

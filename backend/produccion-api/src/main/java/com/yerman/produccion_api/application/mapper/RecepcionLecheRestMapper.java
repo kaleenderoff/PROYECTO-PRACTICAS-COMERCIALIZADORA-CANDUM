@@ -32,9 +32,9 @@ public class RecepcionLecheRestMapper {
         recepcion.setProveedor(request.getProveedor());
         recepcion.setCantidadRecibidaLitros(request.getCantidadRecibidaLitros());
         recepcion.setRecibidoPor(request.getRecibidoPor());
-        recepcion.setIdTanque(null);
-        recepcion.setIdMovimientoLeche(null);
         recepcion.setIdUsuario(request.getIdUsuario());
+        recepcion.setIdTanque(request.getIdTanque());
+        recepcion.setIdMovimientoLeche(null);
         recepcion.setNumeroRemision(request.getNumeroRemision());
         recepcion.setCantidadRemisionLitros(request.getCantidadRemisionLitros());
         recepcion.setObservaciones(request.getObservaciones());

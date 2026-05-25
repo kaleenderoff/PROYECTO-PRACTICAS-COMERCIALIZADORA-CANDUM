@@ -14,6 +14,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -32,6 +33,21 @@ public class GlobalExceptionHandler {
         private static final String INTERNAL_ERROR = HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase();
         private static final String NOT_FOUND = HttpStatus.NOT_FOUND.getReasonPhrase();
         private static final String FORBIDDEN = HttpStatus.FORBIDDEN.getReasonPhrase();
+
+        @ExceptionHandler(BadCredentialsException.class)
+        public ResponseEntity<ErrorResponse> handleBadCredentials(
+                        BadCredentialsException ex,
+                        HttpServletRequest request) {
+
+                log.warn("Contrasena incorrecta en {} {}",
+                                request.getMethod(), request.getRequestURI());
+
+                return buildResponse(
+                                HttpStatus.UNAUTHORIZED,
+                                "Unauthorized",
+                                "Contraseña incorrecta. Verifique sus credenciales.",
+                                request);
+        }
 
         @ExceptionHandler(UsuarioInactivoException.class)
         public ResponseEntity<ErrorResponse> handleUsuarioInactivo(

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { CatalogoService } from '../../core/services/catalogo';
 import { AuthService } from '../../core/services/auth';
+import Swal from 'sweetalert2';
 
 @Component({
     selector: 'app-skus',
@@ -27,6 +28,7 @@ export class Skus implements OnInit {
     filtro = '';
     modoEdicion = false;
     idSkuEditando: number | null = null;
+    mostrarFormulario = false;
 
     // Paginación
     paginaActual = 1;
@@ -91,6 +93,7 @@ export class Skus implements OnInit {
         this.catalogoService.crearSku(this.nuevoSku).subscribe({
             next: () => {
                 this.mensajeOk = 'SKU creado correctamente.';
+                this.mostrarFormulario = false;
                 this.limpiarFormulario();
                 this.cargarSkus();
             },
@@ -103,6 +106,7 @@ export class Skus implements OnInit {
 
         this.limpiarMensajes();
         this.modoEdicion = true;
+        this.mostrarFormulario = true;
         this.idSkuEditando = sku.id;
 
         this.nuevoSku = {
@@ -129,6 +133,7 @@ export class Skus implements OnInit {
         this.catalogoService.actualizarSku(this.idSkuEditando, this.nuevoSku).subscribe({
             next: () => {
                 this.mensajeOk = 'SKU actualizado correctamente.';
+                this.mostrarFormulario = false;
                 this.limpiarFormulario();
                 this.cargarSkus();
             },
@@ -149,7 +154,16 @@ export class Skus implements OnInit {
         });
     }
 
+    toggleFormulario(): void {
+        this.mostrarFormulario = !this.mostrarFormulario;
+        if (!this.mostrarFormulario) {
+            this.limpiarFormulario();
+            this.limpiarMensajes();
+        }
+    }
+
     cancelarEdicion(): void {
+        this.mostrarFormulario = false;
         this.limpiarFormulario();
         this.limpiarMensajes();
     }
@@ -188,6 +202,33 @@ export class Skus implements OnInit {
         if (p >= 1 && p <= this.totalPaginas) {
             this.paginaActual = p;
         }
+    }
+
+    eliminarSku(id: number): void {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: 'Esta acción eliminará permanentemente este SKU.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#059669',
+            cancelButtonColor: '#ef4444',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                this.catalogoService.eliminarSku(id).subscribe({
+                    next: () => {
+                        this.mensajeOk = 'SKU eliminado correctamente';
+                        this.cargarSkus();
+                        setTimeout(() => this.mensajeOk = '', 3000);
+                    },
+                    error: (err) => {
+                        this.mensajeError = err.error?.message || 'Error al eliminar el SKU';
+                        setTimeout(() => this.mensajeError = '', 3000);
+                    }
+                });
+            }
+        });
     }
 
     limpiarFormulario(): void {

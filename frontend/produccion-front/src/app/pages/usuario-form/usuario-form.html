@@ -92,7 +92,7 @@
                             <select formControlName="rol"
                                     class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-slate-900 appearance-none">
                                 <option value="">Seleccione un nivel de acceso</option>
-                                <option *ngFor="let rol of roles" [value]="rol">{{ rol }}</option>
+                                <option *ngFor="let rol of roles" [value]="rol.value">{{ rol.label }}</option>
                             </select>
                             <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                         </div>

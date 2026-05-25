@@ -23,6 +23,7 @@ export interface RecepcionLecheRequest {
     proveedor: string;
     cantidadRecibidaLitros: number;
     recibidoPor?: string;
+    idUsuario: number;
     idTanque: number;
     numeroRemision?: string;
     cantidadRemisionLitros?: number;

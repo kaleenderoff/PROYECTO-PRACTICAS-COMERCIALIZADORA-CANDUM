@@ -22,7 +22,8 @@ public class EjecucionBatchRestMapper {
                 domain.getEstado().name(),
                 domain.getObservaciones(),
                 domain.getFechaInicio(),
-                domain.getFechaFin()
+                domain.getFechaFin(),
+                domain.getBrixFinal()
         );
     }
 }

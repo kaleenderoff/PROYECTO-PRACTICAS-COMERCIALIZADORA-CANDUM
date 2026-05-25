@@ -57,6 +57,11 @@ public class DescremadoRecepcionJpaAdapter implements DescremadoRecepcionReposit
                 .toList();
     }
 
+    @Override
+    public boolean existeLoteCrema(String loteCrema) {
+        return repository.existsByLoteCremaIgnoreCase(loteCrema);
+    }
+
     private DescremadoRecepcionEntity toEntity(DescremadoRecepcion descremadoRecepcion) {
         DescremadoRecepcionEntity entity = new DescremadoRecepcionEntity();
 

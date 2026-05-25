@@ -6,7 +6,11 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "descremado_recepcion")
+@Table(
+        name = "descremado_recepcion",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uq_descremado_recepcion_lote_crema", columnNames = "lote_crema")
+        })
 public class DescremadoRecepcionEntity {
 
     @Id

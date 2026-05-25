@@ -25,10 +25,15 @@ public class GestionEjecucionBatchService implements GestionEjecucionBatchUseCas
 
     private final EjecucionBatchRepositoryPort repository;
     private final OrdenProduccionRepositoryPort ordenRepository;
+    private final ValidacionOrdenProduccionGuardService validacionGuardService;
 
-    public GestionEjecucionBatchService(EjecucionBatchRepositoryPort repository, OrdenProduccionRepositoryPort ordenRepository) {
+    public GestionEjecucionBatchService(
+            EjecucionBatchRepositoryPort repository,
+            OrdenProduccionRepositoryPort ordenRepository,
+            ValidacionOrdenProduccionGuardService validacionGuardService) {
         this.repository = repository;
         this.ordenRepository = ordenRepository;
+        this.validacionGuardService = validacionGuardService;
     }
 
     @Override
@@ -45,6 +50,7 @@ public class GestionEjecucionBatchService implements GestionEjecucionBatchUseCas
         // Validar límite de batches planificados
         OrdenProduccion orden = ordenRepository.obtenerPorId(idOrden)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe la orden con ID: " + idOrden));
+        validacionGuardService.validarOrdenNoAprobada(idOrden);
 
         if (orden.getEstado() == com.yerman.produccion_api.domain.model.EstadoOrdenProduccion.FINALIZADA) {
             throw new ReglaNegocioException("No se pueden iniciar más baches porque la orden ya está FINALIZADA.");
@@ -52,9 +58,11 @@ public class GestionEjecucionBatchService implements GestionEjecucionBatchUseCas
 
         List<EjecucionBatch> batchesExistentes = repository.listarPorOrden(idOrden);
         
-        if (batchesExistentes.size() >= orden.getNumBachesPlan()) {
+        // Solo validar límite si numBachesPlan está definido
+        Integer numBachesPlan = orden.getNumBachesPlan();
+        if (numBachesPlan != null && numBachesPlan > 0 && batchesExistentes.size() >= numBachesPlan) {
             throw new ReglaNegocioException("Se ha alcanzado el número máximo de batches planificados (" + 
-                    orden.getNumBachesPlan() + "). No es posible iniciar más baches.");
+                    numBachesPlan + "). No es posible iniciar más baches.");
         }
 
         // Auto-numeración del batch
@@ -93,12 +101,13 @@ public class GestionEjecucionBatchService implements GestionEjecucionBatchUseCas
 
     @Override
     @Transactional
-    public EjecucionBatch finalizarBatch(Long idBatch, BigDecimal kgProducidos, String observaciones, Boolean conNovedad, Boolean huboReproceso, Boolean batchConforme) {
+    public EjecucionBatch finalizarBatch(Long idBatch, BigDecimal kgProducidos, String observaciones, Boolean conNovedad, Boolean huboReproceso, Boolean batchConforme, BigDecimal brixFinal) {
         EjecucionBatch batch = repository.obtenerPorId(idBatch)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe el batch con ID: " + idBatch));
 
         OrdenProduccion orden = ordenRepository.obtenerPorId(batch.getIdOrdenProduccion())
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe la orden vinculada al batch."));
+        validacionGuardService.validarOrdenNoAprobada(batch.getIdOrdenProduccion());
 
         if (orden.getEstado() == com.yerman.produccion_api.domain.model.EstadoOrdenProduccion.FINALIZADA) {
             throw new ReglaNegocioException("No se puede modificar el bache porque la orden ya está FINALIZADA.");
@@ -114,6 +123,7 @@ public class GestionEjecucionBatchService implements GestionEjecucionBatchUseCas
         batch.setObservaciones(observaciones);
         batch.setHuboReproceso(huboReproceso);
         batch.setBatchConforme(batchConforme);
+        batch.setBrixFinal(brixFinal);
 
         if (batch.getKgEntrada() != null && batch.getKgEntrada().compareTo(BigDecimal.ZERO) > 0) {
             BigDecimal rendimiento = kgProducidos
@@ -130,6 +140,7 @@ public class GestionEjecucionBatchService implements GestionEjecucionBatchUseCas
     public EjecucionBatch registrarNovedad(Long idBatch, String observaciones) {
         EjecucionBatch batch = repository.obtenerPorId(idBatch)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe el batch con ID: " + idBatch));
+        validacionGuardService.validarOrdenNoAprobada(batch.getIdOrdenProduccion());
 
         batch.setEstado(EstadoBatch.CON_NOVEDAD);
         batch.setObservaciones(observaciones);
@@ -151,6 +162,7 @@ public class GestionEjecucionBatchService implements GestionEjecucionBatchUseCas
 
         OrdenProduccion orden = ordenRepository.obtenerPorId(batch.getIdOrdenProduccion())
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe la orden vinculada al batch."));
+        validacionGuardService.validarOrdenNoAprobada(batch.getIdOrdenProduccion());
 
         if (orden.getEstado() == com.yerman.produccion_api.domain.model.EstadoOrdenProduccion.FINALIZADA) {
             throw new ReglaNegocioException("No se puede eliminar el bache porque la orden ya está FINALIZADA.");

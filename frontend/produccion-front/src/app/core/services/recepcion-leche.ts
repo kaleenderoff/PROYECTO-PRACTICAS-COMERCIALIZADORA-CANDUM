@@ -3,6 +3,16 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
+export interface RecepcionLechePesaje {
+  id?: number;
+  idRecepcionLeche?: number;
+  numeroPesaje: number;
+  pesoBrutoKg: number;
+  taraKg: number;
+  pesoNetoKg?: number;
+  observaciones?: string;
+}
+
 export interface RecepcionLeche {
   id: number;
   fechaRecepcion: string;
@@ -12,9 +22,11 @@ export interface RecepcionLeche {
   recibidoPor?: string;
   idTanque?: number | null;
   idUsuario: number;
+  idMovimientoLeche?: number | null;
   numeroRemision?: string;
   cantidadRemisionLitros?: number;
   observaciones?: string;
+  pesajes?: RecepcionLechePesaje[];
 }
 
 export interface RecepcionLecheRequest {
@@ -23,6 +35,8 @@ export interface RecepcionLecheRequest {
   proveedor: string;
   cantidadRecibidaLitros: number;
   recibidoPor?: string;
+  idUsuario: number;
+  idTanque: number;
   numeroRemision?: string;
   cantidadRemisionLitros?: number;
   observaciones?: string;
@@ -50,6 +64,11 @@ export interface Proveedor {
   activo: boolean;
 }
 
+export interface ProveedorRequest {
+  nombre: string;
+  activo: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -72,5 +91,21 @@ export class RecepcionLecheService {
 
   listarProveedores(): Observable<Proveedor[]> {
     return this.http.get<Proveedor[]>(`${this.apiUrl}/catalogos/proveedores`);
+  }
+
+  listarTodosProveedores(): Observable<Proveedor[]> {
+    return this.http.get<Proveedor[]>(`${this.apiUrl}/catalogos/proveedores?activos=false`);
+  }
+
+  crearProveedor(request: ProveedorRequest): Observable<Proveedor> {
+    return this.http.post<Proveedor>(`${this.apiUrl}/catalogos/proveedores`, request);
+  }
+
+  actualizarProveedor(id: number, request: ProveedorRequest): Observable<Proveedor> {
+    return this.http.put<Proveedor>(`${this.apiUrl}/catalogos/proveedores/${id}`, request);
+  }
+
+  eliminarProveedor(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/catalogos/proveedores/${id}`);
   }
 }
