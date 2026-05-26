@@ -4,6 +4,28 @@ import { Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 
+export interface CalidadRecepcionLecheRequest {
+  idRecepcionLeche: number;
+  fechaControl?: string | null;
+  pruebaAlcoholOk?: boolean | null;
+  lactoscanOk?: boolean | null;
+  acidez?: number | null;
+  densidad?: number | null;
+  grasa?: number | null;
+  aguaPct?: number | null;
+  temperatura?: number | null;
+  ph?: number | null;
+  aprobado?: boolean;
+  retenido?: boolean;
+  idRealizadoPor: number;
+  observaciones?: string | null;
+}
+
+export interface CalidadRecepcionLecheResponse extends CalidadRecepcionLecheRequest {
+  id: number;
+  createdAt?: string;
+}
+
 export interface ControlCalidadProcesoRequest {
   idOrdenProduccion: number;
   idEjecucionBatch?: number | null;
@@ -98,6 +120,14 @@ export class ControlCalidadLacteaService {
   private readonly apiUrl = `${environment.apiUrl}/controles-calidad-lactea`;
 
   constructor(private http: HttpClient) { }
+
+  registrarRecepcion(request: CalidadRecepcionLecheRequest): Observable<CalidadRecepcionLecheResponse> {
+    return this.http.post<CalidadRecepcionLecheResponse>(`${this.apiUrl}/recepcion`, request);
+  }
+
+  listarRecepcion(idRecepcionLeche: number): Observable<CalidadRecepcionLecheResponse[]> {
+    return this.http.get<CalidadRecepcionLecheResponse[]>(`${this.apiUrl}/recepcion/${idRecepcionLeche}`);
+  }
 
   registrarProceso(request: ControlCalidadProcesoRequest): Observable<ControlCalidadProcesoResponse> {
     return this.http.post<ControlCalidadProcesoResponse>(`${this.apiUrl}/proceso`, request);

@@ -7,6 +7,10 @@ import {
   RecepcionLecheService,
   SaldoTanqueLeche
 } from '../../core/services/recepcion-leche';
+import {
+  CalidadRecepcionLecheResponse,
+  ControlCalidadLacteaService
+} from '../../core/services/control-calidad-lactea';
 
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth';
@@ -29,6 +33,23 @@ export class RecepcionLeche implements OnInit {
   filtroProveedor = '';
   filtroFecha = '';
   recepcionSeleccionada: RecepcionLecheModel | null = null;
+  controlesRecepcion: CalidadRecepcionLecheResponse[] = [];
+  cargandoCalidad = false;
+  guardandoCalidad = false;
+
+  calidadForm = {
+    pruebaAlcoholOk: true,
+    lactoscanOk: true,
+    acidez: null as number | null,
+    densidad: null as number | null,
+    grasa: null as number | null,
+    aguaPct: null as number | null,
+    temperatura: null as number | null,
+    ph: null as number | null,
+    aprobado: true,
+    retenido: false,
+    observaciones: ''
+  };
 
   // Métricas para el Panel Superior
   totalLitrosMes = 0;
@@ -38,6 +59,7 @@ export class RecepcionLeche implements OnInit {
 
   constructor(
     private service: RecepcionLecheService,
+    private controlCalidadService: ControlCalidadLacteaService,
     public authService: AuthService,
     private notification: NotificationService
   ) { }
@@ -153,10 +175,81 @@ export class RecepcionLeche implements OnInit {
 
   abrirDetalle(recepcion: RecepcionLecheModel): void {
     this.recepcionSeleccionada = recepcion;
+    this.cargarCalidadRecepcion(recepcion.id);
   }
 
   cerrarDetalle(): void {
     this.recepcionSeleccionada = null;
+    this.controlesRecepcion = [];
+    this.resetCalidadForm();
+  }
+
+  cargarCalidadRecepcion(idRecepcionLeche: number): void {
+    this.cargandoCalidad = true;
+
+    this.controlCalidadService.listarRecepcion(idRecepcionLeche).subscribe({
+      next: (data) => {
+        this.controlesRecepcion = data;
+        this.cargandoCalidad = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.controlesRecepcion = [];
+        this.cargandoCalidad = false;
+      }
+    });
+  }
+
+  registrarCalidadRecepcion(): void {
+    if (!this.recepcionSeleccionada) {
+      return;
+    }
+
+    this.guardandoCalidad = true;
+
+    this.controlCalidadService.registrarRecepcion({
+      idRecepcionLeche: this.recepcionSeleccionada.id,
+      pruebaAlcoholOk: this.calidadForm.pruebaAlcoholOk,
+      lactoscanOk: this.calidadForm.lactoscanOk,
+      acidez: this.calidadForm.acidez,
+      densidad: this.calidadForm.densidad,
+      grasa: this.calidadForm.grasa,
+      aguaPct: this.calidadForm.aguaPct,
+      temperatura: this.calidadForm.temperatura,
+      ph: this.calidadForm.ph,
+      aprobado: this.calidadForm.aprobado,
+      retenido: this.calidadForm.retenido,
+      idRealizadoPor: this.authService.getIdUsuario(),
+      observaciones: this.calidadForm.observaciones || null
+    }).subscribe({
+      next: (control) => {
+        this.controlesRecepcion = [control, ...this.controlesRecepcion];
+        this.guardandoCalidad = false;
+        this.resetCalidadForm();
+        this.notification.success('Control de calidad de recepcion registrado correctamente.');
+      },
+      error: (err) => {
+        const mensaje = err.error?.message || 'No se pudo registrar el control de calidad.';
+        this.notification.error(mensaje);
+        this.guardandoCalidad = false;
+      }
+    });
+  }
+
+  resetCalidadForm(): void {
+    this.calidadForm = {
+      pruebaAlcoholOk: true,
+      lactoscanOk: true,
+      acidez: null,
+      densidad: null,
+      grasa: null,
+      aguaPct: null,
+      temperatura: null,
+      ph: null,
+      aprobado: true,
+      retenido: false,
+      observaciones: ''
+    };
   }
 
   get proveedoresDisponibles(): string[] {

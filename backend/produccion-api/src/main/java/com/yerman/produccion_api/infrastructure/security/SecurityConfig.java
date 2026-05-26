@@ -122,9 +122,7 @@ public class SecurityConfig {
                                 ROL_ADMIN,
                                 ROL_DUENO_EMPRESA,
                                 ROL_JEFE_PLANTA,
-                                ROL_JEFE_PRODUCCION,
-                                ROL_JEFE_LINEA,
-                                ROL_AUXILIAR_CALIDAD)
+                                ROL_JEFE_PRODUCCION)
 
                         .requestMatchers("/programaciones/**", "/programacion-skus/**")
                         .hasAnyRole(

@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 import { AuthService } from '../../core/services/auth';
 import {
@@ -96,36 +98,44 @@ export class MedicionesCalidadLactea implements OnInit {
     this.cargando = true;
     this.error = '';
 
-    this.batchService.listarPorOrden(this.idOrdenSeleccionada).subscribe({
-      next: (batches) => {
+    forkJoin({
+      batches: this.batchService.listarPorOrden(this.idOrdenSeleccionada).pipe(
+        catchError(err => {
+          console.error(err);
+          return of([]);
+        })
+      ),
+      mediciones: this.medicionService.listarPorOrden(this.idOrdenSeleccionada).pipe(
+        catchError(err => {
+          console.error(err);
+          return of([]);
+        })
+      ),
+      controlesProceso: this.controlCalidadService.listarProcesosPorOrden(this.idOrdenSeleccionada).pipe(
+        catchError(err => {
+          console.error(err);
+          return of([]);
+        })
+      ),
+      controlesPeso: this.controlCalidadService.listarPesosPorOrden(this.idOrdenSeleccionada).pipe(
+        catchError(err => {
+          console.error(err);
+          return of([]);
+        })
+      )
+    }).subscribe({
+      next: ({ batches, mediciones, controlesProceso, controlesPeso }) => {
         this.batches = batches;
-        this.autocompletarReferencia();
-      },
-      error: () => {
-        this.error = 'No se pudieron cargar los batches de la orden.';
-        this.cargando = false;
-      }
-    });
-
-    this.medicionService.listarPorOrden(this.idOrdenSeleccionada).subscribe({
-      next: (mediciones) => {
         this.mediciones = mediciones;
+        this.controlesProceso = controlesProceso;
+        this.controlesPeso = controlesPeso;
+        this.autocompletarReferencia();
         this.cargando = false;
       },
       error: () => {
-        this.error = 'No se pudieron cargar las mediciones de calidad.';
+        this.error = 'No se pudieron cargar los datos de calidad.';
         this.cargando = false;
       }
-    });
-
-    this.controlCalidadService.listarProcesosPorOrden(this.idOrdenSeleccionada).subscribe({
-      next: controles => this.controlesProceso = controles,
-      error: () => this.error = 'No se pudieron cargar los controles completos de proceso.'
-    });
-
-    this.controlCalidadService.listarPesosPorOrden(this.idOrdenSeleccionada).subscribe({
-      next: controles => this.controlesPeso = controles,
-      error: () => this.error = 'No se pudieron cargar los controles de peso.'
     });
   }
 

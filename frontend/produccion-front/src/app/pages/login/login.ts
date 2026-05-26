@@ -49,6 +49,8 @@ export class Login {
           this.router.navigate(['/programacion-produccion/nueva']);
         } else if (rol.includes('JEFE_LINEA')) {
           this.router.navigate(['/ordenes-produccion']);
+        } else if (rol.includes('AUXILIAR_CALIDAD')) {
+          this.router.navigate(['/recepcion-leche']);
         } else {
           this.router.navigate(['/dashboard']);
         }

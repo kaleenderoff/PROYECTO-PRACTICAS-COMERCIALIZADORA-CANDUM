@@ -1,0 +1,268 @@
+<div class="min-h-screen bg-slate-950 text-slate-200 p-6">
+
+  <!-- HEADER -->
+  <div class="mb-6 flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-white flex items-center gap-2">
+        <i class="bi bi-bar-chart-line text-indigo-400"></i>
+        Reportes y Exportaciones
+      </h1>
+      <p class="text-slate-400 text-sm mt-0.5">Descargue los reportes del sistema en formato Excel</p>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="flex gap-2 mb-6 border-b border-slate-800 pb-0">
+    <button
+      (click)="setView('consumo')"
+      [class.border-b-2]="view === 'consumo'"
+      [class.border-indigo-500]="view === 'consumo'"
+      [class.text-white]="view === 'consumo'"
+      [class.text-slate-400]="view !== 'consumo'"
+      class="px-4 py-2 text-sm font-semibold transition-colors hover:text-white">
+      <i class="bi bi-boxes mr-1"></i>
+      Consumo de Insumos
+    </button>
+    <button
+      (click)="setView('recepcion')"
+      [class.border-b-2]="view === 'recepcion'"
+      [class.border-indigo-500]="view === 'recepcion'"
+      [class.text-white]="view === 'recepcion'"
+      [class.text-slate-400]="view !== 'recepcion'"
+      class="px-4 py-2 text-sm font-semibold transition-colors hover:text-white">
+      <i class="bi bi-droplet-half mr-1"></i>
+      Recepción y Descremado
+    </button>
+    <button
+      (click)="setView('produccion')"
+      [class.border-b-2]="view === 'produccion'"
+      [class.border-indigo-500]="view === 'produccion'"
+      [class.text-white]="view === 'produccion'"
+      [class.text-slate-400]="view !== 'produccion'"
+      class="px-4 py-2 text-sm font-semibold transition-colors hover:text-white">
+      <i class="bi bi-graph-up mr-1"></i>
+      Producción vs Empaque
+    </button>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════════ -->
+  <!-- TAB: CONSUMO INSUMOS -->
+  <!-- ════════════════════════════════════════════════════════════════════ -->
+  <div *ngIf="view === 'consumo'">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 mb-5">
+      <div class="flex flex-wrap items-end gap-4">
+        <div>
+          <label class="block text-xs text-slate-400 mb-1 font-semibold">FECHA</label>
+          <input
+            type="date"
+            [(ngModel)]="fechaConsumo"
+            class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <button
+          (click)="cargarConsumo()"
+          [disabled]="cargandoConsumo"
+          class="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50">
+          <i class="bi bi-search"></i>
+          Consultar
+        </button>
+        <button
+          (click)="descargarConsumoExcel()"
+          [disabled]="descargando || !resumenConsumo"
+          class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ml-auto">
+          <i class="bi bi-file-earmark-excel" [class.animate-spin]="descargando"></i>
+          <span *ngIf="!descargando">Descargar Excel</span>
+          <span *ngIf="descargando">Generando...</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Resumen cards -->
+    <div *ngIf="resumenConsumo && !cargandoConsumo" class="grid grid-cols-2 gap-4 mb-5 sm:grid-cols-4">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center">
+        <div class="text-2xl font-bold text-blue-400">{{ resumenConsumo.totalOrdenes }}</div>
+        <div class="text-xs text-slate-400 mt-1">Órdenes</div>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center">
+        <div class="text-2xl font-bold text-amber-400">{{ resumenConsumo.totalBatches }}</div>
+        <div class="text-xs text-slate-400 mt-1">Batches</div>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center">
+        <div class="text-2xl font-bold text-slate-200">{{ resumenConsumo.totalKgEntrada | number:'1.1-1' }} kg</div>
+        <div class="text-xs text-slate-400 mt-1">Kg Entrada</div>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center">
+        <div class="text-2xl font-bold text-emerald-400">{{ resumenConsumo.totalKgProducidos | number:'1.1-1' }} kg</div>
+        <div class="text-xs text-slate-400 mt-1">Kg Producidos</div>
+      </div>
+    </div>
+
+    <!-- Tabla insumos -->
+    <div *ngIf="resumenConsumo?.insumos?.length" class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+      <div class="px-5 py-3 border-b border-slate-800">
+        <h3 class="text-sm font-bold text-slate-300">Insumos Consumidos</h3>
+      </div>
+      <table class="w-full text-sm">
+        <thead class="bg-slate-800/50">
+          <tr>
+            <th class="px-4 py-2 text-left text-xs text-slate-400 font-semibold">INSUMO</th>
+            <th class="px-4 py-2 text-right text-xs text-slate-400 font-semibold">CANTIDAD</th>
+            <th class="px-4 py-2 text-right text-xs text-slate-400 font-semibold">UNIDAD</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let ins of resumenConsumo!.insumos" class="border-t border-slate-800 hover:bg-slate-800/30">
+            <td class="px-4 py-2.5 text-slate-200">{{ ins.nombreInsumo }}</td>
+            <td class="px-4 py-2.5 text-right font-mono text-slate-200">{{ ins.cantidadTotal | number:'1.2-2' }}</td>
+            <td class="px-4 py-2.5 text-right text-slate-400">{{ ins.unidadMedida }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="cargandoConsumo" class="flex justify-center py-12 text-slate-500">
+      <i class="bi bi-hourglass-split animate-spin text-2xl mr-2"></i> Cargando...
+    </div>
+    <div *ngIf="errorConsumo && !cargandoConsumo" class="text-center py-10 text-slate-500">
+      <i class="bi bi-inbox text-4xl block mb-2"></i>
+      {{ errorConsumo }}
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════════ -->
+  <!-- TAB: RECEPCIÓN / DESCREMADO -->
+  <!-- ════════════════════════════════════════════════════════════════════ -->
+  <div *ngIf="view === 'recepcion'">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 mb-5">
+      <div class="flex flex-wrap items-end gap-4">
+        <div>
+          <label class="block text-xs text-slate-400 mb-1 font-semibold">FECHA</label>
+          <input
+            type="date"
+            [(ngModel)]="fechaRecepcion"
+            class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <button
+          (click)="cargarRecepcion()"
+          [disabled]="cargandoRecepcion"
+          class="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50">
+          <i class="bi bi-search"></i>
+          Consultar
+        </button>
+        <button
+          (click)="descargarRecepcionExcel()"
+          [disabled]="descargando || !resumenRecepcion"
+          class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ml-auto">
+          <i class="bi bi-file-earmark-excel"></i>
+          <span *ngIf="!descargando">Descargar Excel</span>
+          <span *ngIf="descargando">Generando...</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Resumen cards recepción -->
+    <div *ngIf="resumenRecepcion && !cargandoRecepcion" class="grid grid-cols-3 gap-4 mb-5">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center">
+        <div class="text-2xl font-bold text-blue-400">{{ resumenRecepcion.totalRecepciones }}</div>
+        <div class="text-xs text-slate-400 mt-1">Recepciones</div>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center">
+        <div class="text-2xl font-bold text-slate-200">{{ resumenRecepcion.totalLitrosRecibidos | number:'1.1-1' }} L</div>
+        <div class="text-xs text-slate-400 mt-1">Litros Recibidos</div>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center">
+        <div class="text-2xl font-bold text-amber-400">{{ resumenRecepcion.totalKgCrema | number:'1.1-1' }} kg</div>
+        <div class="text-xs text-slate-400 mt-1">Kg Crema</div>
+      </div>
+    </div>
+
+    <!-- Tabla recepciones -->
+    <div *ngIf="resumenRecepcion?.recepciones?.length" class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden mb-4">
+      <div class="px-5 py-3 border-b border-slate-800">
+        <h3 class="text-sm font-bold text-slate-300">Recepciones del día</h3>
+      </div>
+      <table class="w-full text-sm">
+        <thead class="bg-slate-800/50">
+          <tr>
+            <th class="px-4 py-2 text-left text-xs text-slate-400 font-semibold">PROVEEDOR</th>
+            <th class="px-4 py-2 text-right text-xs text-slate-400 font-semibold">KG BRUTO</th>
+            <th class="px-4 py-2 text-right text-xs text-slate-400 font-semibold">KG NETO</th>
+            <th class="px-4 py-2 text-right text-xs text-slate-400 font-semibold">LITROS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of resumenRecepcion!.recepciones" class="border-t border-slate-800 hover:bg-slate-800/30">
+            <td class="px-4 py-2.5 text-slate-200">{{ r.nombreProveedor || r.proveedor || '—' }}</td>
+            <td class="px-4 py-2.5 text-right font-mono text-slate-200">{{ r.kgBruto | number:'1.1-1' }}</td>
+            <td class="px-4 py-2.5 text-right font-mono text-slate-200">{{ r.kgNeto | number:'1.1-1' }}</td>
+            <td class="px-4 py-2.5 text-right font-mono text-emerald-400">{{ r.litrosCalculados | number:'1.1-1' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="cargandoRecepcion" class="flex justify-center py-12 text-slate-500">
+      <i class="bi bi-hourglass-split animate-spin text-2xl mr-2"></i> Cargando...
+    </div>
+    <div *ngIf="errorRecepcion && !cargandoRecepcion" class="text-center py-10 text-slate-500">
+      <i class="bi bi-inbox text-4xl block mb-2"></i>
+      {{ errorRecepcion }}
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════════ -->
+  <!-- TAB: PRODUCCIÓN VS EMPAQUE -->
+  <!-- ════════════════════════════════════════════════════════════════════ -->
+  <div *ngIf="view === 'produccion'">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+      <div class="flex items-start gap-4">
+        <div class="w-14 h-14 bg-indigo-500/10 rounded-2xl flex items-center justify-center flex-shrink-0">
+          <i class="bi bi-graph-up text-2xl text-indigo-400"></i>
+        </div>
+        <div class="flex-1">
+          <h3 class="text-base font-bold text-white mb-1">Producción vs Empaque — Histórico</h3>
+          <p class="text-sm text-slate-400 mb-4">
+            Exporta el consolidado histórico de kilos producidos vs kilos empacados por fecha,
+            con la diferencia y tendencia de eficiencia.
+          </p>
+          <div *ngIf="errorProduccion" class="text-red-400 text-sm mb-3">
+            <i class="bi bi-exclamation-triangle mr-1"></i> {{ errorProduccion }}
+          </div>
+          <button
+            (click)="descargarProduccionExcel()"
+            [disabled]="descargando"
+            class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50">
+            <i class="bi bi-file-earmark-excel text-lg"></i>
+            <span *ngIf="!descargando">Descargar Excel Completo</span>
+            <span *ngIf="descargando">Generando...</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info cards -->
+    <div class="grid grid-cols-1 gap-4 mt-5 sm:grid-cols-3">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+        <div class="flex items-center gap-2 mb-2">
+          <i class="bi bi-calendar3 text-blue-400"></i>
+          <span class="text-xs font-bold text-slate-400">CONTENIDO</span>
+        </div>
+        <p class="text-sm text-slate-300">Una fila por fecha con totales de producción y empaque.</p>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+        <div class="flex items-center gap-2 mb-2">
+          <i class="bi bi-table text-amber-400"></i>
+          <span class="text-xs font-bold text-slate-400">COLUMNAS</span>
+        </div>
+        <p class="text-sm text-slate-300">Fecha · Kg Producidos · Kg Empacados · Diferencia</p>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+        <div class="flex items-center gap-2 mb-2">
+          <i class="bi bi-file-earmark-excel text-emerald-400"></i>
+          <span class="text-xs font-bold text-slate-400">FORMATO</span>
+        </div>
+        <p class="text-sm text-slate-300">Excel .xlsx compatible con Microsoft Excel y LibreOffice.</p>
+      </div>
+    </div>
+  </div>
+
+</div>

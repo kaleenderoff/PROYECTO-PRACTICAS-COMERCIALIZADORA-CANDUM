@@ -128,12 +128,12 @@
 
             <!-- Modulo 5: Reportes -->
             <a *ngIf="authService.canViewReportes()"
-               routerLink="/dashboard" routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" 
+               routerLink="/reportes" routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20"
                class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-900 hover:text-white transition-all group">
-                <i class="bi bi-bar-chart-line text-lg text-indigo-500"></i>
+                <i class="bi bi-file-earmark-excel text-lg text-indigo-500"></i>
                 <div class="flex flex-col leading-tight">
                     <span class="font-bold text-sm">{{ numeroModuloProduccion('reportes') }}. Reportes</span>
-                    <span class="text-[9px] text-slate-500 group-hover:text-slate-400">Estadísticas y Gerencia</span>
+                    <span class="text-[9px] text-slate-500 group-hover:text-slate-400">Exportar Excel</span>
                 </div>
             </a>
         </div>

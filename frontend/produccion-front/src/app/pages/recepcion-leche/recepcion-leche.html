@@ -177,11 +177,11 @@
     </div>
 
     <div *ngIf="recepcionSeleccionada"
-         class="fixed inset-0 z-50 bg-slate-950/50 backdrop-blur-sm flex items-center justify-center p-6"
+         class="fixed inset-0 z-50 bg-slate-950/50 backdrop-blur-sm flex items-start justify-center p-6 overflow-y-auto"
          (click)="cerrarDetalle()">
-        <div class="w-full max-w-3xl bg-white rounded-[2rem] shadow-2xl overflow-hidden"
+        <div class="w-full max-w-5xl my-auto bg-white rounded-[2rem] shadow-2xl overflow-hidden"
              (click)="$event.stopPropagation()">
-            <div class="px-8 py-6 border-b border-slate-100 flex items-center justify-between">
+            <div class="px-8 py-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/90 backdrop-blur-sm z-10">
                 <div>
                     <h3 class="text-xl font-black text-slate-900">Detalle de Recepcion</h3>
                     <p class="text-sm font-medium text-slate-500">{{ recepcionSeleccionada.proveedor }} - {{ recepcionSeleccionada.fechaRecepcion | date:'dd/MM/yyyy' }}</p>
@@ -225,6 +225,146 @@
                 <div class="p-5 rounded-2xl bg-slate-50 border border-slate-100 md:col-span-2">
                     <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Observaciones</span>
                     <p class="mt-1 text-sm font-medium text-slate-700">{{ recepcionSeleccionada.observaciones || 'Sin observaciones' }}</p>
+                </div>
+
+                <!-- SECCION PESAJES -->
+                <div class="md:col-span-2 border border-slate-100 rounded-[2rem] overflow-hidden">
+                    <div class="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                        <div>
+                            <h4 class="text-sm font-black text-slate-800 uppercase tracking-wide">Pesajes registrados</h4>
+                            <p class="text-xs text-slate-500">Detalle bruto, tara y neto de planta.</p>
+                        </div>
+                        <span class="px-3 py-1 rounded-xl bg-white text-slate-500 text-[10px] font-black">
+                            {{ recepcionSeleccionada.pesajes?.length || 0 }} pesajes
+                        </span>
+                    </div>
+
+                    <div class="overflow-x-auto" *ngIf="(recepcionSeleccionada.pesajes?.length || 0) > 0; else sinPesajes">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="bg-white">
+                                    <th class="px-5 py-3 text-[10px] font-black text-slate-400 uppercase">#</th>
+                                    <th class="px-5 py-3 text-[10px] font-black text-slate-400 uppercase text-right">Bruto</th>
+                                    <th class="px-5 py-3 text-[10px] font-black text-slate-400 uppercase text-right">Tara</th>
+                                    <th class="px-5 py-3 text-[10px] font-black text-slate-400 uppercase text-right">Neto</th>
+                                    <th class="px-5 py-3 text-[10px] font-black text-slate-400 uppercase">Observación</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-50">
+                                <tr *ngFor="let pesaje of recepcionSeleccionada.pesajes">
+                                    <td class="px-5 py-3 text-sm font-black text-slate-700">{{ pesaje.numeroPesaje }}</td>
+                                    <td class="px-5 py-3 text-sm font-bold text-slate-700 text-right">{{ pesaje.pesoBrutoKg | number:'1.0-3' }} kg</td>
+                                    <td class="px-5 py-3 text-sm font-bold text-slate-700 text-right">{{ pesaje.taraKg | number:'1.0-3' }} kg</td>
+                                    <td class="px-5 py-3 text-sm font-black text-emerald-700 text-right">{{ pesaje.pesoNetoKg | number:'1.0-3' }} kg</td>
+                                    <td class="px-5 py-3 text-sm text-slate-500">{{ pesaje.observaciones || '-' }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <ng-template #sinPesajes>
+                        <div class="px-6 py-6 text-sm font-bold text-slate-400">
+                            No hay pesajes asociados a esta recepcion.
+                        </div>
+                    </ng-template>
+                </div>
+
+                <!-- SECCION CALIDAD INICIAL -->
+                <div class="md:col-span-2 border border-violet-100 rounded-[2rem] overflow-hidden">
+                    <div class="px-6 py-4 bg-violet-50 border-b border-violet-100 flex items-center justify-between">
+                        <div>
+                            <h4 class="text-sm font-black text-violet-800 uppercase tracking-wide">Calidad inicial de leche</h4>
+                            <p class="text-xs text-violet-500">Alcohol, lactoscan y variables iniciales de recepcion.</p>
+                        </div>
+                        <span class="px-3 py-1 rounded-xl bg-white text-violet-600 text-[10px] font-black">
+                            {{ controlesRecepcion.length }} controles
+                        </span>
+                    </div>
+
+                    <div *ngIf="authService.canWriteCalidad()" class="p-6 grid grid-cols-1 md:grid-cols-4 gap-4 border-b border-violet-50">
+                        <label class="flex items-center gap-2 text-xs font-black text-slate-600 uppercase">
+                            <input type="checkbox" [(ngModel)]="calidadForm.pruebaAlcoholOk" class="w-4 h-4 text-violet-600 rounded">
+                            Alcohol OK
+                        </label>
+                        <label class="flex items-center gap-2 text-xs font-black text-slate-600 uppercase">
+                            <input type="checkbox" [(ngModel)]="calidadForm.lactoscanOk" class="w-4 h-4 text-violet-600 rounded">
+                            Lactoscan OK
+                        </label>
+                        <label class="flex items-center gap-2 text-xs font-black text-slate-600 uppercase">
+                            <input type="checkbox" [(ngModel)]="calidadForm.aprobado" class="w-4 h-4 text-emerald-600 rounded">
+                            Aprobada
+                        </label>
+                        <label class="flex items-center gap-2 text-xs font-black text-slate-600 uppercase">
+                            <input type="checkbox" [(ngModel)]="calidadForm.retenido" class="w-4 h-4 text-red-600 rounded">
+                            Retenida
+                        </label>
+
+                        <input type="number" step="0.0001" [(ngModel)]="calidadForm.acidez" placeholder="Acidez"
+                               class="px-4 py-3 bg-slate-50 rounded-2xl border border-slate-100 font-bold outline-none focus:ring-2 focus:ring-violet-500/20">
+                        <input type="number" step="0.0001" [(ngModel)]="calidadForm.densidad" placeholder="Densidad"
+                               class="px-4 py-3 bg-slate-50 rounded-2xl border border-slate-100 font-bold outline-none focus:ring-2 focus:ring-violet-500/20">
+                        <input type="number" step="0.0001" [(ngModel)]="calidadForm.grasa" placeholder="Grasa %"
+                               class="px-4 py-3 bg-slate-50 rounded-2xl border border-slate-100 font-bold outline-none focus:ring-2 focus:ring-violet-500/20">
+                        <input type="number" step="0.0001" [(ngModel)]="calidadForm.aguaPct" placeholder="Agua %"
+                               class="px-4 py-3 bg-slate-50 rounded-2xl border border-slate-100 font-bold outline-none focus:ring-2 focus:ring-violet-500/20">
+                        <input type="number" step="0.01" [(ngModel)]="calidadForm.temperatura" placeholder="Temperatura"
+                               class="px-4 py-3 bg-slate-50 rounded-2xl border border-slate-100 font-bold outline-none focus:ring-2 focus:ring-violet-500/20">
+                        <input type="number" step="0.01" [(ngModel)]="calidadForm.ph" placeholder="pH"
+                               class="px-4 py-3 bg-slate-50 rounded-2xl border border-slate-100 font-bold outline-none focus:ring-2 focus:ring-violet-500/20">
+                        <input type="text" [(ngModel)]="calidadForm.observaciones" placeholder="Observaciones"
+                               class="md:col-span-2 px-4 py-3 bg-slate-50 rounded-2xl border border-slate-100 font-bold outline-none focus:ring-2 focus:ring-violet-500/20">
+
+                        <button type="button" (click)="registrarCalidadRecepcion()" [disabled]="guardandoCalidad"
+                                class="md:col-span-4 px-6 py-3 bg-violet-600 text-white rounded-2xl font-black hover:bg-violet-700 transition-all disabled:opacity-50">
+                            {{ guardandoCalidad ? 'Guardando...' : 'Registrar control de calidad' }}
+                        </button>
+                    </div>
+
+                    <div *ngIf="cargandoCalidad" class="p-6 text-sm font-bold text-slate-400">
+                        Cargando controles de calidad...
+                    </div>
+
+                    <div *ngIf="!cargandoCalidad && controlesRecepcion.length === 0" class="p-6 text-sm font-bold text-slate-400">
+                        Aun no hay controles de calidad para esta recepcion.
+                    </div>
+
+                    <div *ngIf="!cargandoCalidad && controlesRecepcion.length > 0" class="divide-y divide-slate-50">
+                        <div *ngFor="let control of controlesRecepcion" class="p-6 grid grid-cols-2 md:grid-cols-6 gap-3">
+                            <div class="md:col-span-2">
+                                <span class="text-[10px] font-black uppercase text-slate-400">Fecha</span>
+                                <p class="text-sm font-black text-slate-800">{{ control.fechaControl | date:'dd/MM/yyyy HH:mm' }}</p>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-black uppercase text-slate-400">Alcohol</span>
+                                <p class="text-sm font-black" [ngClass]="control.pruebaAlcoholOk ? 'text-emerald-700' : 'text-red-700'">
+                                    {{ control.pruebaAlcoholOk ? 'OK' : 'No OK' }}
+                                </p>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-black uppercase text-slate-400">Lactoscan</span>
+                                <p class="text-sm font-black" [ngClass]="control.lactoscanOk ? 'text-emerald-700' : 'text-red-700'">
+                                    {{ control.lactoscanOk ? 'OK' : 'No OK' }}
+                                </p>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-black uppercase text-slate-400">Grasa</span>
+                                <p class="text-sm font-black text-slate-800">{{ control.grasa ?? '-' }}</p>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-black uppercase text-slate-400">pH</span>
+                                <p class="text-sm font-black text-slate-800">{{ control.ph ?? '-' }}</p>
+                            </div>
+                            <div class="md:col-span-6 text-sm text-slate-500">
+                                Acidez: <strong>{{ control.acidez ?? '-' }}</strong> ·
+                                Densidad: <strong>{{ control.densidad ?? '-' }}</strong> ·
+                                Agua: <strong>{{ control.aguaPct ?? '-' }}</strong> ·
+                                Temperatura: <strong>{{ control.temperatura ?? '-' }}</strong> ·
+                                Estado: <strong [ngClass]="control.retenido ? 'text-red-700' : 'text-emerald-700'">
+                                    {{ control.retenido ? 'Retenida' : 'Aprobada' }}
+                                </strong>
+                                <p class="mt-1">{{ control.observaciones || 'Sin observaciones' }}</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

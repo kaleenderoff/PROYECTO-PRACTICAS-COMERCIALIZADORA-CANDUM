@@ -18,7 +18,6 @@ import { Descremado } from './pages/descremado/descremado';
 import { DescremadoForm } from './pages/descremado-form/descremado-form';
 
 import { EjecucionProduccion } from './pages/ejecucion-produccion/ejecucion-produccion';
-import { EjecucionProduccionForm } from './pages/ejecucion-produccion-form/ejecucion-produccion-form';
 
 import { ProgramacionProduccionForm } from './pages/programacion-produccion-form/programacion-produccion-form';
 
@@ -31,6 +30,7 @@ import { OrdenProduccionDetalle } from './pages/orden-produccion-detalle/orden-p
 import { OrdenEjecucion } from './pages/orden-ejecucion/orden-ejecucion';
 import { MedicionesCalidadLactea } from './pages/mediciones-calidad-lactea/mediciones-calidad-lactea';
 import { Auditoria } from './pages/auditoria/auditoria';
+import { Reportes } from './pages/reportes/reportes';
 
 const ADMIN = 'ADMIN';
 const DUENO_EMPRESA = 'DUENO_EMPRESA';
@@ -41,8 +41,8 @@ const AUXILIAR_CALIDAD = 'AUXILIAR_CALIDAD';
 
 const ROLES_OPERACION_LECTURA = [ADMIN, JEFE_LINEA, JEFE_PRODUCCION, JEFE_PLANTA, DUENO_EMPRESA];
 const ROLES_RECEPCION_LECHE_LECTURA = [ADMIN, JEFE_LINEA, JEFE_PRODUCCION, JEFE_PLANTA, DUENO_EMPRESA, AUXILIAR_CALIDAD];
-const ROLES_LINEA_ESCRITURA = [JEFE_LINEA];                    // Solo JEFE_LINEA crea recepciones y descremados
-const ROLES_OPERACION_ESCRITURA = [ADMIN, JEFE_LINEA];         // ADMIN + JEFE_LINEA pueden ejecutar/finalizar órdenes
+const ROLES_LINEA_ESCRITURA = [JEFE_LINEA];
+const ROLES_OPERACION_ESCRITURA = [ADMIN, JEFE_LINEA];
 const ROLES_PROGRAMACION_ESCRITURA = [JEFE_PRODUCCION];
 const ROLES_CATALOGOS_TECNICOS = [ADMIN, JEFE_PRODUCCION, JEFE_PLANTA, DUENO_EMPRESA];
 const ROLES_REPORTES = [ADMIN, JEFE_PRODUCCION, JEFE_PLANTA, DUENO_EMPRESA];
@@ -52,172 +52,70 @@ const ROLES_AUDITORIA = [ADMIN, JEFE_PLANTA, DUENO_EMPRESA];
 
 export const routes: Routes = [
 
-    {
-        path: '',
-        redirectTo: 'login',
-        pathMatch: 'full'
-    },
+    { path: '', redirectTo: 'login', pathMatch: 'full' },
 
-    {
-        path: 'login',
-        component: Login
-    },
+    { path: 'login', component: Login },
 
     {
         path: '',
         component: MainLayout,
         children: [
 
-            {
-                path: 'dashboard',
-                component: Dashboard,
-                canActivate: [authGuard],
-                data: { roles: ROLES_REPORTES }
-            },
+            { path: 'dashboard', component: Dashboard, canActivate: [authGuard], data: { roles: ROLES_REPORTES } },
 
-            {
-                path: 'recepcion-leche',
-                component: RecepcionLeche,
-                canActivate: [authGuard],
-                data: { roles: ROLES_RECEPCION_LECHE_LECTURA }
-            },
+            { path: 'recepcion-leche', component: RecepcionLeche, canActivate: [authGuard], data: { roles: ROLES_RECEPCION_LECHE_LECTURA } },
 
-            {
-                path: 'recepcion-leche/nueva',
-                component: RecepcionLecheForm,
-                canActivate: [authGuard],
-                data: { roles: ROLES_LINEA_ESCRITURA }
-            },
+            { path: 'recepcion-leche/nueva', component: RecepcionLecheForm, canActivate: [authGuard], data: { roles: ROLES_LINEA_ESCRITURA } },
 
-            {
-                path: 'usuarios',
-                component: Usuarios,
-                canActivate: [authGuard],
-                data: { roles: ROLES_USUARIOS_ADMIN }
-            },
+            { path: 'usuarios', component: Usuarios, canActivate: [authGuard], data: { roles: ROLES_USUARIOS_ADMIN } },
 
-            {
-                path: 'usuarios/nuevo',
-                component: UsuarioForm,
-                canActivate: [authGuard],
-                data: { roles: ROLES_USUARIOS_ADMIN }
-            },
+            { path: 'usuarios/nuevo', component: UsuarioForm, canActivate: [authGuard], data: { roles: ROLES_USUARIOS_ADMIN } },
 
-            {
-                path: 'usuarios/:id/editar',
-                component: UsuarioForm,
-                canActivate: [authGuard],
-                data: { roles: ROLES_USUARIOS_ADMIN }
-            },
+            { path: 'usuarios/:id/editar', component: UsuarioForm, canActivate: [authGuard], data: { roles: ROLES_USUARIOS_ADMIN } },
 
-            {
-                path: 'usuarios/:id/reset-password',
-                component: UsuarioResetPassword,
-                canActivate: [authGuard],
-                data: { roles: ROLES_USUARIOS_ADMIN }
-            },
+            { path: 'usuarios/:id/reset-password', component: UsuarioResetPassword, canActivate: [authGuard], data: { roles: ROLES_USUARIOS_ADMIN } },
 
-            {
-                path: 'descremado',
-                component: Descremado,
-                canActivate: [authGuard],
-                data: { roles: ROLES_OPERACION_LECTURA }
-            },
+            { path: 'descremado', component: Descremado, canActivate: [authGuard], data: { roles: ROLES_OPERACION_LECTURA } },
 
-            {
-                path: 'descremado/nuevo',
-                component: DescremadoForm,
-                canActivate: [authGuard],
-                data: { roles: ROLES_LINEA_ESCRITURA }
-            },
+            { path: 'descremado/nuevo', component: DescremadoForm, canActivate: [authGuard], data: { roles: ROLES_LINEA_ESCRITURA } },
 
-            {
-                path: 'proveedores',
-                component: Proveedores,
-                canActivate: [authGuard],
-                data: { roles: ROLES_CATALOGOS_TECNICOS }
-            },
+            { path: 'proveedores', component: Proveedores, canActivate: [authGuard], data: { roles: ROLES_CATALOGOS_TECNICOS } },
 
-            {
-                path: 'insumos',
-                component: Insumos,
-                canActivate: [authGuard],
-                data: { roles: ROLES_CATALOGOS_TECNICOS }
-            },
+            { path: 'insumos', component: Insumos, canActivate: [authGuard], data: { roles: ROLES_CATALOGOS_TECNICOS } },
 
             {
                 path: 'formulas',
-                loadComponent: () =>
-                    import('./pages/formulas/formulas').then(m => m.Formulas),
+                loadComponent: () => import('./pages/formulas/formulas').then(m => m.Formulas),
                 canActivate: [authGuard],
                 data: { roles: ROLES_CATALOGOS_TECNICOS }
             },
 
             {
                 path: 'skus',
-                loadComponent: () =>
-                    import('./pages/skus/skus').then(m => m.Skus),
+                loadComponent: () => import('./pages/skus/skus').then(m => m.Skus),
                 canActivate: [authGuard],
                 data: { roles: ROLES_CATALOGOS_TECNICOS }
             },
 
-            {
-                path: 'programacion-produccion/nueva',
-                component: ProgramacionProduccionForm,
-                canActivate: [authGuard],
-                data: { roles: ROLES_PROGRAMACION_ESCRITURA }
-            },
+            { path: 'programacion-produccion/nueva', component: ProgramacionProduccionForm, canActivate: [authGuard], data: { roles: ROLES_PROGRAMACION_ESCRITURA } },
 
-            {
-                path: 'ordenes-produccion',
-                component: OrdenesProduccion,
-                canActivate: [authGuard],
-                data: { roles: ROLES_OPERACION_LECTURA }
-            },
+            { path: 'ordenes-produccion', component: OrdenesProduccion, canActivate: [authGuard], data: { roles: ROLES_OPERACION_LECTURA } },
 
-            {
-                path: 'ejecucion-produccion',
-                component: EjecucionProduccion,
-                canActivate: [authGuard],
-                data: { roles: ROLES_OPERACION_LECTURA }
-            },
+            { path: 'ejecucion-produccion', component: EjecucionProduccion, canActivate: [authGuard], data: { roles: ROLES_OPERACION_LECTURA } },
 
+            { path: 'ordenes-produccion/:id', component: OrdenProduccionDetalle, canActivate: [authGuard], data: { roles: ROLES_OPERACION_LECTURA } },
 
+            { path: 'ordenes-produccion/:id/ejecutar', component: OrdenEjecucion, canActivate: [authGuard], data: { roles: ROLES_OPERACION_ESCRITURA } },
 
-            {
-                path: 'ordenes-produccion/:id',
-                component: OrdenProduccionDetalle,
-                canActivate: [authGuard],
-                data: { roles: ROLES_OPERACION_LECTURA }
-            },
+            { path: 'mediciones-calidad-lactea', component: MedicionesCalidadLactea, canActivate: [authGuard], data: { roles: ROLES_CALIDAD_LECTURA } },
 
-            {
-                path: 'ordenes-produccion/:id/ejecutar',
-                component: OrdenEjecucion,
-                canActivate: [authGuard],
-                data: { roles: ROLES_OPERACION_ESCRITURA }
-            },
+            { path: 'auditoria', component: Auditoria, canActivate: [authGuard], data: { roles: ROLES_AUDITORIA } },
 
-            {
-                path: 'mediciones-calidad-lactea',
-                component: MedicionesCalidadLactea,
-                canActivate: [authGuard],
-                data: { roles: ROLES_CALIDAD_LECTURA }
-            },
-
-            {
-                path: 'auditoria',
-                component: Auditoria,
-                canActivate: [authGuard],
-                data: { roles: ROLES_AUDITORIA }
-            },
+            { path: 'reportes', component: Reportes, canActivate: [authGuard], data: { roles: ROLES_REPORTES } },
 
         ]
     },
 
-    {
-        path: '**',
-        redirectTo: 'login'
-    }
+    { path: '**', redirectTo: 'login' }
 
 ];

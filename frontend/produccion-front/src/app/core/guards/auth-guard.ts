@@ -20,7 +20,7 @@ export const authGuard: CanActivateFn = (route) => {
     const fallback = authService.isJefeLinea()
       ? '/recepcion-leche'
       : authService.isAuxiliarCalidad()
-        ? '/mediciones-calidad-lactea'
+        ? '/recepcion-leche'
         : '/dashboard';
 
     router.navigate([fallback]);

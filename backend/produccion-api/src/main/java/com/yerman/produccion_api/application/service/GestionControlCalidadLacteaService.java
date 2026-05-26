@@ -1,13 +1,16 @@
 package com.yerman.produccion_api.application.service;
 
 import com.yerman.produccion_api.application.dto.request.ControlCalidadProcesoRequest;
+import com.yerman.produccion_api.application.dto.request.CalidadRecepcionLecheRequest;
 import com.yerman.produccion_api.application.dto.request.ControlPesoProductoRequest;
+import com.yerman.produccion_api.application.dto.response.CalidadRecepcionLecheResponse;
 import com.yerman.produccion_api.application.dto.response.ControlCalidadProcesoResponse;
 import com.yerman.produccion_api.application.dto.response.ControlPesoMuestraResponse;
 import com.yerman.produccion_api.application.dto.response.ControlPesoProductoResponse;
 import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
 import com.yerman.produccion_api.application.exception.ReglaNegocioException;
 import com.yerman.produccion_api.infrastructure.entity.*;
+import com.yerman.produccion_api.infrastructure.repository.CalidadRecepcionLecheJpaRepository;
 import com.yerman.produccion_api.infrastructure.repository.ControlCalidadProcesoJpaRepository;
 import com.yerman.produccion_api.infrastructure.repository.ControlPesoProductoJpaRepository;
 import jakarta.persistence.EntityManager;
@@ -22,18 +25,63 @@ public class GestionControlCalidadLacteaService {
 
     private final ControlCalidadProcesoJpaRepository procesoRepository;
     private final ControlPesoProductoJpaRepository pesoRepository;
+    private final CalidadRecepcionLecheJpaRepository calidadRecepcionRepository;
     private final EntityManager entityManager;
     private final ValidacionOrdenProduccionGuardService validacionGuardService;
 
     public GestionControlCalidadLacteaService(
             ControlCalidadProcesoJpaRepository procesoRepository,
             ControlPesoProductoJpaRepository pesoRepository,
+            CalidadRecepcionLecheJpaRepository calidadRecepcionRepository,
             EntityManager entityManager,
             ValidacionOrdenProduccionGuardService validacionGuardService) {
         this.procesoRepository = procesoRepository;
         this.pesoRepository = pesoRepository;
+        this.calidadRecepcionRepository = calidadRecepcionRepository;
         this.entityManager = entityManager;
         this.validacionGuardService = validacionGuardService;
+    }
+
+    @Transactional
+    public CalidadRecepcionLecheResponse registrarRecepcion(CalidadRecepcionLecheRequest request) {
+        if (request.idRecepcionLeche() == null) {
+            throw new ReglaNegocioException("La recepcion de leche es obligatoria.");
+        }
+
+        RecepcionLecheEntity recepcion = entityManager.find(RecepcionLecheEntity.class, request.idRecepcionLeche());
+        if (recepcion == null) {
+            throw new RecursoNoEncontradoException(
+                    "No existe una recepcion de leche con ID: " + request.idRecepcionLeche());
+        }
+
+        CalidadRecepcionLecheEntity entity = new CalidadRecepcionLecheEntity();
+        entity.setRecepcionLeche(recepcion);
+        entity.setFechaControl(request.fechaControl() != null ? request.fechaControl() : java.time.LocalDateTime.now());
+        entity.setPruebaAlcoholOk(request.pruebaAlcoholOk());
+        entity.setLactoscanOk(request.lactoscanOk());
+        entity.setAcidez(request.acidez());
+        entity.setDensidad(request.densidad());
+        entity.setGrasa(request.grasa());
+        entity.setAguaPct(request.aguaPct());
+        entity.setTemperatura(request.temperatura());
+        entity.setPh(request.ph());
+        entity.setAprobado(!Boolean.FALSE.equals(request.aprobado()));
+        entity.setRetenido(Boolean.TRUE.equals(request.retenido()));
+        entity.setRealizadoPor(ref(UsuarioEntity.class, request.idRealizadoPor()));
+        entity.setObservaciones(request.observaciones());
+
+        return toResponse(calidadRecepcionRepository.save(entity));
+    }
+
+    public List<CalidadRecepcionLecheResponse> listarRecepcion(Long idRecepcionLeche) {
+        if (idRecepcionLeche == null) {
+            throw new ReglaNegocioException("La recepcion de leche es obligatoria.");
+        }
+
+        return calidadRecepcionRepository.findByRecepcionLecheIdOrderByFechaControlDescIdDesc(idRecepcionLeche)
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     @Transactional
@@ -226,6 +274,26 @@ public class GestionControlCalidadLacteaService {
                 entity.getRetenido(),
                 entity.getRealizadoPor().getIdUsuario(),
                 entity.getVerificadoPor() != null ? entity.getVerificadoPor().getIdUsuario() : null,
+                entity.getObservaciones(),
+                entity.getCreatedAt());
+    }
+
+    private CalidadRecepcionLecheResponse toResponse(CalidadRecepcionLecheEntity entity) {
+        return new CalidadRecepcionLecheResponse(
+                entity.getId(),
+                entity.getRecepcionLeche().getId(),
+                entity.getFechaControl(),
+                entity.getPruebaAlcoholOk(),
+                entity.getLactoscanOk(),
+                entity.getAcidez(),
+                entity.getDensidad(),
+                entity.getGrasa(),
+                entity.getAguaPct(),
+                entity.getTemperatura(),
+                entity.getPh(),
+                entity.getAprobado(),
+                entity.getRetenido(),
+                entity.getRealizadoPor().getIdUsuario(),
                 entity.getObservaciones(),
                 entity.getCreatedAt());
     }
