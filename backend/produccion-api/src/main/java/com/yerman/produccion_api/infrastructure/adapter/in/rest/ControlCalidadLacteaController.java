@@ -6,6 +6,7 @@ import com.yerman.produccion_api.application.dto.request.ControlPesoProductoRequ
 import com.yerman.produccion_api.application.dto.response.CalidadRecepcionLecheResponse;
 import com.yerman.produccion_api.application.dto.response.ControlCalidadProcesoResponse;
 import com.yerman.produccion_api.application.dto.response.ControlPesoProductoResponse;
+import com.yerman.produccion_api.application.dto.response.EstadoCalidadRecepcionResponse;
 import com.yerman.produccion_api.application.service.GestionControlCalidadLacteaService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -58,5 +59,10 @@ public class ControlCalidadLacteaController {
     @GetMapping("/peso/orden/{idOrdenProduccion}")
     public List<ControlPesoProductoResponse> listarPesosPorOrden(@PathVariable Long idOrdenProduccion) {
         return service.listarPesosPorOrden(idOrdenProduccion);
+    }
+
+    @GetMapping("/recepciones/estados")
+    public List<EstadoCalidadRecepcionResponse> listarEstadosRecepcion() {
+        return service.listarEstadosRecepcion();
     }
 }

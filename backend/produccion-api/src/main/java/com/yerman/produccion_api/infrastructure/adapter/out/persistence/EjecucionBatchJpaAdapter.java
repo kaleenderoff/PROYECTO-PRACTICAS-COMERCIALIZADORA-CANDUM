@@ -6,6 +6,7 @@ import com.yerman.produccion_api.domain.model.EjecucionBatch.EstadoBatch;
 import com.yerman.produccion_api.domain.port.out.EjecucionBatchRepositoryPort;
 import com.yerman.produccion_api.infrastructure.entity.EjecucionBatchEntity;
 import com.yerman.produccion_api.infrastructure.entity.MarmitaEntity;
+import com.yerman.produccion_api.infrastructure.entity.MovimientoLecheEntity;
 import com.yerman.produccion_api.infrastructure.entity.OrdenProduccionEntity;
 import com.yerman.produccion_api.infrastructure.repository.EjecucionBatchRepository;
 import jakarta.persistence.EntityManager;
@@ -33,6 +34,11 @@ public class EjecucionBatchJpaAdapter implements EjecucionBatchRepositoryPort {
         MarmitaEntity marmita = entityManager.getReference(MarmitaEntity.class, domain.getIdMarmita());
         
         EjecucionBatchEntity entity = EjecucionBatchMapper.toEntity(domain, orden, marmita);
+        if (domain.getIdMovimientoLeche() != null) {
+            entity.setMovimientoLeche(entityManager.getReference(
+                    MovimientoLecheEntity.class,
+                    domain.getIdMovimientoLeche()));
+        }
         return EjecucionBatchMapper.toDomain(repository.save(entity));
     }
 

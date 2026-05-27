@@ -144,4 +144,13 @@ export class ControlCalidadLacteaService {
   listarPesosPorOrden(idOrden: number): Observable<ControlPesoProductoResponse[]> {
     return this.http.get<ControlPesoProductoResponse[]>(`${this.apiUrl}/peso/orden/${idOrden}`);
   }
+
+  listarEstadosRecepcion(): Observable<EstadoCalidadRecepcion[]> {
+    return this.http.get<EstadoCalidadRecepcion[]>(`${this.apiUrl}/recepciones/estados`);
+  }
+}
+
+export interface EstadoCalidadRecepcion {
+  idRecepcionLeche: number;
+  estadoCalidad: 'APROBADA' | 'RETENIDA' | 'NO_APROBADA';
 }

@@ -9,12 +9,16 @@ public record EjecucionBatchResponse(
     Integer numeroBatch,
     Long idMarmita,
     String nombreMarmita,
+    Long idMovimientoLeche,
     BigDecimal kgEntrada,
     BigDecimal kgProducidos,
     BigDecimal rendimientoPct,
     String estado,
     String observaciones,
+    Boolean huboReproceso,
+    Boolean batchConforme,
     LocalDateTime fechaInicio,
     LocalDateTime fechaFin,
-    BigDecimal brixFinal
+    BigDecimal brixFinal,
+    String tipoNovedad
 ) {}

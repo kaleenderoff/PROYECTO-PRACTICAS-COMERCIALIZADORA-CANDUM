@@ -9,7 +9,8 @@ import {
 } from '../../core/services/recepcion-leche';
 import {
   CalidadRecepcionLecheResponse,
-  ControlCalidadLacteaService
+  ControlCalidadLacteaService,
+  EstadoCalidadRecepcion
 } from '../../core/services/control-calidad-lactea';
 
 import { FormsModule } from '@angular/forms';
@@ -74,9 +75,26 @@ export class RecepcionLeche implements OnInit {
 
     this.service.listarRecepciones().subscribe({
       next: (data) => {
-        this.recepciones = data
+        const sorted = data
           .slice()
           .sort((a, b) => this.fechaOrdenable(b).localeCompare(this.fechaOrdenable(a)));
+
+        // Fusionar estados de calidad
+        this.controlCalidadService.listarEstadosRecepcion().subscribe({
+          next: (estados: EstadoCalidadRecepcion[]) => {
+            const mapaEstados = new Map<number, string>(
+              estados.map(e => [e.idRecepcionLeche, e.estadoCalidad])
+            );
+            this.recepciones = sorted.map(r => ({
+              ...r,
+              estadoCalidad: (mapaEstados.get(r.id) ?? 'SIN_CALIDAD') as any
+            }));
+          },
+          error: () => {
+            this.recepciones = sorted.map(r => ({ ...r, estadoCalidad: 'SIN_CALIDAD' as any }));
+          }
+        });
+
         this.paginaActual = 1;
         this.calcularMetricas(data);
         this.cargando = false;
@@ -302,7 +320,7 @@ export class RecepcionLeche implements OnInit {
       return acc;
     }, {} as Record<string, number>);
 
-    this.proveedorTop = Object.keys(conteoProveedores).reduce((a, b) => 
+    this.proveedorTop = Object.keys(conteoProveedores).reduce((a, b) =>
       conteoProveedores[a] > conteoProveedores[b] ? a : b, '-'
     );
   }

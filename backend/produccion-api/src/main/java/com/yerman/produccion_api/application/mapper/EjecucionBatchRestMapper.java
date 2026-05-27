@@ -16,14 +16,18 @@ public class EjecucionBatchRestMapper {
                 domain.getNumeroBatch(),
                 domain.getIdMarmita(),
                 domain.getNombreMarmita(),
+                domain.getIdMovimientoLeche(),
                 domain.getKgEntrada(),
                 domain.getKgProducidos(),
                 domain.getRendimientoPct(),
                 domain.getEstado().name(),
                 domain.getObservaciones(),
+                domain.getHuboReproceso(),
+                domain.getBatchConforme(),
                 domain.getFechaInicio(),
                 domain.getFechaFin(),
-                domain.getBrixFinal()
+                domain.getBrixFinal(),
+                domain.getTipoNovedad()
         );
     }
 }

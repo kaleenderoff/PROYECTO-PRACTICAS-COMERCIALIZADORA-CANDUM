@@ -33,6 +33,7 @@ export class DescremadoForm implements OnInit {
 
   tanqueRefrigeracion: SaldoTanqueLeche | null = null;
   private lotesCremaRegistrados = new Set<string>();
+  private descremadosRegistrados: Array<{ idRecepcionLeche: number; litrosDescremados: number }> = [];
 
   form;
 
@@ -61,6 +62,11 @@ export class DescremadoForm implements OnInit {
 
     this.form.get('litrosDescremados')?.valueChanges.subscribe(() => {
       this.aplicarCremaEstimada(false);
+    });
+
+    this.form.get('idRecepcionLeche')?.valueChanges.subscribe(() => {
+      const disponible = this.litrosDisponiblesRecepcion();
+      this.form.get('litrosDescremados')?.setValue(Number(disponible.toFixed(3)));
     });
 
     this.form.get('registraCremaEmpacada')?.valueChanges.subscribe((registra) => {
@@ -101,6 +107,11 @@ export class DescremadoForm implements OnInit {
       next: (recepciones) => {
         this.descremadoService.listar().subscribe({
           next: (descremados) => {
+            this.descremadosRegistrados = descremados.map(descremado => ({
+              idRecepcionLeche: descremado.idRecepcionLeche,
+              litrosDescremados: Number(descremado.litrosDescremados || 0)
+            }));
+
             this.lotesCremaRegistrados = new Set(
               descremados
                 .map(descremado => descremado.loteCrema?.trim().toUpperCase())
@@ -108,7 +119,7 @@ export class DescremadoForm implements OnInit {
             );
 
             this.recepciones = recepciones.filter(recepcion =>
-              !descremados.some(descremado => descremado.idRecepcionLeche === recepcion.id)
+              this.litrosDisponiblesPara(recepcion) > 0
             ).sort((a, b) => this.fechaOrdenable(b).localeCompare(this.fechaOrdenable(a)));
 
             this.cargandoDatos = false;
@@ -194,13 +205,23 @@ export class DescremadoForm implements OnInit {
 
     if (registraCrema && this.lotesCremaRegistrados.has(loteCrema.toUpperCase())) {
       this.notification.warning('El lote de crema ya existe. Use un lote diferente.');
+      this.cargando = false;
+      return;
+    }
+
+    const litrosDescremados = Number(value.litrosDescremados);
+    const litrosDisponibles = this.litrosDisponiblesRecepcion();
+
+    if (litrosDescremados > litrosDisponibles) {
+      this.notification.warning(`Solo hay ${litrosDisponibles.toFixed(2)} L disponibles para esta recepcion.`);
+      this.cargando = false;
       return;
     }
 
     const request = {
       idRecepcionLeche: Number(value.idRecepcionLeche),
       idTanqueDestino: this.tanqueRefrigeracion.idTanque,
-      litrosDescremados: Number(value.litrosDescremados),
+      litrosDescremados,
       cremaObtenidaKg: Number(value.cremaObtenidaKg) || undefined,
       idSkuCrema: registraCrema ? Number(value.idSkuCrema) : undefined,
       unidadesCrema: registraCrema ? Number(value.unidadesCrema) : undefined,
@@ -231,7 +252,11 @@ export class DescremadoForm implements OnInit {
 
   litrosDisponiblesRecepcion(): number {
     const recepcion = this.recepcionSeleccionada();
-    return Number(recepcion?.cantidadRecibidaLitros || 0);
+    return recepcion ? this.litrosDisponiblesPara(recepcion) : 0;
+  }
+
+  litrosDisponiblesParaVista(recepcion: RecepcionLeche): number {
+    return this.litrosDisponiblesPara(recepcion);
   }
 
   cremaEstimadaKg(): number {
@@ -251,5 +276,14 @@ export class DescremadoForm implements OnInit {
 
   private fechaOrdenable(recepcion: RecepcionLeche): string {
     return `${recepcion.fechaRecepcion || ''}-${String(recepcion.id).padStart(8, '0')}`;
+  }
+
+  private litrosDisponiblesPara(recepcion: RecepcionLeche): number {
+    const recibido = Number(recepcion.cantidadRecibidaLitros || 0);
+    const descremado = this.descremadosRegistrados
+      .filter(item => item.idRecepcionLeche === recepcion.id)
+      .reduce((total, item) => total + item.litrosDescremados, 0);
+
+    return Math.max(recibido - descremado, 0);
   }
 }

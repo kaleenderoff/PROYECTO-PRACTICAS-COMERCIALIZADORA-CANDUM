@@ -9,6 +9,7 @@ public class EjecucionBatch {
     private Integer numeroBatch;
     private Long idMarmita;
     private String nombreMarmita;
+    private Long idMovimientoLeche;
     private BigDecimal kgEntrada;
     private BigDecimal kgProducidos;
     private BigDecimal rendimientoPct;
@@ -17,6 +18,7 @@ public class EjecucionBatch {
     private Boolean huboReproceso;
     private Boolean batchConforme;
     private BigDecimal brixFinal;
+    private String tipoNovedad;
     private LocalDateTime fechaInicio;
     private LocalDateTime fechaFin;
 
@@ -24,16 +26,22 @@ public class EjecucionBatch {
         EN_PROCESO, FINALIZADO, CON_NOVEDAD
     }
 
+    public enum TipoNovedad {
+        BAJA_GRASA, FALLA_CALDERA, RETRASO_LECHE, FALLA_EQUIPO,
+        BRIX_FUERA_RANGO, REPROCESO, CAMBIO_PROCESO, OTRO
+    }
+
     public EjecucionBatch() {}
 
-    public EjecucionBatch(Long id, Long idOrdenProduccion, Integer numeroBatch, Long idMarmita, 
-                         BigDecimal kgEntrada, BigDecimal kgProducidos, BigDecimal rendimientoPct, 
+    public EjecucionBatch(Long id, Long idOrdenProduccion, Integer numeroBatch, Long idMarmita, Long idMovimientoLeche,
+                         BigDecimal kgEntrada, BigDecimal kgProducidos, BigDecimal rendimientoPct,
                          EstadoBatch estado, String observaciones, Boolean huboReproceso, Boolean batchConforme,
-                         BigDecimal brixFinal, LocalDateTime fechaInicio, LocalDateTime fechaFin) {
+                         BigDecimal brixFinal, String tipoNovedad, LocalDateTime fechaInicio, LocalDateTime fechaFin) {
         this.id = id;
         this.idOrdenProduccion = idOrdenProduccion;
         this.numeroBatch = numeroBatch;
         this.idMarmita = idMarmita;
+        this.idMovimientoLeche = idMovimientoLeche;
         this.kgEntrada = kgEntrada;
         this.kgProducidos = kgProducidos;
         this.rendimientoPct = rendimientoPct;
@@ -42,6 +50,7 @@ public class EjecucionBatch {
         this.huboReproceso = huboReproceso;
         this.batchConforme = batchConforme;
         this.brixFinal = brixFinal;
+        this.tipoNovedad = tipoNovedad;
         this.fechaInicio = fechaInicio;
         this.fechaFin = fechaFin;
     }
@@ -61,6 +70,9 @@ public class EjecucionBatch {
 
     public String getNombreMarmita() { return nombreMarmita; }
     public void setNombreMarmita(String nombreMarmita) { this.nombreMarmita = nombreMarmita; }
+
+    public Long getIdMovimientoLeche() { return idMovimientoLeche; }
+    public void setIdMovimientoLeche(Long idMovimientoLeche) { this.idMovimientoLeche = idMovimientoLeche; }
 
     public BigDecimal getKgEntrada() { return kgEntrada; }
     public void setKgEntrada(BigDecimal kgEntrada) { this.kgEntrada = kgEntrada; }
@@ -85,6 +97,9 @@ public class EjecucionBatch {
 
     public BigDecimal getBrixFinal() { return brixFinal; }
     public void setBrixFinal(BigDecimal brixFinal) { this.brixFinal = brixFinal; }
+
+    public String getTipoNovedad() { return tipoNovedad; }
+    public void setTipoNovedad(String tipoNovedad) { this.tipoNovedad = tipoNovedad; }
 
     public LocalDateTime getFechaInicio() { return fechaInicio; }
     public void setFechaInicio(LocalDateTime fechaInicio) { this.fechaInicio = fechaInicio; }

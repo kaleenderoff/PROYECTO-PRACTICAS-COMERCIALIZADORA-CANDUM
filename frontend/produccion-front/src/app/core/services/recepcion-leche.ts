@@ -27,6 +27,7 @@ export interface RecepcionLeche {
   cantidadRemisionLitros?: number;
   observaciones?: string;
   pesajes?: RecepcionLechePesaje[];
+  estadoCalidad?: 'APROBADA' | 'RETENIDA' | 'NO_APROBADA' | 'SIN_CALIDAD';
 }
 
 export interface RecepcionLecheRequest {

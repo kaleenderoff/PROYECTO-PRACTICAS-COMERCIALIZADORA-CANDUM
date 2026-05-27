@@ -9,6 +9,10 @@ export interface IniciarBatchRequest {
   kgEntrada: number;
 }
 
+export type TipoNovedad =
+  'BAJA_GRASA' | 'FALLA_CALDERA' | 'RETRASO_LECHE' | 'FALLA_EQUIPO' |
+  'BRIX_FUERA_RANGO' | 'REPROCESO' | 'CAMBIO_PROCESO' | 'OTRO';
+
 export interface FinalizarBatchRequest {
   kgProducidos: number;
   observaciones?: string;
@@ -16,6 +20,7 @@ export interface FinalizarBatchRequest {
   huboReproceso?: boolean;
   batchConforme?: boolean;
   brixFinal?: number;
+  tipoNovedad?: TipoNovedad | null;
 }
 
 export interface EjecucionBatch {
@@ -24,14 +29,19 @@ export interface EjecucionBatch {
   numeroBatch: number;
   idMarmita: number;
   nombreMarmita: string;
+  idMovimientoLeche?: number;
   kgEntrada: number;
   kgProducidos?: number;
   rendimientoPct?: number;
   estado: string;
   observaciones?: string;
+  conNovedad?: boolean;
+  huboReproceso?: boolean;
+  batchConforme?: boolean;
   fechaInicio?: string;
   fechaFin?: string;
   brixFinal?: number;
+  tipoNovedad?: string;
 }
 
 @Injectable({

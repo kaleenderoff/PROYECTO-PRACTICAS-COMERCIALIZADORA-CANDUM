@@ -7,6 +7,7 @@ import com.yerman.produccion_api.application.dto.response.CalidadRecepcionLecheR
 import com.yerman.produccion_api.application.dto.response.ControlCalidadProcesoResponse;
 import com.yerman.produccion_api.application.dto.response.ControlPesoMuestraResponse;
 import com.yerman.produccion_api.application.dto.response.ControlPesoProductoResponse;
+import com.yerman.produccion_api.application.dto.response.EstadoCalidadRecepcionResponse;
 import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
 import com.yerman.produccion_api.application.exception.ReglaNegocioException;
 import com.yerman.produccion_api.infrastructure.entity.*;
@@ -333,6 +334,26 @@ public class GestionControlCalidadLacteaService {
                                 muestra.getTara(),
                                 muestra.getPesoNeto()))
                         .toList());
+    }
+
+    public List<EstadoCalidadRecepcionResponse> listarEstadosRecepcion() {
+        return calidadRecepcionRepository.findLatestEstadoPorRecepcion()
+                .stream()
+                .map(row -> {
+                    Long idRecepcion = ((Number) row[0]).longValue();
+                    Boolean aprobado = (Boolean) row[1];
+                    Boolean retenido = (Boolean) row[2];
+                    String estado;
+                    if (Boolean.TRUE.equals(retenido)) {
+                        estado = "RETENIDA";
+                    } else if (Boolean.TRUE.equals(aprobado)) {
+                        estado = "APROBADA";
+                    } else {
+                        estado = "NO_APROBADA";
+                    }
+                    return new EstadoCalidadRecepcionResponse(idRecepcion, estado);
+                })
+                .toList();
     }
 
     private <T> T ref(Class<T> type, Long id) {

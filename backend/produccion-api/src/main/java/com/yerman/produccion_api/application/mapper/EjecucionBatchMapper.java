@@ -17,6 +17,7 @@ public class EjecucionBatchMapper {
                 entity.getOrdenProduccion() != null ? entity.getOrdenProduccion().getId() : null,
                 entity.getNumeroBatch(),
                 entity.getMarmita() != null ? entity.getMarmita().getId() : null,
+                entity.getMovimientoLeche() != null ? entity.getMovimientoLeche().getId() : null,
                 entity.getKgEntrada(),
                 entity.getKgProducidos(),
                 entity.getRendimientoPct(),
@@ -25,6 +26,7 @@ public class EjecucionBatchMapper {
                 entity.getHuboReproceso(),
                 entity.getBatchConforme(),
                 entity.getBrixFinal(),
+                entity.getTipoNovedad(),
                 entity.getFechaInicio(),
                 entity.getFechaFin()
         );
@@ -52,6 +54,7 @@ public class EjecucionBatchMapper {
         entity.setHuboReproceso(domain.getHuboReproceso());
         entity.setBatchConforme(domain.getBatchConforme());
         entity.setBrixFinal(domain.getBrixFinal());
+        entity.setTipoNovedad(domain.getTipoNovedad());
         entity.setFechaInicio(domain.getFechaInicio());
         entity.setFechaFin(domain.getFechaFin());
         

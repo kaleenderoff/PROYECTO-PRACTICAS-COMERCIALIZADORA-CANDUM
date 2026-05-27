@@ -31,6 +31,10 @@ public class EjecucionBatchEntity {
     @JoinColumn(name = "id_marmita", nullable = false)
     private MarmitaEntity marmita;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_movimiento_leche")
+    private MovimientoLecheEntity movimientoLeche;
+
     @Column(name = "kg_entrada", nullable = false)
     private BigDecimal kgEntrada;
 
@@ -55,6 +59,9 @@ public class EjecucionBatchEntity {
 
     @Column(name = "brix_final")
     private BigDecimal brixFinal;
+
+    @Column(name = "tipo_novedad", length = 50)
+    private String tipoNovedad;
 
     @Column(name = "fecha_inicio")
     private LocalDateTime fechaInicio;

@@ -3,9 +3,10 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
-import { 
-  EjecucionBatch, 
-  EjecucionBatchService 
+import {
+  EjecucionBatch,
+  EjecucionBatchService,
+  TipoNovedad
 } from '../../core/services/ejecucion-batch';
 import { OrdenProduccionService, OrdenProduccionResponse } from '../../core/services/orden-produccion';
 import { CatalogoService } from '../../core/services/catalogo';
@@ -40,10 +41,22 @@ export class OrdenEjecucion implements OnInit {
 
   // Formulario para finalizar batch
   batchAFinalizar: EjecucionBatch | null = null;
+  readonly tiposNovedad: { valor: TipoNovedad; etiqueta: string }[] = [
+    { valor: 'BAJA_GRASA',       etiqueta: 'Baja grasa' },
+    { valor: 'FALLA_CALDERA',    etiqueta: 'Falla caldera' },
+    { valor: 'RETRASO_LECHE',    etiqueta: 'Retraso de leche' },
+    { valor: 'FALLA_EQUIPO',     etiqueta: 'Falla de equipo' },
+    { valor: 'BRIX_FUERA_RANGO', etiqueta: 'Brix fuera de rango' },
+    { valor: 'REPROCESO',        etiqueta: 'Reproceso' },
+    { valor: 'CAMBIO_PROCESO',   etiqueta: 'Cambio de proceso' },
+    { valor: 'OTRO',             etiqueta: 'Otro' },
+  ];
+
   finalizacion = {
     kgProducidos: 0,
     observaciones: '',
     conNovedad: false,
+    tipoNovedad: null as TipoNovedad | null,
     huboReproceso: false,
     batchConforme: true,
     brixFinal: null as number | null
@@ -249,7 +262,8 @@ export class OrdenEjecucion implements OnInit {
     this.batchService.finalizar(batch.id, {
       kgProducidos: Number(batch.kgProducidos),
       observaciones: '',
-      conNovedad: false,
+      conNovedad: batch.conNovedad || false,
+      tipoNovedad: batch.conNovedad ? (batch.tipoNovedad as any) : null,
       huboReproceso: false,
       batchConforme: true,
       brixFinal: batch.brixFinal != null ? Number(batch.brixFinal) : undefined

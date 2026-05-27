@@ -4,8 +4,11 @@ import com.yerman.produccion_api.application.exception.RecursoNoEncontradoExcept
 import com.yerman.produccion_api.application.exception.ReglaNegocioException;
 import com.yerman.produccion_api.domain.model.EjecucionBatch;
 import com.yerman.produccion_api.domain.model.EjecucionBatch.EstadoBatch;
+import com.yerman.produccion_api.domain.model.MovimientoLeche;
 import com.yerman.produccion_api.domain.model.OrdenProduccion;
+import com.yerman.produccion_api.domain.model.TipoMovimientoLeche;
 import com.yerman.produccion_api.domain.port.in.GestionEjecucionBatchUseCase;
+import com.yerman.produccion_api.domain.port.in.GestionMovimientoLecheUseCase;
 import com.yerman.produccion_api.domain.port.out.EjecucionBatchRepositoryPort;
 import com.yerman.produccion_api.domain.port.out.OrdenProduccionRepositoryPort;
 import org.slf4j.Logger;
@@ -26,14 +29,17 @@ public class GestionEjecucionBatchService implements GestionEjecucionBatchUseCas
     private final EjecucionBatchRepositoryPort repository;
     private final OrdenProduccionRepositoryPort ordenRepository;
     private final ValidacionOrdenProduccionGuardService validacionGuardService;
+    private final GestionMovimientoLecheUseCase movimientoLecheUseCase;
 
     public GestionEjecucionBatchService(
             EjecucionBatchRepositoryPort repository,
             OrdenProduccionRepositoryPort ordenRepository,
-            ValidacionOrdenProduccionGuardService validacionGuardService) {
+            ValidacionOrdenProduccionGuardService validacionGuardService,
+            GestionMovimientoLecheUseCase movimientoLecheUseCase) {
         this.repository = repository;
         this.ordenRepository = ordenRepository;
         this.validacionGuardService = validacionGuardService;
+        this.movimientoLecheUseCase = movimientoLecheUseCase;
     }
 
     @Override
@@ -101,7 +107,7 @@ public class GestionEjecucionBatchService implements GestionEjecucionBatchUseCas
 
     @Override
     @Transactional
-    public EjecucionBatch finalizarBatch(Long idBatch, BigDecimal kgProducidos, String observaciones, Boolean conNovedad, Boolean huboReproceso, Boolean batchConforme, BigDecimal brixFinal) {
+    public EjecucionBatch finalizarBatch(Long idBatch, BigDecimal kgProducidos, String observaciones, Boolean conNovedad, Boolean huboReproceso, Boolean batchConforme, BigDecimal brixFinal, String tipoNovedad) {
         EjecucionBatch batch = repository.obtenerPorId(idBatch)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe el batch con ID: " + idBatch));
 
@@ -117,13 +123,19 @@ public class GestionEjecucionBatchService implements GestionEjecucionBatchUseCas
             throw new ReglaNegocioException("Solo se puede finalizar un batch que esté EN_PROCESO.");
         }
 
+        MovimientoLeche movimientoLeche = registrarSalidaLecheProduccion(batch, orden);
+
         batch.setKgProducidos(kgProducidos);
+        batch.setIdMovimientoLeche(movimientoLeche.getId());
         batch.setEstado(Boolean.TRUE.equals(conNovedad) ? EstadoBatch.CON_NOVEDAD : EstadoBatch.FINALIZADO);
         batch.setFechaFin(LocalDateTime.now());
         batch.setObservaciones(observaciones);
         batch.setHuboReproceso(huboReproceso);
         batch.setBatchConforme(batchConforme);
         batch.setBrixFinal(brixFinal);
+        if (Boolean.TRUE.equals(conNovedad) && tipoNovedad != null && !tipoNovedad.isBlank()) {
+            batch.setTipoNovedad(tipoNovedad.trim());
+        }
 
         if (batch.getKgEntrada() != null && batch.getKgEntrada().compareTo(BigDecimal.ZERO) > 0) {
             BigDecimal rendimiento = kgProducidos
@@ -133,6 +145,30 @@ public class GestionEjecucionBatchService implements GestionEjecucionBatchUseCas
         }
 
         return repository.guardar(batch);
+    }
+
+    private MovimientoLeche registrarSalidaLecheProduccion(EjecucionBatch batch, OrdenProduccion orden) {
+        if (orden.getIdTanqueLeche() == null) {
+            throw new ReglaNegocioException(
+                    "Debe seleccionar el tanque de leche descremada antes de finalizar el batch.");
+        }
+
+        if (batch.getKgEntrada() == null || batch.getKgEntrada().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ReglaNegocioException("El batch no tiene kg de entrada validos para descontar leche.");
+        }
+
+        BigDecimal litrosConsumidos = batch.getKgEntrada()
+                .divide(new BigDecimal("1.03"), 3, RoundingMode.HALF_UP);
+
+        String referencia = "ORDEN-" + orden.getNumeroOrden() + "-BATCH-" + batch.getNumeroBatch();
+
+        return movimientoLecheUseCase.registrarMovimiento(
+                orden.getIdTanqueLeche(),
+                TipoMovimientoLeche.SALIDA_PRODUCCION,
+                litrosConsumidos,
+                orden.getIdJefeLineaEjecutor() != null ? orden.getIdJefeLineaEjecutor() : 1L,
+                referencia,
+                "Consumo automatico de leche al finalizar batch de produccion.");
     }
 
     @Override
@@ -168,8 +204,12 @@ public class GestionEjecucionBatchService implements GestionEjecucionBatchUseCas
             throw new ReglaNegocioException("No se puede eliminar el bache porque la orden ya está FINALIZADA.");
         }
 
-        if (batch.getEstado() == EstadoBatch.FINALIZADO) {
-            throw new ReglaNegocioException("No se puede eliminar un batch que ya ha sido FINALIZADO.");
+        if (batch.getIdMovimientoLeche() != null) {
+            throw new ReglaNegocioException("No se puede eliminar un batch que ya descontó leche del tanque.");
+        }
+
+        if (batch.getEstado() != EstadoBatch.EN_PROCESO) {
+            throw new ReglaNegocioException("Solo se pueden eliminar batches abiertos en estado EN_PROCESO.");
         }
 
         repository.eliminar(idBatch);

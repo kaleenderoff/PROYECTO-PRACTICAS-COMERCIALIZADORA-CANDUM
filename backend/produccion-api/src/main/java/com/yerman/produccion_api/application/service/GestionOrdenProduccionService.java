@@ -4,8 +4,6 @@ import com.yerman.produccion_api.domain.model.EstadoOrdenProduccion;
 import com.yerman.produccion_api.domain.model.EjecucionBatch;
 import com.yerman.produccion_api.domain.model.OrdenProduccion;
 import com.yerman.produccion_api.domain.model.ProgramacionProduccion;
-import com.yerman.produccion_api.domain.model.TipoMovimientoLeche;
-import com.yerman.produccion_api.domain.port.in.GestionMovimientoLecheUseCase;
 import com.yerman.produccion_api.domain.port.in.GestionOrdenProduccionUseCase;
 import com.yerman.produccion_api.domain.port.out.EjecucionBatchRepositoryPort;
 import com.yerman.produccion_api.domain.port.out.OrdenProduccionRepositoryPort;
@@ -41,7 +39,6 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
     private final ProgramacionProduccionRepositoryPort programacionRepository;
     private final OrdenProduccionDetalleJpaRepository detalleRepository;
     private final EjecucionBatchRepositoryPort batchRepository;
-    private final GestionMovimientoLecheUseCase movimientoLecheUseCase;
     private final ValidacionOrdenProduccionGuardService validacionGuardService;
     private final ReporteProduccionDiariaJpaRepository reporteProduccionDiariaRepository;
 
@@ -50,14 +47,12 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
             ProgramacionProduccionRepositoryPort programacionRepository,
             OrdenProduccionDetalleJpaRepository detalleRepository,
             EjecucionBatchRepositoryPort batchRepository,
-            GestionMovimientoLecheUseCase movimientoLecheUseCase,
             ValidacionOrdenProduccionGuardService validacionGuardService,
             ReporteProduccionDiariaJpaRepository reporteProduccionDiariaRepository) {
         this.ordenRepository = ordenRepository;
         this.programacionRepository = programacionRepository;
         this.detalleRepository = detalleRepository;
         this.batchRepository = batchRepository;
-        this.movimientoLecheUseCase = movimientoLecheUseCase;
         this.validacionGuardService = validacionGuardService;
         this.reporteProduccionDiariaRepository = reporteProduccionDiariaRepository;
     }
@@ -214,7 +209,7 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
             orden.setFechaInicioReal(fechaPrimerBatch);
         }
 
-        // 5. Impactar inventario de leche disponible en tanque.
+        // 5. Validar que la orden tenga tanque. El descuento de leche se registra por batch.
         impactarInventario(orden);
 
         LOGGER.info("Orden {} finalizada exitosamente.", orden.getNumeroOrden());
@@ -231,23 +226,9 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
             throw new ReglaNegocioException(
                     "No hay entrada real registrada para descontar leche del tanque.");
         }
-
-        // Conversion Kg -> Litros (densidad leche ~1.03 kg/L).
-        // Litros = Kg / 1.03
-        BigDecimal litrosConsumidos = orden.getKgEntradaReal()
-                .divide(new BigDecimal("1.03"), 2, RoundingMode.HALF_UP);
-
-        String referencia = "ORDEN-" + orden.getNumeroOrden();
-        String obs = "Consumo automatico por finalizacion de orden de produccion.";
-
-        movimientoLecheUseCase.registrarMovimiento(
-                orden.getIdTanqueLeche(),
-                TipoMovimientoLeche.SALIDA_PRODUCCION,
-                litrosConsumidos,
-                orden.getIdJefeLineaEjecutor() != null ? orden.getIdJefeLineaEjecutor() : 1L,
-                referencia,
-                obs);
-        LOGGER.info("Descuento de {} L realizado del tanque ID: {}", litrosConsumidos, orden.getIdTanqueLeche());
+        LOGGER.info("Orden {} validada contra tanque ID: {}. El consumo ya fue descontado por batch.",
+                orden.getNumeroOrden(),
+                orden.getIdTanqueLeche());
     }
 
     @Override

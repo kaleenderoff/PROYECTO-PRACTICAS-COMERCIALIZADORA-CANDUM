@@ -37,7 +37,7 @@
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all text-slate-900 appearance-none text-sm">
                             <option [ngValue]="null">Seleccione recepcion...</option>
                             <option *ngFor="let recepcion of recepciones" [value]="recepcion.id">
-                                {{ recepcion.fechaRecepcion | date:'dd/MM' }} - {{ recepcion.proveedor }} ({{ recepcion.cantidadRecibidaLitros | number:'1.0-2' }} L)
+                                {{ recepcion.fechaRecepcion | date:'dd/MM' }} - {{ recepcion.proveedor }} (disp. {{ litrosDisponiblesParaVista(recepcion) | number:'1.0-2' }} L)
                             </option>
                         </select>
                         <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
@@ -71,7 +71,7 @@
 
                 <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Litros recepcion</span>
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Litros disponibles recepcion</span>
                         <p class="mt-1 text-xl font-black text-slate-900">{{ litrosDisponiblesRecepcion() | number:'1.0-2' }} L</p>
                     </div>
                     <div class="p-4 rounded-2xl bg-blue-50 border border-blue-100">

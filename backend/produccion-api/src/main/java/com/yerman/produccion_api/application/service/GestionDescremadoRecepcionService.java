@@ -10,6 +10,8 @@ import com.yerman.produccion_api.domain.port.in.GestionDescremadoRecepcionUseCas
 import com.yerman.produccion_api.domain.port.in.GestionMovimientoLecheUseCase;
 import com.yerman.produccion_api.domain.port.in.GestionRecepcionLecheUseCase;
 import com.yerman.produccion_api.domain.port.out.DescremadoRecepcionRepositoryPort;
+import com.yerman.produccion_api.infrastructure.entity.CalidadRecepcionLecheEntity;
+import com.yerman.produccion_api.infrastructure.repository.CalidadRecepcionLecheJpaRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -23,14 +25,17 @@ public class GestionDescremadoRecepcionService implements GestionDescremadoRecep
     private final DescremadoRecepcionRepositoryPort repository;
     private final GestionRecepcionLecheUseCase recepcionLecheUseCase;
     private final GestionMovimientoLecheUseCase movimientoLecheUseCase;
+    private final CalidadRecepcionLecheJpaRepository calidadRecepcionRepository;
 
     public GestionDescremadoRecepcionService(
             DescremadoRecepcionRepositoryPort repository,
             GestionRecepcionLecheUseCase recepcionLecheUseCase,
-            GestionMovimientoLecheUseCase movimientoLecheUseCase) {
+            GestionMovimientoLecheUseCase movimientoLecheUseCase,
+            CalidadRecepcionLecheJpaRepository calidadRecepcionRepository) {
         this.repository = repository;
         this.recepcionLecheUseCase = recepcionLecheUseCase;
         this.movimientoLecheUseCase = movimientoLecheUseCase;
+        this.calidadRecepcionRepository = calidadRecepcionRepository;
     }
 
     @Override
@@ -41,7 +46,16 @@ public class GestionDescremadoRecepcionService implements GestionDescremadoRecep
         RecepcionLeche recepcion = recepcionLecheUseCase.obtenerPorId(
                 descremadoRecepcion.getIdRecepcionLeche());
 
+        validarCalidadAprobada(recepcion);
         validarDisponibleEnRecepcion(recepcion, descremadoRecepcion);
+
+        MovimientoLeche movimientoSalida = movimientoLecheUseCase.registrarMovimiento(
+                recepcion.getIdTanque(),
+                TipoMovimientoLeche.SALIDA_DESCREME,
+                descremadoRecepcion.getLitrosDescremados(),
+                recepcion.getIdUsuario(),
+                construirReferenciaSalida(recepcion),
+                descremadoRecepcion.getObservaciones());
 
         MovimientoLeche movimientoEntrada = movimientoLecheUseCase.registrarMovimiento(
                 descremadoRecepcion.getIdTanqueDestino(),
@@ -51,7 +65,7 @@ public class GestionDescremadoRecepcionService implements GestionDescremadoRecep
                 construirReferenciaEntrada(recepcion),
                 descremadoRecepcion.getObservaciones());
 
-        descremadoRecepcion.setIdMovimientoSalida(null);
+        descremadoRecepcion.setIdMovimientoSalida(movimientoSalida.getId());
         descremadoRecepcion.setIdMovimientoEntrada(movimientoEntrada.getId());
 
         return repository.guardar(descremadoRecepcion);
@@ -98,6 +112,23 @@ public class GestionDescremadoRecepcionService implements GestionDescremadoRecep
         }
 
         validarCremaEmpacada(descremadoRecepcion);
+    }
+
+    private void validarCalidadAprobada(RecepcionLeche recepcion) {
+        CalidadRecepcionLecheEntity calidad = calidadRecepcionRepository
+                .findFirstByRecepcionLecheIdOrderByFechaControlDescIdDesc(recepcion.getId())
+                .orElseThrow(() -> new ReglaNegocioException(
+                        "La recepcion debe tener control de calidad registrado antes de descremar."));
+
+        if (Boolean.TRUE.equals(calidad.getRetenido())) {
+            throw new ReglaNegocioException(
+                    "No se puede descremar una recepcion retenida por calidad.");
+        }
+
+        if (!Boolean.TRUE.equals(calidad.getAprobado())) {
+            throw new ReglaNegocioException(
+                    "No se puede descremar una recepcion no aprobada por calidad.");
+        }
     }
 
     private void validarDisponibleEnRecepcion(
@@ -183,5 +214,13 @@ public class GestionDescremadoRecepcionService implements GestionDescremadoRecep
         }
 
         return "Entrada leche descremada - Recepcion ID " + recepcion.getId();
+    }
+
+    private String construirReferenciaSalida(RecepcionLeche recepcion) {
+        if (recepcion.getNumeroRemision() != null && !recepcion.getNumeroRemision().isBlank()) {
+            return "Salida a descreme - Remision " + recepcion.getNumeroRemision();
+        }
+
+        return "Salida a descreme - Recepcion ID " + recepcion.getId();
     }
 }

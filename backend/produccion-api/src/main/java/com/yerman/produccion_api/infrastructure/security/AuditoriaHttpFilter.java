@@ -133,6 +133,11 @@ public class AuditoriaHttpFilter extends OncePerRequestFilter {
     }
 
     private String entidadDesdePath(String path) {
+        String entidadCritica = entidadCriticaDesdePath(path);
+        if (entidadCritica != null) {
+            return entidadCritica;
+        }
+
         String[] segmentos = path.split("/");
         StringBuilder entidad = new StringBuilder();
 
@@ -150,6 +155,62 @@ public class AuditoriaHttpFilter extends OncePerRequestFilter {
         }
 
         return entidad.isEmpty() ? "DESCONOCIDA" : entidad.toString();
+    }
+
+    private String entidadCriticaDesdePath(String path) {
+        if (path.startsWith("/recepciones-leche")) {
+            return "RECEPCION_LECHE";
+        }
+        if (path.startsWith("/controles-calidad-lactea/recepcion")) {
+            return "CALIDAD_RECEPCION_LECHE";
+        }
+        if (path.startsWith("/controles-calidad-lactea")) {
+            return "CONTROL_CALIDAD_LACTEA";
+        }
+        if (path.startsWith("/mediciones-calidad-lactea")) {
+            return "MEDICION_CALIDAD_LACTEA";
+        }
+        if (path.startsWith("/descremados-recepcion")) {
+            return "DESCREMADO_RECEPCION";
+        }
+        if (path.startsWith("/movimientos-leche")) {
+            return "MOVIMIENTO_LECHE";
+        }
+        if (path.startsWith("/ejecucion-batch")) {
+            return "EJECUCION_BATCH";
+        }
+        if (path.startsWith("/ordenes-produccion/detalles")) {
+            return "ORDEN_PRODUCCION_DETALLE";
+        }
+        if (path.startsWith("/ordenes-produccion")) {
+            return "ORDEN_PRODUCCION";
+        }
+        if (path.startsWith("/programaciones")) {
+            return "PROGRAMACION_PRODUCCION";
+        }
+        if (path.startsWith("/programacion-skus")) {
+            return "PROGRAMACION_SKU";
+        }
+        if (path.startsWith("/empaques-lacteos")) {
+            return "EMPAQUE_LACTEO";
+        }
+        if (path.startsWith("/validaciones-orden-produccion")) {
+            return "VALIDACION_ORDEN_PRODUCCION";
+        }
+        if (path.startsWith("/formulas")) {
+            return "FORMULA";
+        }
+        if (path.startsWith("/catalogos/proveedores")) {
+            return "PROVEEDOR";
+        }
+        if (path.startsWith("/catalogos/skus")) {
+            return "CATALOGO_SKU";
+        }
+        if (path.startsWith("/catalogos/insumos")) {
+            return "INSUMO";
+        }
+
+        return null;
     }
 
     private Optional<Long> idDesdePath(String path) {
