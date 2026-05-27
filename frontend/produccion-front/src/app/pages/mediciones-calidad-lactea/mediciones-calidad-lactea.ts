@@ -37,6 +37,9 @@ export class MedicionesCalidadLactea implements OnInit {
   cargando = false;
   guardando = false;
   error = '';
+  idMedicionEditando: number | null = null;
+  idProcesoEditando: number | null = null;
+  idPesoEditando: number | null = null;
 
   formulario = {
     tipoMedicion: 'BACHE' as TipoMedicionCalidadLactea,
@@ -142,6 +145,9 @@ export class MedicionesCalidadLactea implements OnInit {
   onCambioOrden(): void {
     this.formulario.idEjecucionBatch = 0;
     this.formulario.referencia = '';
+    this.idMedicionEditando = null;
+    this.idProcesoEditando = null;
+    this.idPesoEditando = null;
     this.procesoForm = this.crearProcesoForm();
     this.pesoForm = this.crearPesoForm();
     this.cargarDatosOrden();
@@ -185,7 +191,7 @@ export class MedicionesCalidadLactea implements OnInit {
 
     this.guardando = true;
 
-    this.medicionService.registrar({
+    const request = {
       idOrdenProduccion: this.idOrdenSeleccionada,
       idEjecucionBatch: this.formulario.idEjecucionBatch || null,
       tipoMedicion: this.formulario.tipoMedicion,
@@ -194,9 +200,15 @@ export class MedicionesCalidadLactea implements OnInit {
       ph: this.formulario.ph,
       idUsuarioCalidad,
       observaciones: this.formulario.observaciones?.trim() || null
-    }).subscribe({
+    };
+
+    const operacion = this.idMedicionEditando
+      ? this.medicionService.actualizar(this.idMedicionEditando, request)
+      : this.medicionService.registrar(request);
+
+    operacion.subscribe({
       next: () => {
-        this.notification.toast('Medicion de calidad registrada.');
+        this.notification.toast(this.idMedicionEditando ? 'Medicion de calidad actualizada.' : 'Medicion de calidad registrada.');
         this.limpiarFormulario();
         this.cargarDatosOrden();
       },
@@ -211,6 +223,7 @@ export class MedicionesCalidadLactea implements OnInit {
   }
 
   limpiarFormulario(): void {
+    this.idMedicionEditando = null;
     this.formulario = {
       tipoMedicion: 'BACHE',
       idEjecucionBatch: 0,
@@ -222,6 +235,42 @@ export class MedicionesCalidadLactea implements OnInit {
     this.autocompletarReferencia();
   }
 
+  cancelarEdicionProceso(): void {
+    this.idProcesoEditando = null;
+    this.procesoForm = this.crearProcesoForm();
+  }
+
+  cancelarEdicionPeso(): void {
+    this.idPesoEditando = null;
+    this.pesoForm = this.crearPesoForm();
+  }
+
+  editarMedicion(medicion: MedicionCalidadLacteaResponse): void {
+    if (!this.authService.canWriteCalidad()) return;
+    this.idMedicionEditando = medicion.id;
+    this.formulario = {
+      tipoMedicion: medicion.tipoMedicion,
+      idEjecucionBatch: medicion.idEjecucionBatch || 0,
+      referencia: medicion.referencia,
+      brix: medicion.brix ?? null,
+      ph: medicion.ph ?? null,
+      observaciones: medicion.observaciones || ''
+    };
+    this.pestanaActiva = 'rapida';
+  }
+
+  eliminarMedicion(medicion: MedicionCalidadLacteaResponse): void {
+    if (!this.authService.canWriteCalidad()) return;
+    if (!confirm('¿Eliminar esta medicion de calidad?')) return;
+    this.medicionService.eliminar(medicion.id).subscribe({
+      next: () => {
+        this.notification.toast('Medicion eliminada.');
+        this.cargarDatosOrden();
+      },
+      error: err => this.notification.error(err.error?.message || 'No se pudo eliminar la medicion.')
+    });
+  }
+
   registrarProceso(): void {
     if (!this.authService.canWriteCalidad()) return;
 
@@ -229,7 +278,7 @@ export class MedicionesCalidadLactea implements OnInit {
     if (!this.validarBase(idRealizadoPor)) return;
 
     this.guardando = true;
-    this.controlCalidadService.registrarProceso({
+    const request = {
       ...this.procesoForm,
       idOrdenProduccion: this.idOrdenSeleccionada,
       idEjecucionBatch: this.procesoForm.idEjecucionBatch || null,
@@ -238,9 +287,16 @@ export class MedicionesCalidadLactea implements OnInit {
       fechaVencimiento: this.procesoForm.fechaVencimiento || null,
       idRealizadoPor,
       idVerificadoPor: this.procesoForm.idVerificadoPor || null
-    }).subscribe({
+    };
+
+    const operacion = this.idProcesoEditando
+      ? this.controlCalidadService.actualizarProceso(this.idProcesoEditando, request)
+      : this.controlCalidadService.registrarProceso(request);
+
+    operacion.subscribe({
       next: () => {
-        this.notification.toast('Control de proceso registrado.');
+        this.notification.toast(this.idProcesoEditando ? 'Control de proceso actualizado.' : 'Control de proceso registrado.');
+        this.idProcesoEditando = null;
         this.procesoForm = this.crearProcesoForm();
         this.cargarDatosOrden();
       },
@@ -273,7 +329,7 @@ export class MedicionesCalidadLactea implements OnInit {
     }
 
     this.guardando = true;
-    this.controlCalidadService.registrarPeso({
+    const request = {
       ...this.pesoForm,
       idOrdenProduccion: this.idOrdenSeleccionada,
       idEjecucionBatch: this.pesoForm.idEjecucionBatch || null,
@@ -282,9 +338,16 @@ export class MedicionesCalidadLactea implements OnInit {
       idRealizadoPor,
       idVerificadoPor: this.pesoForm.idVerificadoPor || null,
       muestras
-    }).subscribe({
+    };
+
+    const operacion = this.idPesoEditando
+      ? this.controlCalidadService.actualizarPeso(this.idPesoEditando, request)
+      : this.controlCalidadService.registrarPeso(request);
+
+    operacion.subscribe({
       next: () => {
-        this.notification.toast('Control de peso registrado.');
+        this.notification.toast(this.idPesoEditando ? 'Control de peso actualizado.' : 'Control de peso registrado.');
+        this.idPesoEditando = null;
         this.pesoForm = this.crearPesoForm();
         this.cargarDatosOrden();
       },
@@ -299,6 +362,111 @@ export class MedicionesCalidadLactea implements OnInit {
   onCambioBatchProceso(): void {
     const batch = this.obtenerBatch(this.procesoForm.idEjecucionBatch);
     this.procesoForm.numeroMarmita = batch?.numeroBatch || null;
+  }
+
+  editarProceso(control: ControlCalidadProcesoResponse): void {
+    if (!this.authService.canWriteCalidad()) return;
+    this.idProcesoEditando = control.id;
+    this.procesoForm = {
+      idEjecucionBatch: control.idEjecucionBatch || 0,
+      fechaProduccion: control.fechaProduccion,
+      tipoProducto: control.tipoProducto || '',
+      producto: control.producto || '',
+      lote: control.lote || '',
+      numeroMarmita: control.numeroMarmita || null,
+      productoEnProceso: control.productoEnProceso || '',
+      phLeche: control.phLeche || null,
+      acidezLeche: control.acidezLeche || null,
+      densidadLeche: control.densidadLeche || null,
+      grasaLeche: control.grasaLeche || null,
+      horaInicioHidrolisis: control.horaInicioHidrolisis || '',
+      phInicial: control.phInicial || null,
+      horaFinHidrolisis: control.horaFinHidrolisis || '',
+      temperaturaInicial: control.temperaturaInicial || null,
+      temperaturaFinal: control.temperaturaFinal || null,
+      acidezInicial: control.acidezInicial || null,
+      acidezFinal: control.acidezFinal || null,
+      phFinal: control.phFinal || null,
+      brixInicial: control.brixInicial || null,
+      brixFinal: control.brixFinal || null,
+      presion: control.presion || null,
+      temperaturaCoccion: control.temperaturaCoccion || null,
+      temperaturaEnvasado: control.temperaturaEnvasado || null,
+      colorVisual: control.colorVisual || '',
+      saborVisual: control.saborVisual || '',
+      texturaVisual: control.texturaVisual || '',
+      presentacionEnvasado: control.presentacionEnvasado || '',
+      fechaVencimiento: control.fechaVencimiento || null,
+      liberado: !!control.liberado,
+      retenido: !!control.retenido,
+      idRealizadoPor: 0,
+      idVerificadoPor: control.idVerificadoPor || null,
+      observaciones: control.observaciones || ''
+    };
+    this.pestanaActiva = 'proceso';
+  }
+
+  eliminarProceso(control: ControlCalidadProcesoResponse): void {
+    if (!this.authService.canWriteCalidad()) return;
+    if (!confirm('¿Eliminar este control de proceso?')) return;
+    this.controlCalidadService.eliminarProceso(control.id).subscribe({
+      next: () => {
+        this.notification.toast('Control de proceso eliminado.');
+        this.cargarDatosOrden();
+      },
+      error: err => this.notification.error(err.error?.message || 'No se pudo eliminar el control de proceso.')
+    });
+  }
+
+  editarPeso(control: ControlPesoProductoResponse): void {
+    if (!this.authService.canWriteCalidad()) return;
+    this.idPesoEditando = control.id;
+    this.pesoForm = {
+      idEjecucionBatch: control.idEjecucionBatch || 0,
+      idSku: control.idSku || null,
+      fechaControl: control.fechaControl,
+      producto: control.producto || '',
+      marca: control.marca || '',
+      lote: control.lote || '',
+      fechaVencimiento: control.fechaVencimiento || null,
+      presentacion: control.presentacion || '',
+      numeroTanda: control.numeroTanda || '',
+      rangoBatches: control.rangoBatches || '',
+      pesoBrutoPromedio: control.pesoBrutoPromedio || null,
+      taraPromedio: control.taraPromedio || null,
+      pesoNetoPromedio: control.pesoNetoPromedio || null,
+      aparienciaOk: !!control.aparienciaOk,
+      etiquetadoOk: !!control.etiquetadoOk,
+      tapadoOk: !!control.tapadoOk,
+      cantidadPorCaja: control.cantidadPorCaja || null,
+      liberado: !!control.liberado,
+      retenido: !!control.retenido,
+      idRealizadoPor: 0,
+      idVerificadoPor: control.idVerificadoPor || null,
+      observaciones: control.observaciones || '',
+      muestras: Array.from({ length: 10 }, (_, index) => {
+        const muestra = control.muestras?.[index];
+        return {
+          numeroMuestra: index + 1,
+          pesoBruto: muestra?.pesoBruto ?? null,
+          tara: muestra?.tara ?? null,
+          pesoNeto: muestra?.pesoNeto ?? null
+        };
+      })
+    };
+    this.pestanaActiva = 'peso';
+  }
+
+  eliminarPeso(control: ControlPesoProductoResponse): void {
+    if (!this.authService.canWriteCalidad()) return;
+    if (!confirm('¿Eliminar este control de peso?')) return;
+    this.controlCalidadService.eliminarPeso(control.id).subscribe({
+      next: () => {
+        this.notification.toast('Control de peso eliminado.');
+        this.cargarDatosOrden();
+      },
+      error: err => this.notification.error(err.error?.message || 'No se pudo eliminar el control de peso.')
+    });
   }
 
   recalcularPromediosPeso(): void {

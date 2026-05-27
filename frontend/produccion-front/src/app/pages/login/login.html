@@ -1,12 +1,13 @@
-<div class="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat relative px-4" 
-     style="background-image: url('assets/img/login-bg.png');">
-    
+<div class="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat relative px-4"
+    style="background-image: url('assets/img/login-bg.png');">
+
     <!-- Overlay -->
     <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-[2px]"></div>
 
     <!-- Login Card -->
-    <div class="relative w-full max-w-md bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-white/20 p-8 md:p-12 overflow-hidden">
-        
+    <div
+        class="relative w-full max-w-md bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-white/20 p-8 md:p-12 overflow-hidden">
+
         <!-- Decoration -->
         <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl"></div>
         <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-slate-500/10 rounded-full blur-3xl"></div>
@@ -20,17 +21,15 @@
             <form (ngSubmit)="iniciarSesion()" class="space-y-6">
                 <!-- Cédula -->
                 <div class="space-y-2">
-                    <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider ml-1">Cédula de Ciudadanía</label>
+                    <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider ml-1">Cédula de
+                        Ciudadanía</label>
                     <div class="relative group">
-                        <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                        <span
+                            class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 group-focus-within:text-blue-500 transition-colors">
                             <i class="bi bi-person-badge text-lg"></i>
                         </span>
-                        <input type="text" 
-                               name="cc" 
-                               [(ngModel)]="cc"
-                               (input)="error = ''"
-                               placeholder="123456789"
-                               class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all placeholder:text-slate-400 text-slate-900">
+                        <input type="text" name="cc" [(ngModel)]="cc" (input)="error = ''" placeholder="123456789"
+                            class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all placeholder:text-slate-400 text-slate-900">
                     </div>
                 </div>
 
@@ -38,34 +37,35 @@
                 <div class="space-y-2">
                     <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider ml-1">Contraseña</label>
                     <div class="relative group">
-                        <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                        <span
+                            class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 group-focus-within:text-blue-500 transition-colors">
                             <i class="bi bi-lock text-lg"></i>
                         </span>
-                        <input type="password" 
-                               name="password" 
-                               [(ngModel)]="password"
-                               (input)="error = ''"
-                               placeholder="••••••••"
-                               class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all placeholder:text-slate-400 text-slate-900">
+                        <input type="password" name="password" [(ngModel)]="password" (input)="error = ''"
+                            placeholder="••••••••"
+                            class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all placeholder:text-slate-400 text-slate-900">
                     </div>
                 </div>
 
                 <!-- Error Alert -->
-                <div *ngIf="error" 
-                     class="flex items-start gap-3 p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-sm animate-in fade-in slide-in-from-top-2 duration-300">
+                <div *ngIf="error"
+                    class="flex items-start gap-3 p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-sm animate-in fade-in slide-in-from-top-2 duration-300">
                     <i class="bi bi-exclamation-circle-fill text-base shrink-0 mt-0.5"></i>
                     <span class="leading-snug font-medium">{{ error }}</span>
                 </div>
 
                 <!-- Submit Button -->
-                <button type="submit" 
-                        [disabled]="cargando"
-                        class="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-2xl shadow-lg shadow-slate-900/20 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed">
+                <button type="submit" [disabled]="cargando"
+                    class="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-2xl shadow-lg shadow-slate-900/20 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed">
                     <span *ngIf="!cargando">Iniciar Sesión</span>
                     <span *ngIf="cargando" class="flex items-center gap-2">
-                        <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2001/XMLSchema-instance" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2001/XMLSchema-instance"
+                            fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
                         </svg>
                         Autenticando...
                     </span>
@@ -75,7 +75,7 @@
             <!-- Footer -->
             <div class="mt-10 text-center">
                 <p class="text-xs text-slate-500">
-                    © 2024 Yerman S.A.S. - Sistema de Gestión de Producción
+                    © 2026 Yerman S.A.S. - Sistema de Gestión de Producción
                 </p>
             </div>
         </div>

@@ -8,6 +8,10 @@ public interface GestionMedicionCalidadLacteaUseCase {
 
     MedicionCalidadLactea registrar(MedicionCalidadLactea medicion);
 
+    MedicionCalidadLactea actualizar(Long id, MedicionCalidadLactea medicion);
+
+    void eliminar(Long id);
+
     MedicionCalidadLactea obtenerPorId(Long id);
 
     List<MedicionCalidadLactea> listarPorProduccion(Long idProduccionLactea);

@@ -9,6 +9,8 @@ public interface MedicionCalidadLacteaRepositoryPort {
 
     MedicionCalidadLactea guardar(MedicionCalidadLactea medicion);
 
+    void eliminar(Long id);
+
     Optional<MedicionCalidadLactea> obtenerPorId(Long id);
 
     List<MedicionCalidadLactea> listarPorProduccion(Long idProduccionLactea);

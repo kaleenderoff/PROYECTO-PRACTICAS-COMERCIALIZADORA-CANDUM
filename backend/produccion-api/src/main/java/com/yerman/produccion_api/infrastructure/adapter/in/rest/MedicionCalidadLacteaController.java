@@ -29,6 +29,22 @@ public class MedicionCalidadLacteaController {
                         MedicionCalidadLacteaRestMapper.toDomain(request)));
     }
 
+    @PutMapping("/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('AUXILIAR_CALIDAD')")
+    public MedicionCalidadLacteaResponse actualizar(
+            @PathVariable Long id,
+            @Valid @RequestBody MedicionCalidadLacteaRequest request) {
+        return MedicionCalidadLacteaRestMapper.toResponse(
+                useCase.actualizar(id, MedicionCalidadLacteaRestMapper.toDomain(request)));
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('AUXILIAR_CALIDAD')")
+    public void eliminar(@PathVariable Long id) {
+        useCase.eliminar(id);
+    }
+
     @GetMapping("/{id}")
     public MedicionCalidadLacteaResponse obtenerPorId(@PathVariable Long id) {
         return MedicionCalidadLacteaRestMapper.toResponse(

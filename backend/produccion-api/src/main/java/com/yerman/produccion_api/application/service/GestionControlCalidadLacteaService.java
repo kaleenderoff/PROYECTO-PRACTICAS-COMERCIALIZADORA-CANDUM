@@ -55,6 +55,10 @@ public class GestionControlCalidadLacteaService {
                     "No existe una recepcion de leche con ID: " + request.idRecepcionLeche());
         }
 
+        if (calidadRecepcionRepository.existsByRecepcionLecheId(request.idRecepcionLeche())) {
+            throw new ReglaNegocioException("La recepcion ya tiene control de calidad registrado.");
+        }
+
         CalidadRecepcionLecheEntity entity = new CalidadRecepcionLecheEntity();
         entity.setRecepcionLeche(recepcion);
         entity.setFechaControl(request.fechaControl() != null ? request.fechaControl() : java.time.LocalDateTime.now());
@@ -72,6 +76,38 @@ public class GestionControlCalidadLacteaService {
         entity.setObservaciones(request.observaciones());
 
         return toResponse(calidadRecepcionRepository.save(entity));
+    }
+
+    @Transactional
+    public CalidadRecepcionLecheResponse actualizarRecepcion(Long id, CalidadRecepcionLecheRequest request) {
+        CalidadRecepcionLecheEntity entity = calidadRecepcionRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No existe un control de calidad de recepcion con ID: " + id));
+
+        entity.setFechaControl(request.fechaControl() != null ? request.fechaControl() : entity.getFechaControl());
+        entity.setPruebaAlcoholOk(request.pruebaAlcoholOk());
+        entity.setLactoscanOk(request.lactoscanOk());
+        entity.setAcidez(request.acidez());
+        entity.setDensidad(request.densidad());
+        entity.setGrasa(request.grasa());
+        entity.setAguaPct(request.aguaPct());
+        entity.setTemperatura(request.temperatura());
+        entity.setPh(request.ph());
+        entity.setAprobado(!Boolean.FALSE.equals(request.aprobado()));
+        entity.setRetenido(Boolean.TRUE.equals(request.retenido()));
+        entity.setRealizadoPor(ref(UsuarioEntity.class, request.idRealizadoPor()));
+        entity.setObservaciones(request.observaciones());
+
+        return toResponse(calidadRecepcionRepository.save(entity));
+    }
+
+    @Transactional
+    public void eliminarRecepcion(Long id) {
+        if (!calidadRecepcionRepository.existsById(id)) {
+            throw new RecursoNoEncontradoException(
+                    "No existe un control de calidad de recepcion con ID: " + id);
+        }
+        calidadRecepcionRepository.deleteById(id);
     }
 
     public List<CalidadRecepcionLecheResponse> listarRecepcion(Long idRecepcionLeche) {
@@ -131,6 +167,27 @@ public class GestionControlCalidadLacteaService {
         entity.setObservaciones(request.observaciones());
 
         return toResponse(procesoRepository.save(entity));
+    }
+
+    @Transactional
+    public ControlCalidadProcesoResponse actualizarProceso(Long id, ControlCalidadProcesoRequest request) {
+        ControlCalidadProcesoEntity entity = procesoRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No existe un control de proceso con ID: " + id));
+
+        validarOrdenYBatch(request.idOrdenProduccion(), request.idEjecucionBatch());
+        aplicarProceso(entity, request);
+
+        return toResponse(procesoRepository.save(entity));
+    }
+
+    @Transactional
+    public void eliminarProceso(Long id) {
+        ControlCalidadProcesoEntity entity = procesoRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No existe un control de proceso con ID: " + id));
+        validacionGuardService.validarOrdenNoAprobada(entity.getOrdenProduccion().getId());
+        procesoRepository.delete(entity);
     }
 
     public List<ControlCalidadProcesoResponse> listarProcesosPorOrden(Long idOrdenProduccion) {
@@ -193,6 +250,27 @@ public class GestionControlCalidadLacteaService {
         return toResponse(pesoRepository.save(entity));
     }
 
+    @Transactional
+    public ControlPesoProductoResponse actualizarPeso(Long id, ControlPesoProductoRequest request) {
+        ControlPesoProductoEntity entity = pesoRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No existe un control de peso con ID: " + id));
+
+        validarOrdenYBatch(request.idOrdenProduccion(), request.idEjecucionBatch());
+        aplicarPeso(entity, request);
+
+        return toResponse(pesoRepository.save(entity));
+    }
+
+    @Transactional
+    public void eliminarPeso(Long id) {
+        ControlPesoProductoEntity entity = pesoRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No existe un control de peso con ID: " + id));
+        validacionGuardService.validarOrdenNoAprobada(entity.getOrdenProduccion().getId());
+        pesoRepository.delete(entity);
+    }
+
     public List<ControlPesoProductoResponse> listarPesosPorOrden(Long idOrdenProduccion) {
         if (idOrdenProduccion == null) {
             throw new ReglaNegocioException("La orden de produccion es obligatoria.");
@@ -201,6 +279,91 @@ public class GestionControlCalidadLacteaService {
                 .stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    private void aplicarProceso(ControlCalidadProcesoEntity entity, ControlCalidadProcesoRequest request) {
+        entity.setOrdenProduccion(ref(OrdenProduccionEntity.class, request.idOrdenProduccion()));
+        entity.setEjecucionBatch(request.idEjecucionBatch() != null
+                ? ref(EjecucionBatchEntity.class, request.idEjecucionBatch())
+                : null);
+        entity.setFechaProduccion(request.fechaProduccion());
+        entity.setTipoProducto(request.tipoProducto());
+        entity.setProducto(request.producto());
+        entity.setLote(request.lote());
+        entity.setNumeroMarmita(request.numeroMarmita());
+        entity.setProductoEnProceso(request.productoEnProceso());
+        entity.setPhLeche(request.phLeche());
+        entity.setAcidezLeche(request.acidezLeche());
+        entity.setDensidadLeche(request.densidadLeche());
+        entity.setGrasaLeche(request.grasaLeche());
+        entity.setHoraInicioHidrolisis(request.horaInicioHidrolisis());
+        entity.setPhInicial(request.phInicial());
+        entity.setHoraFinHidrolisis(request.horaFinHidrolisis());
+        entity.setTemperaturaInicial(request.temperaturaInicial());
+        entity.setTemperaturaFinal(request.temperaturaFinal());
+        entity.setAcidezInicial(request.acidezInicial());
+        entity.setAcidezFinal(request.acidezFinal());
+        entity.setPhFinal(request.phFinal());
+        entity.setBrixInicial(request.brixInicial());
+        entity.setBrixFinal(request.brixFinal());
+        entity.setPresion(request.presion());
+        entity.setTemperaturaCoccion(request.temperaturaCoccion());
+        entity.setTemperaturaEnvasado(request.temperaturaEnvasado());
+        entity.setColorVisual(request.colorVisual());
+        entity.setSaborVisual(request.saborVisual());
+        entity.setTexturaVisual(request.texturaVisual());
+        entity.setPresentacionEnvasado(request.presentacionEnvasado());
+        entity.setFechaVencimiento(request.fechaVencimiento());
+        entity.setLiberado(Boolean.TRUE.equals(request.liberado()));
+        entity.setRetenido(Boolean.TRUE.equals(request.retenido()));
+        entity.setRealizadoPor(ref(UsuarioEntity.class, request.idRealizadoPor()));
+        entity.setVerificadoPor(request.idVerificadoPor() != null
+                ? ref(UsuarioEntity.class, request.idVerificadoPor())
+                : null);
+        entity.setObservaciones(request.observaciones());
+    }
+
+    private void aplicarPeso(ControlPesoProductoEntity entity, ControlPesoProductoRequest request) {
+        entity.setOrdenProduccion(ref(OrdenProduccionEntity.class, request.idOrdenProduccion()));
+        entity.setEjecucionBatch(request.idEjecucionBatch() != null
+                ? ref(EjecucionBatchEntity.class, request.idEjecucionBatch())
+                : null);
+        entity.setSku(request.idSku() != null ? ref(CatalogoSkuEntity.class, request.idSku()) : null);
+        entity.setFechaControl(request.fechaControl());
+        entity.setProducto(request.producto());
+        entity.setMarca(request.marca());
+        entity.setLote(request.lote());
+        entity.setFechaVencimiento(request.fechaVencimiento());
+        entity.setPresentacion(request.presentacion());
+        entity.setNumeroTanda(request.numeroTanda());
+        entity.setRangoBatches(request.rangoBatches());
+        entity.setPesoBrutoPromedio(request.pesoBrutoPromedio());
+        entity.setTaraPromedio(request.taraPromedio());
+        entity.setPesoNetoPromedio(resolvePesoNetoPromedio(request));
+        entity.setAparienciaOk(request.aparienciaOk());
+        entity.setEtiquetadoOk(request.etiquetadoOk());
+        entity.setTapadoOk(request.tapadoOk());
+        entity.setCantidadPorCaja(request.cantidadPorCaja());
+        entity.setLiberado(Boolean.TRUE.equals(request.liberado()));
+        entity.setRetenido(Boolean.TRUE.equals(request.retenido()));
+        entity.setRealizadoPor(ref(UsuarioEntity.class, request.idRealizadoPor()));
+        entity.setVerificadoPor(request.idVerificadoPor() != null
+                ? ref(UsuarioEntity.class, request.idVerificadoPor())
+                : null);
+        entity.setObservaciones(request.observaciones());
+
+        entity.getMuestras().clear();
+        if (request.muestras() != null) {
+            request.muestras().forEach(muestraRequest -> {
+                ControlPesoMuestraEntity muestra = new ControlPesoMuestraEntity();
+                muestra.setControlPesoProducto(entity);
+                muestra.setNumeroMuestra(muestraRequest.numeroMuestra());
+                muestra.setPesoBruto(muestraRequest.pesoBruto());
+                muestra.setTara(muestraRequest.tara());
+                muestra.setPesoNeto(muestraRequest.pesoNeto());
+                entity.getMuestras().add(muestra);
+            });
+        }
     }
 
     private void validarOrdenYBatch(Long idOrdenProduccion, Long idEjecucionBatch) {

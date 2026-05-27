@@ -78,7 +78,7 @@
                 </span>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-[1fr_220px_180px_auto] gap-3">
+            <div class="grid grid-cols-1 lg:grid-cols-[1fr_180px_170px_180px_auto] gap-3">
                 <div class="relative">
                     <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
                     <input type="text" [(ngModel)]="filtro" (ngModelChange)="paginaActual = 1" placeholder="Buscar por proveedor, remision u observacion..."
@@ -91,6 +91,14 @@
                 </select>
                 <input type="date" [(ngModel)]="filtroFecha" (ngModelChange)="paginaActual = 1"
                        class="px-4 py-3 bg-slate-50/50 border border-slate-100 rounded-2xl text-sm focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-medium">
+                <select [(ngModel)]="filtroEstadoCalidad" (ngModelChange)="paginaActual = 1"
+                        class="px-4 py-3 bg-slate-50/50 border border-slate-100 rounded-2xl text-sm focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-medium">
+                    <option value="">Todos los estados</option>
+                    <option value="SIN_CALIDAD">Sin calidad</option>
+                    <option value="APROBADA">Aprobada</option>
+                    <option value="RETENIDA">Retenida</option>
+                    <option value="NO_APROBADA">No aprobada</option>
+                </select>
                 <button type="button" (click)="limpiarFiltros()"
                         class="px-5 py-3 bg-white border border-slate-100 rounded-2xl text-xs font-black text-slate-500 hover:text-blue-600 hover:border-blue-100 transition-all">
                     Limpiar
@@ -297,41 +305,50 @@
                     </div>
 
                     <div *ngIf="authService.canWriteCalidad()" class="p-6 grid grid-cols-1 md:grid-cols-4 gap-4 border-b border-violet-50">
+                        <div *ngIf="tieneControlCalidad && !idControlCalidadEditando"
+                             class="md:col-span-4 px-4 py-3 rounded-2xl bg-blue-50 border border-blue-100 text-blue-700 text-xs font-bold">
+                            Esta recepcion ya tiene control registrado. Puedes editarlo o eliminarlo desde el resultado.
+                        </div>
+                        <div *ngIf="idControlCalidadEditando"
+                             class="md:col-span-4 px-4 py-3 rounded-2xl bg-amber-50 border border-amber-100 text-amber-700 text-xs font-bold flex items-center justify-between gap-3">
+                            <span>Editando control de calidad #{{ idControlCalidadEditando }}</span>
+                            <button type="button" (click)="resetCalidadForm()" class="text-[10px] font-black uppercase">Cancelar</button>
+                        </div>
                         <label class="flex items-center gap-2 text-xs font-black text-slate-600 uppercase">
-                            <input type="checkbox" [(ngModel)]="calidadForm.pruebaAlcoholOk" class="w-4 h-4 text-violet-600 rounded">
+                            <input type="checkbox" [(ngModel)]="calidadForm.pruebaAlcoholOk" [disabled]="!puedeRegistrarControlCalidad" class="w-4 h-4 text-violet-600 rounded disabled:opacity-40">
                             Alcohol OK
                         </label>
                         <label class="flex items-center gap-2 text-xs font-black text-slate-600 uppercase">
-                            <input type="checkbox" [(ngModel)]="calidadForm.lactoscanOk" class="w-4 h-4 text-violet-600 rounded">
+                            <input type="checkbox" [(ngModel)]="calidadForm.lactoscanOk" [disabled]="!puedeRegistrarControlCalidad" class="w-4 h-4 text-violet-600 rounded disabled:opacity-40">
                             Lactoscan OK
                         </label>
                         <label class="flex items-center gap-2 text-xs font-black text-slate-600 uppercase">
-                            <input type="checkbox" [(ngModel)]="calidadForm.aprobado" class="w-4 h-4 text-emerald-600 rounded">
+                            <input type="checkbox" [(ngModel)]="calidadForm.aprobado" [disabled]="!puedeRegistrarControlCalidad" class="w-4 h-4 text-emerald-600 rounded disabled:opacity-40">
                             Aprobada
                         </label>
                         <label class="flex items-center gap-2 text-xs font-black text-slate-600 uppercase">
-                            <input type="checkbox" [(ngModel)]="calidadForm.retenido" class="w-4 h-4 text-red-600 rounded">
+                            <input type="checkbox" [(ngModel)]="calidadForm.retenido" [disabled]="!puedeRegistrarControlCalidad" class="w-4 h-4 text-red-600 rounded disabled:opacity-40">
                             Retenida
                         </label>
 
-                        <input type="number" step="0.0001" [(ngModel)]="calidadForm.acidez" placeholder="Acidez"
+                        <input type="number" step="0.0001" [(ngModel)]="calidadForm.acidez" [disabled]="!puedeRegistrarControlCalidad" placeholder="Acidez"
                                class="px-4 py-3 bg-slate-50 rounded-2xl border border-slate-100 font-bold outline-none focus:ring-2 focus:ring-violet-500/20">
-                        <input type="number" step="0.0001" [(ngModel)]="calidadForm.densidad" placeholder="Densidad"
+                        <input type="number" step="0.0001" [(ngModel)]="calidadForm.densidad" [disabled]="!puedeRegistrarControlCalidad" placeholder="Densidad"
                                class="px-4 py-3 bg-slate-50 rounded-2xl border border-slate-100 font-bold outline-none focus:ring-2 focus:ring-violet-500/20">
-                        <input type="number" step="0.0001" [(ngModel)]="calidadForm.grasa" placeholder="Grasa %"
+                        <input type="number" step="0.0001" [(ngModel)]="calidadForm.grasa" [disabled]="!puedeRegistrarControlCalidad" placeholder="Grasa %"
                                class="px-4 py-3 bg-slate-50 rounded-2xl border border-slate-100 font-bold outline-none focus:ring-2 focus:ring-violet-500/20">
-                        <input type="number" step="0.0001" [(ngModel)]="calidadForm.aguaPct" placeholder="Agua %"
+                        <input type="number" step="0.0001" [(ngModel)]="calidadForm.aguaPct" [disabled]="!puedeRegistrarControlCalidad" placeholder="Agua %"
                                class="px-4 py-3 bg-slate-50 rounded-2xl border border-slate-100 font-bold outline-none focus:ring-2 focus:ring-violet-500/20">
-                        <input type="number" step="0.01" [(ngModel)]="calidadForm.temperatura" placeholder="Temperatura"
+                        <input type="number" step="0.01" [(ngModel)]="calidadForm.temperatura" [disabled]="!puedeRegistrarControlCalidad" placeholder="Temperatura"
                                class="px-4 py-3 bg-slate-50 rounded-2xl border border-slate-100 font-bold outline-none focus:ring-2 focus:ring-violet-500/20">
-                        <input type="number" step="0.01" [(ngModel)]="calidadForm.ph" placeholder="pH"
+                        <input type="number" step="0.01" [(ngModel)]="calidadForm.ph" [disabled]="!puedeRegistrarControlCalidad" placeholder="pH"
                                class="px-4 py-3 bg-slate-50 rounded-2xl border border-slate-100 font-bold outline-none focus:ring-2 focus:ring-violet-500/20">
-                        <input type="text" [(ngModel)]="calidadForm.observaciones" placeholder="Observaciones"
+                        <input type="text" [(ngModel)]="calidadForm.observaciones" [disabled]="!puedeRegistrarControlCalidad" placeholder="Observaciones"
                                class="md:col-span-2 px-4 py-3 bg-slate-50 rounded-2xl border border-slate-100 font-bold outline-none focus:ring-2 focus:ring-violet-500/20">
 
-                        <button type="button" (click)="registrarCalidadRecepcion()" [disabled]="guardandoCalidad"
+                        <button type="button" (click)="registrarCalidadRecepcion()" [disabled]="!puedeRegistrarControlCalidad"
                                 class="md:col-span-4 px-6 py-3 bg-violet-600 text-white rounded-2xl font-black hover:bg-violet-700 transition-all disabled:opacity-50">
-                            {{ guardandoCalidad ? 'Guardando...' : 'Registrar control de calidad' }}
+                            {{ guardandoCalidad ? 'Guardando...' : (idControlCalidadEditando ? 'Actualizar control de calidad' : 'Registrar control de calidad') }}
                         </button>
                     </div>
 
@@ -347,14 +364,60 @@
                         <div *ngFor="let control of controlesRecepcion" class="p-6 grid grid-cols-2 md:grid-cols-6 gap-3">
                             <div class="md:col-span-2">
                                 <span class="text-[10px] font-black uppercase text-slate-400">Estado</span>
-                                <p class="text-sm font-black"
-                                   [ngClass]="control.retenido ? 'text-red-700' : (control.aprobado ? 'text-emerald-700' : 'text-orange-700')">
-                                    {{ control.retenido ? 'Retenida' : (control.aprobado ? 'Aprobada' : 'No aprobada') }}
+                                <p class="inline-flex mt-1 px-3 py-1 rounded-xl text-sm font-black"
+                                   [ngClass]="claseEstadoControl(control)">
+                                    {{ estadoTextoControl(control) }}
                                 </p>
                             </div>
-                            <div *ngIf="control.observaciones">
+                            <div>
+                                <span class="text-[10px] font-black uppercase text-slate-400">Alcohol</span>
+                                <p class="text-sm font-black" [ngClass]="control.pruebaAlcoholOk ? 'text-emerald-700' : 'text-red-700'">{{ control.pruebaAlcoholOk ? 'OK' : 'No OK' }}</p>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-black uppercase text-slate-400">Lactoscan</span>
+                                <p class="text-sm font-black" [ngClass]="control.lactoscanOk ? 'text-emerald-700' : 'text-red-700'">{{ control.lactoscanOk ? 'OK' : 'No OK' }}</p>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-black uppercase text-slate-400">Acidez</span>
+                                <p class="text-sm font-bold text-slate-700">{{ control.acidez ?? '-' }}</p>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-black uppercase text-slate-400">Densidad</span>
+                                <p class="text-sm font-bold text-slate-700">{{ control.densidad ?? '-' }}</p>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-black uppercase text-slate-400">Grasa</span>
+                                <p class="text-sm font-bold text-slate-700">{{ control.grasa ?? '-' }}</p>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-black uppercase text-slate-400">Agua</span>
+                                <p class="text-sm font-bold text-slate-700">{{ control.aguaPct ?? '-' }}</p>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-black uppercase text-slate-400">Temperatura</span>
+                                <p class="text-sm font-bold text-slate-700">{{ control.temperatura ?? '-' }}</p>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-black uppercase text-slate-400">pH</span>
+                                <p class="text-sm font-bold text-slate-700">{{ control.ph ?? '-' }}</p>
+                            </div>
+                            <div class="md:col-span-2">
+                                <span class="text-[10px] font-black uppercase text-slate-400">Fecha control</span>
+                                <p class="text-sm font-bold text-slate-700">{{ control.fechaControl | date:'dd/MM/yyyy HH:mm' }}</p>
+                            </div>
+                            <div class="md:col-span-4" *ngIf="control.observaciones">
                                 <span class="text-[10px] font-black uppercase text-slate-400">Observaciones</span>
                                 <p class="text-sm font-medium text-slate-600">{{ control.observaciones }}</p>
+                            </div>
+                            <div *ngIf="authService.canWriteCalidad()" class="md:col-span-6 flex justify-end gap-2">
+                                <button type="button" (click)="editarControlRecepcion(control)"
+                                        class="px-4 py-2 rounded-xl bg-blue-50 text-blue-700 text-xs font-black hover:bg-blue-100 transition-all">
+                                    Editar
+                                </button>
+                                <button type="button" (click)="eliminarControlRecepcion(control)"
+                                        class="px-4 py-2 rounded-xl bg-red-50 text-red-700 text-xs font-black hover:bg-red-100 transition-all">
+                                    Eliminar
+                                </button>
                             </div>
                         </div>
                     </div>

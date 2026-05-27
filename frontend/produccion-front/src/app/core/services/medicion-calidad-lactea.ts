@@ -47,6 +47,14 @@ export class MedicionCalidadLacteaService {
     return this.http.post<MedicionCalidadLacteaResponse>(this.apiUrl, request);
   }
 
+  actualizar(id: number, request: MedicionCalidadLacteaRequest): Observable<MedicionCalidadLacteaResponse> {
+    return this.http.put<MedicionCalidadLacteaResponse>(`${this.apiUrl}/${id}`, request);
+  }
+
+  eliminar(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
   listarPorOrden(idOrdenProduccion: number): Observable<MedicionCalidadLacteaResponse[]> {
     return this.http.get<MedicionCalidadLacteaResponse[]>(`${this.apiUrl}/orden/${idOrdenProduccion}`);
   }

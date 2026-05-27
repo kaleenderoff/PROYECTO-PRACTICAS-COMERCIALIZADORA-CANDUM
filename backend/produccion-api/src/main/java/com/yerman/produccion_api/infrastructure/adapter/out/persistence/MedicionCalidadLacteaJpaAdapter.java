@@ -37,6 +37,11 @@ public class MedicionCalidadLacteaJpaAdapter implements MedicionCalidadLacteaRep
     }
 
     @Override
+    public void eliminar(Long id) {
+        repository.deleteById(id);
+    }
+
+    @Override
     public Optional<MedicionCalidadLactea> obtenerPorId(Long id) {
         return repository.findById(id)
                 .map(MedicionCalidadLacteaMapper::toDomain);

@@ -49,6 +49,28 @@ public class GestionMedicionCalidadLacteaService implements GestionMedicionCalid
     }
 
     @Override
+    @Transactional
+    public MedicionCalidadLactea actualizar(Long id, MedicionCalidadLactea medicion) {
+        MedicionCalidadLactea actual = obtenerPorId(id);
+        medicion.setId(id);
+        if (medicion.getFechaHoraMedicion() == null) {
+            medicion.setFechaHoraMedicion(actual.getFechaHoraMedicion());
+        }
+        validarMedicion(medicion);
+        return repository.guardar(medicion);
+    }
+
+    @Override
+    @Transactional
+    public void eliminar(Long id) {
+        MedicionCalidadLactea actual = obtenerPorId(id);
+        if (actual.getIdOrdenProduccion() != null) {
+            validacionGuardService.validarOrdenNoAprobada(actual.getIdOrdenProduccion());
+        }
+        repository.eliminar(id);
+    }
+
+    @Override
     public MedicionCalidadLactea obtenerPorId(Long id) {
         return repository.obtenerPorId(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException(

@@ -70,9 +70,12 @@
 
     <div *ngIf="pestanaActiva === 'rapida'" class="grid grid-cols-1 xl:grid-cols-3 gap-8">
         <div *ngIf="authService.canWriteCalidad()" class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
-            <h3 class="text-lg font-black text-slate-900 mb-6">
-                Registro de medición rápida
+            <h3 class="text-lg font-black text-slate-900 mb-2">
+                {{ idMedicionEditando ? 'Editar medicion rapida' : 'Registro de medicion rapida' }}
             </h3>
+            <p *ngIf="idMedicionEditando" class="mb-5 text-xs font-bold text-amber-600">
+                Estas corrigiendo una medicion existente.
+            </p>
 
             <div class="space-y-5">
                 <div class="grid grid-cols-3 gap-2">
@@ -95,7 +98,14 @@
                     <input type="number" step="0.01" [(ngModel)]="formulario.ph" class="w-full px-4 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-violet-500 font-black text-slate-700" placeholder="pH">
                 </div>
                 <textarea [(ngModel)]="formulario.observaciones" rows="3" class="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-violet-500 font-medium text-slate-700 text-sm" placeholder="Observaciones..."></textarea>
-                <button type="button" (click)="registrar()" [disabled]="guardando || cargando" class="w-full py-4 bg-violet-600 hover:bg-violet-700 disabled:bg-slate-200 text-white rounded-2xl font-black transition-all">REGISTRAR MEDICION</button>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button type="button" (click)="registrar()" [disabled]="guardando || cargando" class="flex-1 py-4 bg-violet-600 hover:bg-violet-700 disabled:bg-slate-200 text-white rounded-2xl font-black transition-all">
+                        {{ idMedicionEditando ? 'ACTUALIZAR MEDICION' : 'REGISTRAR MEDICION' }}
+                    </button>
+                    <button *ngIf="idMedicionEditando" type="button" (click)="limpiarFormulario()" class="px-5 py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl font-black transition-all">
+                        CANCELAR
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -104,7 +114,16 @@
                 <h3 class="font-black text-slate-900">Historial Brix / pH</h3>
             </div>
             <table class="w-full text-left" *ngIf="mediciones.length > 0">
-                <thead><tr class="bg-slate-50/50"><th class="px-6 py-3 text-[10px] uppercase text-slate-400">Fecha</th><th class="px-6 py-3 text-[10px] uppercase text-slate-400">Tipo</th><th class="px-6 py-3 text-[10px] uppercase text-slate-400">Ref.</th><th class="px-6 py-3 text-[10px] uppercase text-slate-400 text-right">Brix</th><th class="px-6 py-3 text-[10px] uppercase text-slate-400 text-right">pH</th></tr></thead>
+                <thead>
+                    <tr class="bg-slate-50/50">
+                        <th class="px-6 py-3 text-[10px] uppercase text-slate-400">Fecha</th>
+                        <th class="px-6 py-3 text-[10px] uppercase text-slate-400">Tipo</th>
+                        <th class="px-6 py-3 text-[10px] uppercase text-slate-400">Ref.</th>
+                        <th class="px-6 py-3 text-[10px] uppercase text-slate-400 text-right">Brix</th>
+                        <th class="px-6 py-3 text-[10px] uppercase text-slate-400 text-right">pH</th>
+                        <th *ngIf="authService.canWriteCalidad()" class="px-6 py-3 text-[10px] uppercase text-slate-400 text-right">Acciones</th>
+                    </tr>
+                </thead>
                 <tbody class="divide-y divide-slate-50">
                     <tr *ngFor="let medicion of mediciones">
                         <td class="px-6 py-4 text-sm text-slate-500">{{ medicion.fechaHoraMedicion | date:'dd/MM/yyyy hh:mm a' }}</td>
@@ -112,6 +131,12 @@
                         <td class="px-6 py-4 font-black text-slate-800">{{ medicion.referencia }}</td>
                         <td class="px-6 py-4 text-right font-black">{{ medicion.brix ?? '-' }}</td>
                         <td class="px-6 py-4 text-right font-black">{{ medicion.ph ?? '-' }}</td>
+                        <td *ngIf="authService.canWriteCalidad()" class="px-6 py-4">
+                            <div class="flex justify-end gap-2">
+                                <button type="button" (click)="editarMedicion(medicion)" class="px-3 py-2 rounded-xl bg-blue-50 text-blue-700 text-xs font-black hover:bg-blue-100">Editar</button>
+                                <button type="button" (click)="eliminarMedicion(medicion)" class="px-3 py-2 rounded-xl bg-red-50 text-red-700 text-xs font-black hover:bg-red-100">Eliminar</button>
+                            </div>
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -121,7 +146,12 @@
 
     <div *ngIf="pestanaActiva === 'proceso'" class="grid grid-cols-1 xl:grid-cols-3 gap-8">
         <div *ngIf="authService.canWriteCalidad()" class="xl:col-span-2 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
-            <h3 class="text-lg font-black text-slate-900 mb-6">Formato de variables de calidad en proceso</h3>
+            <h3 class="text-lg font-black text-slate-900 mb-2">
+                {{ idProcesoEditando ? 'Editar control de proceso' : 'Formato de variables de calidad en proceso' }}
+            </h3>
+            <p *ngIf="idProcesoEditando" class="mb-5 text-xs font-bold text-amber-600">
+                Estas corrigiendo un control de proceso existente.
+            </p>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <input type="date" [(ngModel)]="procesoForm.fechaProduccion" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
                 <select [(ngModel)]="procesoForm.idEjecucionBatch" (ngModelChange)="onCambioBatchProceso()" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
@@ -157,15 +187,26 @@
                 <input type="text" [(ngModel)]="procesoForm.presentacionEnvasado" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Presentacion envasado">
             </div>
             <textarea [(ngModel)]="procesoForm.observaciones" rows="3" class="mt-4 w-full p-4 bg-slate-50 rounded-2xl font-medium" placeholder="Observaciones"></textarea>
-            <button type="button" (click)="registrarProceso()" [disabled]="guardando" class="mt-6 px-8 py-4 bg-violet-600 text-white rounded-2xl font-black">GUARDAR CONTROL DE PROCESO</button>
+            <div class="mt-6 flex flex-col sm:flex-row gap-3">
+                <button type="button" (click)="registrarProceso()" [disabled]="guardando" class="px-8 py-4 bg-violet-600 text-white rounded-2xl font-black">
+                    {{ idProcesoEditando ? 'ACTUALIZAR CONTROL DE PROCESO' : 'GUARDAR CONTROL DE PROCESO' }}
+                </button>
+                <button *ngIf="idProcesoEditando" type="button" (click)="cancelarEdicionProceso()" class="px-5 py-4 bg-slate-100 text-slate-600 rounded-2xl font-black">
+                    CANCELAR
+                </button>
+            </div>
         </div>
 
         <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
             <h3 class="font-black text-slate-900 mb-4">Registros de proceso</h3>
             <div class="space-y-3">
                 <div *ngFor="let control of controlesProceso" class="p-4 bg-slate-50 rounded-2xl">
-                    <p class="font-black text-slate-900">{{ control.producto || 'Producto' }} · {{ control.lote || 'Sin lote' }}</p>
-                    <p class="text-xs text-slate-500">Brix final {{ control.brixFinal || '-' }} · pH final {{ control.phFinal || '-' }}</p>
+                    <p class="font-black text-slate-900">{{ control.producto || 'Producto' }} - {{ control.lote || 'Sin lote' }}</p>
+                    <p class="text-xs text-slate-500">Brix final {{ control.brixFinal || '-' }} - pH final {{ control.phFinal || '-' }}</p>
+                    <div *ngIf="authService.canWriteCalidad()" class="flex gap-2 mt-3">
+                        <button type="button" (click)="editarProceso(control)" class="px-3 py-2 rounded-xl bg-blue-50 text-blue-700 text-xs font-black hover:bg-blue-100">Editar</button>
+                        <button type="button" (click)="eliminarProceso(control)" class="px-3 py-2 rounded-xl bg-red-50 text-red-700 text-xs font-black hover:bg-red-100">Eliminar</button>
+                    </div>
                 </div>
                 <p *ngIf="controlesProceso.length === 0" class="text-sm text-slate-400 font-bold">Sin controles registrados.</p>
             </div>
@@ -174,7 +215,12 @@
 
     <div *ngIf="pestanaActiva === 'peso'" class="grid grid-cols-1 xl:grid-cols-3 gap-8">
         <div *ngIf="authService.canWriteCalidad()" class="xl:col-span-2 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
-            <h3 class="text-lg font-black text-slate-900 mb-6">Control de peso y producto terminado</h3>
+            <h3 class="text-lg font-black text-slate-900 mb-2">
+                {{ idPesoEditando ? 'Editar control de peso' : 'Control de peso y producto terminado' }}
+            </h3>
+            <p *ngIf="idPesoEditando" class="mb-5 text-xs font-bold text-amber-600">
+                Estas corrigiendo un control de peso existente.
+            </p>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <input type="date" [(ngModel)]="pesoForm.fechaControl" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
                 <input type="text" [(ngModel)]="pesoForm.producto" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Producto">
@@ -212,15 +258,26 @@
                 <label class="p-4 bg-slate-50 rounded-2xl font-bold flex gap-3"><input type="checkbox" [(ngModel)]="pesoForm.tapadoOk"> Tapado</label>
             </div>
             <textarea [(ngModel)]="pesoForm.observaciones" rows="3" class="mt-4 w-full p-4 bg-slate-50 rounded-2xl font-medium" placeholder="Observaciones"></textarea>
-            <button type="button" (click)="registrarPeso()" [disabled]="guardando" class="mt-6 px-8 py-4 bg-violet-600 text-white rounded-2xl font-black">GUARDAR CONTROL DE PESO</button>
+            <div class="mt-6 flex flex-col sm:flex-row gap-3">
+                <button type="button" (click)="registrarPeso()" [disabled]="guardando" class="px-8 py-4 bg-violet-600 text-white rounded-2xl font-black">
+                    {{ idPesoEditando ? 'ACTUALIZAR CONTROL DE PESO' : 'GUARDAR CONTROL DE PESO' }}
+                </button>
+                <button *ngIf="idPesoEditando" type="button" (click)="cancelarEdicionPeso()" class="px-5 py-4 bg-slate-100 text-slate-600 rounded-2xl font-black">
+                    CANCELAR
+                </button>
+            </div>
         </div>
 
         <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
             <h3 class="font-black text-slate-900 mb-4">Registros de peso</h3>
             <div class="space-y-3">
                 <div *ngFor="let control of controlesPeso" class="p-4 bg-slate-50 rounded-2xl">
-                    <p class="font-black text-slate-900">{{ control.producto || 'Producto' }} · {{ control.lote || 'Sin lote' }}</p>
-                    <p class="text-xs text-slate-500">Promedio neto {{ control.pesoNetoPromedio || '-' }} · {{ control.rangoBatches || 'Sin batches' }}</p>
+                    <p class="font-black text-slate-900">{{ control.producto || 'Producto' }} - {{ control.lote || 'Sin lote' }}</p>
+                    <p class="text-xs text-slate-500">Promedio neto {{ control.pesoNetoPromedio || '-' }} - {{ control.rangoBatches || 'Sin batches' }}</p>
+                    <div *ngIf="authService.canWriteCalidad()" class="flex gap-2 mt-3">
+                        <button type="button" (click)="editarPeso(control)" class="px-3 py-2 rounded-xl bg-blue-50 text-blue-700 text-xs font-black hover:bg-blue-100">Editar</button>
+                        <button type="button" (click)="eliminarPeso(control)" class="px-3 py-2 rounded-xl bg-red-50 text-red-700 text-xs font-black hover:bg-red-100">Eliminar</button>
+                    </div>
                 </div>
                 <p *ngIf="controlesPeso.length === 0" class="text-sm text-slate-400 font-bold">Sin controles registrados.</p>
             </div>

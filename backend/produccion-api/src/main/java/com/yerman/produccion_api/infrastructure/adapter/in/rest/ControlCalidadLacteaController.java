@@ -32,6 +32,21 @@ public class ControlCalidadLacteaController {
         return service.registrarRecepcion(request);
     }
 
+    @PutMapping("/recepcion/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('AUXILIAR_CALIDAD')")
+    public CalidadRecepcionLecheResponse actualizarRecepcion(
+            @PathVariable Long id,
+            @Valid @RequestBody CalidadRecepcionLecheRequest request) {
+        return service.actualizarRecepcion(id, request);
+    }
+
+    @DeleteMapping("/recepcion/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('AUXILIAR_CALIDAD')")
+    public void eliminarRecepcion(@PathVariable Long id) {
+        service.eliminarRecepcion(id);
+    }
+
     @GetMapping("/recepcion/{idRecepcionLeche}")
     public List<CalidadRecepcionLecheResponse> listarRecepcion(@PathVariable Long idRecepcionLeche) {
         return service.listarRecepcion(idRecepcionLeche);
@@ -44,6 +59,21 @@ public class ControlCalidadLacteaController {
         return service.registrarProceso(request);
     }
 
+    @PutMapping("/proceso/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('AUXILIAR_CALIDAD')")
+    public ControlCalidadProcesoResponse actualizarProceso(
+            @PathVariable Long id,
+            @Valid @RequestBody ControlCalidadProcesoRequest request) {
+        return service.actualizarProceso(id, request);
+    }
+
+    @DeleteMapping("/proceso/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('AUXILIAR_CALIDAD')")
+    public void eliminarProceso(@PathVariable Long id) {
+        service.eliminarProceso(id);
+    }
+
     @GetMapping("/proceso/orden/{idOrdenProduccion}")
     public List<ControlCalidadProcesoResponse> listarProcesosPorOrden(@PathVariable Long idOrdenProduccion) {
         return service.listarProcesosPorOrden(idOrdenProduccion);
@@ -54,6 +84,21 @@ public class ControlCalidadLacteaController {
     @org.springframework.security.access.prepost.PreAuthorize("hasRole('AUXILIAR_CALIDAD')")
     public ControlPesoProductoResponse registrarPeso(@Valid @RequestBody ControlPesoProductoRequest request) {
         return service.registrarPeso(request);
+    }
+
+    @PutMapping("/peso/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('AUXILIAR_CALIDAD')")
+    public ControlPesoProductoResponse actualizarPeso(
+            @PathVariable Long id,
+            @Valid @RequestBody ControlPesoProductoRequest request) {
+        return service.actualizarPeso(id, request);
+    }
+
+    @DeleteMapping("/peso/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('AUXILIAR_CALIDAD')")
+    public void eliminarPeso(@PathVariable Long id) {
+        service.eliminarPeso(id);
     }
 
     @GetMapping("/peso/orden/{idOrdenProduccion}")

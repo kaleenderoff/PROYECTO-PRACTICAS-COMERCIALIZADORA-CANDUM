@@ -10,6 +10,8 @@ public interface CalidadRecepcionLecheJpaRepository extends JpaRepository<Calida
 
     List<CalidadRecepcionLecheEntity> findByRecepcionLecheIdOrderByFechaControlDescIdDesc(Long idRecepcionLeche);
 
+    boolean existsByRecepcionLecheId(Long idRecepcionLeche);
+
     java.util.Optional<CalidadRecepcionLecheEntity> findFirstByRecepcionLecheIdOrderByFechaControlDescIdDesc(
             Long idRecepcionLeche);
 

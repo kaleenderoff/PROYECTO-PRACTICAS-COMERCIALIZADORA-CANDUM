@@ -33,10 +33,12 @@ export class RecepcionLeche implements OnInit {
   filtro = '';
   filtroProveedor = '';
   filtroFecha = '';
+  filtroEstadoCalidad = '';
   recepcionSeleccionada: RecepcionLecheModel | null = null;
   controlesRecepcion: CalidadRecepcionLecheResponse[] = [];
   cargandoCalidad = false;
   guardandoCalidad = false;
+  idControlCalidadEditando: number | null = null;
 
   calidadForm = {
     pruebaAlcoholOk: true,
@@ -66,6 +68,9 @@ export class RecepcionLeche implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    if (this.authService.isAuxiliarCalidad()) {
+      this.filtroEstadoCalidad = 'SIN_CALIDAD';
+    }
     this.cargarDatos();
   }
 
@@ -89,14 +94,16 @@ export class RecepcionLeche implements OnInit {
               ...r,
               estadoCalidad: (mapaEstados.get(r.id) ?? 'SIN_CALIDAD') as any
             }));
+            this.paginaActual = 1;
+            this.calcularMetricas(this.recepciones);
           },
           error: () => {
             this.recepciones = sorted.map(r => ({ ...r, estadoCalidad: 'SIN_CALIDAD' as any }));
+            this.paginaActual = 1;
+            this.calcularMetricas(this.recepciones);
           }
         });
 
-        this.paginaActual = 1;
-        this.calcularMetricas(data);
         this.cargando = false;
       },
       error: (err) => {
@@ -122,6 +129,7 @@ export class RecepcionLeche implements OnInit {
     const f = this.filtro.toLowerCase().trim();
     const proveedor = this.filtroProveedor.toLowerCase().trim();
     const fecha = this.filtroFecha;
+    const estadoCalidad = this.filtroEstadoCalidad;
 
     return this.recepciones.filter((r: RecepcionLecheModel) => {
       const coincideTexto = !f
@@ -133,8 +141,9 @@ export class RecepcionLeche implements OnInit {
         || (r.proveedor && r.proveedor.toLowerCase() === proveedor);
 
       const coincideFecha = !fecha || r.fechaRecepcion === fecha;
+      const coincideEstado = !estadoCalidad || (r.estadoCalidad || 'SIN_CALIDAD') === estadoCalidad;
 
-      return coincideTexto && coincideProveedor && coincideFecha;
+      return coincideTexto && coincideProveedor && coincideFecha && coincideEstado;
     });
   }
 
@@ -188,6 +197,7 @@ export class RecepcionLeche implements OnInit {
     this.filtro = '';
     this.filtroProveedor = '';
     this.filtroFecha = '';
+    this.filtroEstadoCalidad = this.authService.isAuxiliarCalidad() ? 'SIN_CALIDAD' : '';
     this.paginaActual = 1;
   }
 
@@ -199,6 +209,7 @@ export class RecepcionLeche implements OnInit {
   cerrarDetalle(): void {
     this.recepcionSeleccionada = null;
     this.controlesRecepcion = [];
+    this.idControlCalidadEditando = null;
     this.resetCalidadForm();
   }
 
@@ -208,6 +219,7 @@ export class RecepcionLeche implements OnInit {
     this.controlCalidadService.listarRecepcion(idRecepcionLeche).subscribe({
       next: (data) => {
         this.controlesRecepcion = data;
+        this.actualizarEstadoSeleccionado();
         this.cargandoCalidad = false;
       },
       error: (err) => {
@@ -225,7 +237,7 @@ export class RecepcionLeche implements OnInit {
 
     this.guardandoCalidad = true;
 
-    this.controlCalidadService.registrarRecepcion({
+    const request = {
       idRecepcionLeche: this.recepcionSeleccionada.id,
       pruebaAlcoholOk: this.calidadForm.pruebaAlcoholOk,
       lactoscanOk: this.calidadForm.lactoscanOk,
@@ -239,12 +251,24 @@ export class RecepcionLeche implements OnInit {
       retenido: this.calidadForm.retenido,
       idRealizadoPor: this.authService.getIdUsuario(),
       observaciones: this.calidadForm.observaciones || null
-    }).subscribe({
+    };
+
+    const operacion = this.idControlCalidadEditando
+      ? this.controlCalidadService.actualizarRecepcion(this.idControlCalidadEditando, request)
+      : this.controlCalidadService.registrarRecepcion(request);
+
+    operacion.subscribe({
       next: (control) => {
-        this.controlesRecepcion = [control, ...this.controlesRecepcion];
+        const estabaEditando = !!this.idControlCalidadEditando;
+        this.controlesRecepcion = estabaEditando
+          ? this.controlesRecepcion.map(item => item.id === control.id ? control : item)
+          : [control, ...this.controlesRecepcion];
+        this.actualizarEstadoSeleccionado();
         this.guardandoCalidad = false;
         this.resetCalidadForm();
-        this.notification.success('Control de calidad de recepcion registrado correctamente.');
+        this.notification.success(estabaEditando
+          ? 'Control de calidad actualizado correctamente.'
+          : 'Control de calidad de recepcion registrado correctamente.');
       },
       error: (err) => {
         const mensaje = err.error?.message || 'No se pudo registrar el control de calidad.';
@@ -255,6 +279,7 @@ export class RecepcionLeche implements OnInit {
   }
 
   resetCalidadForm(): void {
+    this.idControlCalidadEditando = null;
     this.calidadForm = {
       pruebaAlcoholOk: true,
       lactoscanOk: true,
@@ -268,6 +293,66 @@ export class RecepcionLeche implements OnInit {
       retenido: false,
       observaciones: ''
     };
+  }
+
+  get tieneControlCalidad(): boolean {
+    return this.controlesRecepcion.length > 0;
+  }
+
+  get ultimoControlCalidad(): CalidadRecepcionLecheResponse | null {
+    return this.controlesRecepcion[0] || null;
+  }
+
+  get puedeRegistrarControlCalidad(): boolean {
+    return this.authService.canWriteCalidad() && !this.guardandoCalidad;
+  }
+
+  editarControlRecepcion(control: CalidadRecepcionLecheResponse): void {
+    if (!this.authService.canWriteCalidad()) return;
+
+    this.idControlCalidadEditando = control.id;
+    this.calidadForm = {
+      pruebaAlcoholOk: !!control.pruebaAlcoholOk,
+      lactoscanOk: !!control.lactoscanOk,
+      acidez: control.acidez ?? null,
+      densidad: control.densidad ?? null,
+      grasa: control.grasa ?? null,
+      aguaPct: control.aguaPct ?? null,
+      temperatura: control.temperatura ?? null,
+      ph: control.ph ?? null,
+      aprobado: !!control.aprobado,
+      retenido: !!control.retenido,
+      observaciones: control.observaciones || ''
+    };
+  }
+
+  eliminarControlRecepcion(control: CalidadRecepcionLecheResponse): void {
+    if (!this.authService.canWriteCalidad()) return;
+    if (!confirm('¿Eliminar este control de calidad?')) return;
+
+    this.controlCalidadService.eliminarRecepcion(control.id).subscribe({
+      next: () => {
+        this.controlesRecepcion = this.controlesRecepcion.filter(item => item.id !== control.id);
+        this.actualizarEstadoSeleccionado();
+        if (this.idControlCalidadEditando === control.id) {
+          this.resetCalidadForm();
+        }
+        this.notification.success('Control de calidad eliminado correctamente.');
+      },
+      error: err => this.notification.error(err.error?.message || 'No se pudo eliminar el control de calidad.')
+    });
+  }
+
+  estadoTextoControl(control: CalidadRecepcionLecheResponse | null): string {
+    if (!control) return 'Sin calidad';
+    if (control.retenido) return 'Retenida';
+    return control.aprobado ? 'Aprobada' : 'No aprobada';
+  }
+
+  claseEstadoControl(control: CalidadRecepcionLecheResponse | null): string {
+    if (!control) return 'text-slate-500 bg-slate-100';
+    if (control.retenido) return 'text-red-700 bg-red-50';
+    return control.aprobado ? 'text-emerald-700 bg-emerald-50' : 'text-orange-700 bg-orange-50';
   }
 
   get proveedoresDisponibles(): string[] {
@@ -306,6 +391,28 @@ export class RecepcionLeche implements OnInit {
 
   private fechaOrdenable(recepcion: RecepcionLecheModel): string {
     return `${recepcion.fechaRecepcion || ''}-${String(recepcion.id || 0).padStart(8, '0')}`;
+  }
+
+  private actualizarEstadoSeleccionado(): void {
+    if (!this.recepcionSeleccionada) {
+      return;
+    }
+
+    const ultimo = this.ultimoControlCalidad;
+    const estado = ultimo
+      ? (ultimo.retenido ? 'RETENIDA' : (ultimo.aprobado ? 'APROBADA' : 'NO_APROBADA'))
+      : 'SIN_CALIDAD';
+
+    this.recepcionSeleccionada = {
+      ...this.recepcionSeleccionada,
+      estadoCalidad: estado as any
+    };
+
+    this.recepciones = this.recepciones.map(recepcion =>
+      recepcion.id === this.recepcionSeleccionada?.id
+        ? { ...recepcion, estadoCalidad: estado as any }
+        : recepcion
+    );
   }
 
   private calcularMetricas(data: RecepcionLecheModel[]): void {

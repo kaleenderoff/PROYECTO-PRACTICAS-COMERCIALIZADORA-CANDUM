@@ -125,6 +125,14 @@ export class ControlCalidadLacteaService {
     return this.http.post<CalidadRecepcionLecheResponse>(`${this.apiUrl}/recepcion`, request);
   }
 
+  actualizarRecepcion(id: number, request: CalidadRecepcionLecheRequest): Observable<CalidadRecepcionLecheResponse> {
+    return this.http.put<CalidadRecepcionLecheResponse>(`${this.apiUrl}/recepcion/${id}`, request);
+  }
+
+  eliminarRecepcion(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/recepcion/${id}`);
+  }
+
   listarRecepcion(idRecepcionLeche: number): Observable<CalidadRecepcionLecheResponse[]> {
     return this.http.get<CalidadRecepcionLecheResponse[]>(`${this.apiUrl}/recepcion/${idRecepcionLeche}`);
   }
@@ -133,12 +141,28 @@ export class ControlCalidadLacteaService {
     return this.http.post<ControlCalidadProcesoResponse>(`${this.apiUrl}/proceso`, request);
   }
 
+  actualizarProceso(id: number, request: ControlCalidadProcesoRequest): Observable<ControlCalidadProcesoResponse> {
+    return this.http.put<ControlCalidadProcesoResponse>(`${this.apiUrl}/proceso/${id}`, request);
+  }
+
+  eliminarProceso(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/proceso/${id}`);
+  }
+
   listarProcesosPorOrden(idOrden: number): Observable<ControlCalidadProcesoResponse[]> {
     return this.http.get<ControlCalidadProcesoResponse[]>(`${this.apiUrl}/proceso/orden/${idOrden}`);
   }
 
   registrarPeso(request: ControlPesoProductoRequest): Observable<ControlPesoProductoResponse> {
     return this.http.post<ControlPesoProductoResponse>(`${this.apiUrl}/peso`, request);
+  }
+
+  actualizarPeso(id: number, request: ControlPesoProductoRequest): Observable<ControlPesoProductoResponse> {
+    return this.http.put<ControlPesoProductoResponse>(`${this.apiUrl}/peso/${id}`, request);
+  }
+
+  eliminarPeso(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/peso/${id}`);
   }
 
   listarPesosPorOrden(idOrden: number): Observable<ControlPesoProductoResponse[]> {
@@ -152,5 +176,5 @@ export class ControlCalidadLacteaService {
 
 export interface EstadoCalidadRecepcion {
   idRecepcionLeche: number;
-  estadoCalidad: 'APROBADA' | 'RETENIDA' | 'NO_APROBADA';
+  estadoCalidad: 'APROBADA' | 'RETENIDA' | 'NO_APROBADA' | 'SIN_CALIDAD';
 }
