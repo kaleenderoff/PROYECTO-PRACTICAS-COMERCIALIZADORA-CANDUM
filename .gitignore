@@ -1,5 +1,6 @@
 # Maven
 target/
+.m2/
 !.mvn/wrapper/maven-wrapper.jar
 
 # Logs
@@ -14,8 +15,21 @@ Thumbs.db
 .vscode/
 *.iml
 
-# Env
+# Env / secrets
 .env
+*.env
+.env.*
+!*.env.example
 
 # Java
 *.class
+
+# Docker local data
+mysql/
+backups/
+
+# Node / Angular
+node_modules/
+dist/
+.angular/
+npm-debug.log*
