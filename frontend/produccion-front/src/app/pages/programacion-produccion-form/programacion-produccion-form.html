@@ -101,14 +101,40 @@
                 </div>
 
                 <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest ml-1">
-                        Baches a Programar
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+                        Tamaño batch fórmula
                     </label>
-                    <input type="number" [(ngModel)]="numBachesPlanManual" placeholder="Opcional"
+                    <input readonly
+                        [value]="formulaVigente ? ((obtenerKgBatchFormula() | number:'1.0-2') + ' kg') : 'Seleccione producto'"
+                        class="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-2xl text-slate-500 cursor-not-allowed font-bold">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest ml-1">
+                        Baches sugeridos
+                    </label>
+                    <input readonly [value]="calcularBatchesSugeridos()"
+                        class="w-full px-4 py-3 bg-emerald-50 border border-emerald-100 rounded-2xl text-emerald-700 cursor-not-allowed font-black">
+                </div>
+
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between gap-2">
+                        <label class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest ml-1">
+                            Baches a programar
+                        </label>
+
+                        <button type="button" (click)="usarBachesSugeridos()"
+                            class="text-[10px] font-black text-indigo-600 hover:text-indigo-800 uppercase tracking-wider">
+                            Usar sugerido
+                        </button>
+                    </div>
+
+                    <input type="number" [ngModel]="obtenerBachesPlanParaVista()"
+                        (ngModelChange)="onBachesPlanManualChange($event)" placeholder="Automático"
                         class="w-full px-4 py-3 bg-indigo-50 border border-indigo-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-indigo-900 font-bold shadow-inner">
                 </div>
 
-                <div class="md:col-span-2 space-y-2">
+                <div class="md:col-span-4 space-y-2">
                     <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
                         Observaciones Operativas
                     </label>
@@ -363,7 +389,7 @@
                         </td>
 
                         <td class="px-6 py-6 text-right text-2xl text-indigo-700">
-                            {{ calcularTotalBatchesOperativos() }}
+                            {{ calcularBatchesSugeridos() }}
                         </td>
 
                         <td class="px-8 py-6"></td>
@@ -372,13 +398,22 @@
             </table>
         </div>
 
-        <div class="px-8 py-5 bg-slate-50/70 border-t border-slate-100 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="px-8 py-5 bg-slate-50/70 border-t border-slate-100 grid grid-cols-1 md:grid-cols-4 gap-4">
             <div class="p-4 bg-white border border-slate-100 rounded-2xl">
                 <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">
                     Kg Bach requeridos
                 </span>
                 <p class="mt-1 text-xl font-black text-slate-900">
                     {{ calcularTotalKgEntrada() | number:'1.0-0' }} kg
+                </p>
+            </div>
+
+            <div class="p-4 bg-white border border-slate-100 rounded-2xl">
+                <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    N° Bach total
+                </span>
+                <p class="mt-1 text-xl font-black text-slate-900">
+                    {{ calcularTotalBatchesTeoricos() | number:'1.2-2' }}
                 </p>
             </div>
 
@@ -413,12 +448,18 @@
                         <p class="text-sm font-medium leading-relaxed opacity-90">
                             <strong class="block text-lg text-white mb-1">
                                 Número de baches plan:
-                                {{ numBachesPlanManual !== null ? numBachesPlanManual : calcularTotalBatchesOperativos()
-                                }}
+                                {{ obtenerBachesPlanParaVista() }}
                             </strong>
-                            La programación operativa se ajusta a baches completos. Cualquier diferencia entre kg
-                            requeridos
-                            y kg de entrada reales deberá ser gestionada por el supervisor en planta.
+
+                            <span class="block">
+                                Sugerido por el sistema: {{ calcularBatchesSugeridos() }} batches
+                                según el total N° Bach {{ calcularTotalBatchesTeoricos() | number:'1.2-2' }}.
+                            </span>
+
+                            <span class="block mt-1">
+                                El tamaño de batch viene de la fórmula vigente. Astrid puede ajustar manualmente los
+                                baches a programar si la operación de planta lo requiere.
+                            </span>
                         </p>
                     </div>
                 </div>

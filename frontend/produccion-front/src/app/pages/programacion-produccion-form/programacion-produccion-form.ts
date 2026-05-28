@@ -29,15 +29,11 @@ export class ProgramacionProduccionForm implements OnInit {
   private notification = inject(NotificationService);
 
   /**
-   * Valores tomados del Excel actual de Leche Condensada.
-   *
-   * En el Excel:
-   * Kilos = unidades * peso / 1000
-   * Kg Bach = kilos / 0.445
-   * N° Bach = Kg Bach / 78.82
+   * Valores base del Excel actual de Leche Condensada.
+   * Estos quedan como respaldo si el backend todavía no trae esos datos desde la fórmula.
    */
-  private readonly rendimientoExcelDecimal = 0.445;
-  private readonly kgBatchExcel = 78.82;
+  private readonly rendimientoExcelDecimalFallback = 0.445;
+  private readonly kgBatchExcelFallback = 78.82;
 
   productos: any[] = [];
   turnos: any[] = [];
@@ -51,7 +47,13 @@ export class ProgramacionProduccionForm implements OnInit {
 
   fechaProduccion = this.fechaHoyLocal();
   observaciones = '';
+
+  /**
+   * Si está en null, el sistema usa el sugerido automático.
+   * Si Astrid escribe algo, se respeta el valor manual.
+   */
   numBachesPlanManual: number | null = null;
+  bachesPlanEditadoManual = false;
 
   skus: SimularSkuRequest[] = [
     {
@@ -95,6 +97,7 @@ export class ProgramacionProduccionForm implements OnInit {
     this.formulaVigente = null;
     this.skus = [{ idSku: 0, unidades: 0 }];
     this.numBachesPlanManual = null;
+    this.bachesPlanEditadoManual = false;
 
     if (!this.idProducto) {
       return;
@@ -158,28 +161,79 @@ export class ProgramacionProduccionForm implements OnInit {
   }
 
   /**
-   * Por ahora se usa el valor del Excel:
-   * N° Bach = Kg Bach / 78.82
+   * Tamaño base del batch.
+   * Debe venir desde la fórmula vigente.
+   * Si aún no llega desde backend, usa 78.82 del Excel como respaldo.
    */
   obtenerKgBatchFormula(): number {
-    return this.kgBatchExcel;
+    const valorDirecto = Number(
+      this.formulaVigente?.kgBatchTotal ??
+      this.formulaVigente?.kgBatch ??
+      this.formulaVigente?.kgBachePlan ??
+      this.formulaVigente?.cantidadBatchKg ??
+      this.formulaVigente?.totalKgBatch ??
+      this.formulaVigente?.tamanoBatchKg ??
+      this.formulaVigente?.tamanioBatchKg ??
+      0
+    );
+
+    if (!Number.isNaN(valorDirecto) && valorDirecto > 0) {
+      return valorDirecto;
+    }
+
+    const detalles = this.formulaVigente?.detalles || [];
+
+    const totalDetalles = detalles.reduce((total: number, detalle: any) => {
+      return total + Number(detalle.cantidadKg || detalle.cantidad || 0);
+    }, 0);
+
+    if (!Number.isNaN(totalDetalles) && totalDetalles > 0) {
+      return Number(totalDetalles.toFixed(3));
+    }
+
+    return this.kgBatchExcelFallback;
   }
 
   /**
-   * Se muestra como porcentaje para la interfaz.
-   * Excel usa 0.445, es decir 44.5%.
+   * Rendimiento del proceso.
+   * En el Excel actual se usa 0.445 = 44.5%.
    */
   obtenerRendimientoFormula(): number {
-    return Number((this.rendimientoExcelDecimal * 100).toFixed(3));
+    const posiblesValores = [
+      this.formulaVigente?.rendimientoTeoricoPct,
+      this.formulaVigente?.rendimientoPct,
+      this.formulaVigente?.rendimientoPorcentaje,
+      this.formulaVigente?.rendimientoEstimadoPct,
+      this.formulaVigente?.rendimientoEstimado,
+      this.formulaVigente?.rendimiento,
+      this.formulaVigente?.porcentajeRendimiento,
+      this.formulaVigente?.rendimientoTeorico
+    ];
+
+    for (const valor of posiblesValores) {
+      const numero = Number(valor);
+
+      if (!Number.isNaN(numero) && numero > 0) {
+        return numero > 1 ? numero : Number((numero * 100).toFixed(3));
+      }
+    }
+
+    return Number((this.rendimientoExcelDecimalFallback * 100).toFixed(3));
   }
 
   private obtenerRendimientoDecimal(): number {
-    return this.rendimientoExcelDecimal;
+    const rendimiento = this.obtenerRendimientoFormula();
+
+    if (rendimiento <= 0) {
+      return 0;
+    }
+
+    return rendimiento > 1 ? rendimiento / 100 : rendimiento;
   }
 
   /**
    * Excel:
-   * Kilos = unidades * peso / 1000
+   * Kilos = Unidades * Peso unidad / 1000
    */
   calcularKgProductoTerminado(fila: SimularSkuRequest): number {
     const sku = this.obtenerSku(fila.idSku);
@@ -200,7 +254,7 @@ export class ProgramacionProduccionForm implements OnInit {
 
   /**
    * Excel:
-   * Kg Bach = Kilos / 0.445
+   * Kg Bach = Kilos / rendimiento
    */
   calcularKgEntradaRequeridos(fila: SimularSkuRequest): number {
     const kgPt = this.calcularKgProductoTerminado(fila);
@@ -215,7 +269,7 @@ export class ProgramacionProduccionForm implements OnInit {
 
   /**
    * Excel:
-   * N° Bach = Kg Bach / 78.82
+   * N° Bach = Kg Bach / tamaño batch fórmula
    */
   calcularBatchesTeoricos(fila: SimularSkuRequest): number {
     const kgEntrada = this.calcularKgEntradaRequeridos(fila);
@@ -229,8 +283,7 @@ export class ProgramacionProduccionForm implements OnInit {
   }
 
   /**
-   * Operativo: redondeo hacia arriba.
-   * El Excel muestra el N° Bach teórico; este campo sirve para planificar batches completos.
+   * Por fila se muestra solo como referencia.
    */
   calcularBatchesOperativos(fila: SimularSkuRequest): number {
     const batchesTeoricos = this.calcularBatchesTeoricos(fila);
@@ -271,16 +324,52 @@ export class ProgramacionProduccionForm implements OnInit {
     );
   }
 
+  /**
+   * Este es el valor correcto operativo:
+   * CEIL(total N° Bach), no la suma de CEIL por cada SKU.
+   */
+  calcularBatchesSugeridos(): number {
+    const totalBatchesTeoricos = this.calcularTotalBatchesTeoricos();
+
+    if (totalBatchesTeoricos <= 0) {
+      return 0;
+    }
+
+    return Math.ceil(totalBatchesTeoricos);
+  }
+
   calcularTotalBatchesOperativos(): number {
-    return this.skus
-      .reduce((total, fila) => total + this.calcularBatchesOperativos(fila), 0);
+    return this.calcularBatchesSugeridos();
+  }
+
+  obtenerBachesPlanParaVista(): number {
+    if (this.bachesPlanEditadoManual && this.numBachesPlanManual !== null) {
+      return Number(this.numBachesPlanManual || 0);
+    }
+
+    return this.calcularBatchesSugeridos();
+  }
+
+  onBachesPlanManualChange(value: number | string | null): void {
+    const numero = Number(value);
+
+    if (value === null || value === '' || Number.isNaN(numero)) {
+      this.numBachesPlanManual = null;
+      this.bachesPlanEditadoManual = false;
+      return;
+    }
+
+    this.numBachesPlanManual = numero;
+    this.bachesPlanEditadoManual = true;
+  }
+
+  usarBachesSugeridos(): void {
+    this.numBachesPlanManual = null;
+    this.bachesPlanEditadoManual = false;
   }
 
   calcularKgEntradaPorBatchPlan(): number {
-    const batchesPlan = this.numBachesPlanManual !== null
-      ? Number(this.numBachesPlanManual || 0)
-      : this.calcularTotalBatchesOperativos();
-
+    const batchesPlan = this.obtenerBachesPlanParaVista();
     const kgBatch = this.obtenerKgBatchFormula();
 
     if (batchesPlan <= 0 || kgBatch <= 0) {
@@ -333,9 +422,7 @@ export class ProgramacionProduccionForm implements OnInit {
       idProducto: Number(this.idProducto),
       idTurno: Number(this.idTurno),
       idJefeLineaEjecutor: Number(this.idJefeLineaEjecutor),
-      numBachesPlan: this.numBachesPlanManual !== null
-        ? Number(this.numBachesPlanManual)
-        : this.calcularTotalBatchesOperativos(),
+      numBachesPlan: this.obtenerBachesPlanParaVista(),
       kgBachePlan: this.obtenerKgBatchFormula(),
       idFormulaVersion: Number(this.formulaVigente.idFormulaVersion ?? this.formulaVigente.id),
       observaciones: this.observaciones?.trim() || 'Programación generada desde pantalla tipo Excel',
@@ -355,6 +442,7 @@ export class ProgramacionProduccionForm implements OnInit {
         this.fechaProduccion = this.fechaHoyLocal();
         this.observaciones = '';
         this.numBachesPlanManual = null;
+        this.bachesPlanEditadoManual = false;
         this.formulaVigente = null;
         this.skusDisponibles = [];
         this.skus = [{ idSku: 0, unidades: 0 }];
