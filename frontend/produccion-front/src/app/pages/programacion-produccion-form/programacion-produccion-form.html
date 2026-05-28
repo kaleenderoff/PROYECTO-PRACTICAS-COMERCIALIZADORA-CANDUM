@@ -139,7 +139,7 @@
                         Kg Batch
                     </span>
                     <span class="text-sm font-bold text-indigo-600">
-                        {{ obtenerKgBatchFormula() | number:'1.0-3' }} kg
+                        {{ obtenerKgBatchFormula() | number:'1.0-2' }} kg
                     </span>
                 </div>
 
@@ -148,7 +148,7 @@
                         Rendimiento
                     </span>
                     <span class="text-sm font-bold text-emerald-600">
-                        {{ obtenerRendimientoFormula() | number:'1.0-3' }}%
+                        {{ obtenerRendimientoFormula() | number:'1.1-2' }}%
                     </span>
                 </div>
             </div>
@@ -161,7 +161,7 @@
                         Kg batch fórmula
                     </span>
                     <span class="text-lg font-bold text-indigo-600">
-                        {{ obtenerKgBatchFormula() | number:'1.0-3' }}
+                        {{ obtenerKgBatchFormula() | number:'1.0-2' }}
                     </span>
                 </div>
 
@@ -170,7 +170,7 @@
                         Rendimiento
                     </span>
                     <span class="text-lg font-bold text-emerald-600">
-                        {{ obtenerRendimientoFormula() | number:'1.0-3' }}%
+                        {{ obtenerRendimientoFormula() | number:'1.1-2' }}%
                     </span>
                 </div>
 
@@ -254,7 +254,7 @@
                 Planeación por SKU
             </h2>
 
-            <button (click)="agregarFila()" [disabled]="!idProducto"
+            <button type="button" (click)="agregarFila()" [disabled]="!idProducto"
                 class="px-5 py-2.5 bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-900/20 hover:bg-indigo-700 transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2">
                 <i class="bi bi-plus-lg"></i>
                 Agregar SKU
@@ -274,13 +274,13 @@
                             Unidades
                         </th>
                         <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">
-                            Kg PT
+                            Kilos
                         </th>
                         <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">
-                            Kg Entrada
+                            Kg Bach
                         </th>
                         <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">
-                            Batches T.
+                            N° Bach
                         </th>
                         <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">
                             Batches Op.
@@ -310,16 +310,16 @@
                                 class="w-full px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all text-center font-bold text-amber-900 shadow-inner">
                         </td>
 
-                        <td class="px-6 py-4 text-right text-sm font-medium text-slate-600">
-                            {{ calcularKgProductoTerminado(sku) | number:'1.0-3' }}
+                        <td class="px-6 py-4 text-right text-sm font-medium text-slate-700">
+                            {{ calcularKgProductoTerminado(sku) | number:'1.0-0' }}
                         </td>
 
-                        <td class="px-6 py-4 text-right text-sm font-medium text-slate-600">
-                            {{ calcularKgEntradaRequeridos(sku) | number:'1.0-3' }}
+                        <td class="px-6 py-4 text-right text-sm font-medium text-slate-700">
+                            {{ calcularKgEntradaRequeridos(sku) | number:'1.0-0' }}
                         </td>
 
-                        <td class="px-6 py-4 text-right text-sm font-medium text-slate-400 italic">
-                            {{ calcularBatchesTeoricos(sku) | number:'1.0-3' }}
+                        <td class="px-6 py-4 text-right text-sm font-medium text-slate-500 italic">
+                            {{ calcularBatchesTeoricos(sku) | number:'1.2-2' }}
                         </td>
 
                         <td class="px-6 py-4 text-right">
@@ -340,7 +340,7 @@
                 <tfoot class="bg-slate-50/80 font-bold border-t-2 border-slate-100">
                     <tr>
                         <td class="px-8 py-6 text-slate-500 text-xs uppercase tracking-widest">
-                            Totales Planificados
+                            Total
                         </td>
 
                         <td class="px-6 py-6 text-center text-lg text-amber-700">
@@ -349,17 +349,17 @@
                         </td>
 
                         <td class="px-6 py-6 text-right text-lg text-slate-800">
-                            {{ calcularTotalKgPt() | number:'1.0-3' }}
+                            {{ calcularTotalKgPt() | number:'1.0-0' }}
                             <span class="text-[10px] text-slate-400 uppercase">kg</span>
                         </td>
 
                         <td class="px-6 py-6 text-right text-lg text-slate-800">
-                            {{ calcularTotalKgEntrada() | number:'1.0-3' }}
+                            {{ calcularTotalKgEntrada() | number:'1.0-0' }}
                             <span class="text-[10px] text-slate-400 uppercase">kg</span>
                         </td>
 
-                        <td class="px-6 py-6 text-right text-sm text-slate-400">
-                            {{ calcularTotalBatchesTeoricos() | number:'1.0-3' }}
+                        <td class="px-6 py-6 text-right text-sm text-slate-500">
+                            {{ calcularTotalBatchesTeoricos() | number:'1.2-2' }}
                         </td>
 
                         <td class="px-6 py-6 text-right text-2xl text-indigo-700">
@@ -375,19 +375,19 @@
         <div class="px-8 py-5 bg-slate-50/70 border-t border-slate-100 grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="p-4 bg-white border border-slate-100 rounded-2xl">
                 <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                    Kg entrada requeridos
+                    Kg Bach requeridos
                 </span>
                 <p class="mt-1 text-xl font-black text-slate-900">
-                    {{ calcularTotalKgEntrada() | number:'1.0-3' }} kg
+                    {{ calcularTotalKgEntrada() | number:'1.0-0' }} kg
                 </p>
             </div>
 
             <div class="p-4 bg-white border border-slate-100 rounded-2xl">
                 <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                    Kg entrada por batches plan
+                    Kg por batches plan
                 </span>
                 <p class="mt-1 text-xl font-black text-indigo-700">
-                    {{ calcularKgEntradaPorBatchPlan() | number:'1.0-3' }} kg
+                    {{ calcularKgEntradaPorBatchPlan() | number:'1.0-0' }} kg
                 </p>
             </div>
 
@@ -397,7 +397,7 @@
                 </span>
                 <p class="mt-1 text-xl font-black"
                     [ngClass]="calcularDiferenciaKgEntrada() >= 0 ? 'text-emerald-700' : 'text-red-700'">
-                    {{ calcularDiferenciaKgEntrada() | number:'1.0-3' }} kg
+                    {{ calcularDiferenciaKgEntrada() | number:'1.0-0' }} kg
                 </p>
             </div>
         </div>
@@ -423,7 +423,7 @@
                     </div>
                 </div>
 
-                <button (click)="crearProgramacion()" [disabled]="!tieneSkusValidos() || guardando"
+                <button type="button" (click)="crearProgramacion()" [disabled]="!tieneSkusValidos() || guardando"
                     class="px-10 py-4 bg-white text-indigo-900 font-black rounded-2xl shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center gap-3 disabled:opacity-50">
                     <span *ngIf="!guardando">Confirmar Programación</span>
 

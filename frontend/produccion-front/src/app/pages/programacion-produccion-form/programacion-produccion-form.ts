@@ -28,6 +28,17 @@ export class ProgramacionProduccionForm implements OnInit {
   private usuarioService = inject(UsuarioService);
   private notification = inject(NotificationService);
 
+  /**
+   * Valores tomados del Excel actual de Leche Condensada.
+   *
+   * En el Excel:
+   * Kilos = unidades * peso / 1000
+   * Kg Bach = kilos / 0.445
+   * N° Bach = Kg Bach / 78.82
+   */
+  private readonly rendimientoExcelDecimal = 0.445;
+  private readonly kgBatchExcel = 78.82;
+
   productos: any[] = [];
   turnos: any[] = [];
   skusDisponibles: any[] = [];
@@ -146,68 +157,30 @@ export class ProgramacionProduccionForm implements OnInit {
     );
   }
 
+  /**
+   * Por ahora se usa el valor del Excel:
+   * N° Bach = Kg Bach / 78.82
+   */
   obtenerKgBatchFormula(): number {
-    return Number(
-      this.formulaVigente?.kgBatchTotal ??
-      this.formulaVigente?.kgBatch ??
-      this.formulaVigente?.kgBachePlan ??
-      this.formulaVigente?.cantidadBatchKg ??
-      this.formulaVigente?.totalKgBatch ??
-      this.formulaVigente?.tamanoBatchKg ??
-      this.formulaVigente?.tamanioBatchKg ??
-      0
-    );
+    return this.kgBatchExcel;
   }
 
+  /**
+   * Se muestra como porcentaje para la interfaz.
+   * Excel usa 0.445, es decir 44.5%.
+   */
   obtenerRendimientoFormula(): number {
-    const posiblesValores = [
-      this.formulaVigente?.rendimientoTeoricoPct,
-      this.formulaVigente?.rendimientoPct,
-      this.formulaVigente?.rendimientoPorcentaje,
-      this.formulaVigente?.rendimientoEstimadoPct,
-      this.formulaVigente?.rendimientoEstimado,
-      this.formulaVigente?.rendimiento,
-      this.formulaVigente?.porcentajeRendimiento,
-      this.formulaVigente?.rendimientoTeorico
-    ];
-
-    for (const valor of posiblesValores) {
-      const numero = Number(valor);
-
-      if (!Number.isNaN(numero) && numero > 0) {
-        return numero > 1 ? numero : Number((numero * 100).toFixed(3));
-      }
-    }
-
-    const posiblesEvaporaciones = [
-      this.formulaVigente?.reduccionEvaporacionPct,
-      this.formulaVigente?.evaporacionPct,
-      this.formulaVigente?.porcentajeEvaporacion,
-      this.formulaVigente?.reduccionEvaporacion,
-      this.formulaVigente?.evaporacion
-    ];
-
-    for (const valor of posiblesEvaporaciones) {
-      const evaporacion = Number(valor);
-
-      if (!Number.isNaN(evaporacion) && evaporacion > 0 && evaporacion < 100) {
-        return Number((100 - evaporacion).toFixed(3));
-      }
-    }
-
-    return 0;
+    return Number((this.rendimientoExcelDecimal * 100).toFixed(3));
   }
 
   private obtenerRendimientoDecimal(): number {
-    const rendimiento = this.obtenerRendimientoFormula();
-
-    if (rendimiento <= 0) {
-      return 0;
-    }
-
-    return rendimiento > 1 ? rendimiento / 100 : rendimiento;
+    return this.rendimientoExcelDecimal;
   }
 
+  /**
+   * Excel:
+   * Kilos = unidades * peso / 1000
+   */
   calcularKgProductoTerminado(fila: SimularSkuRequest): number {
     const sku = this.obtenerSku(fila.idSku);
     const unidades = Number(fila.unidades || 0);
@@ -225,6 +198,10 @@ export class ProgramacionProduccionForm implements OnInit {
     return Number(((unidades * pesoNetoGr) / 1000).toFixed(3));
   }
 
+  /**
+   * Excel:
+   * Kg Bach = Kilos / 0.445
+   */
   calcularKgEntradaRequeridos(fila: SimularSkuRequest): number {
     const kgPt = this.calcularKgProductoTerminado(fila);
     const rendimientoDecimal = this.obtenerRendimientoDecimal();
@@ -236,6 +213,10 @@ export class ProgramacionProduccionForm implements OnInit {
     return Number((kgPt / rendimientoDecimal).toFixed(3));
   }
 
+  /**
+   * Excel:
+   * N° Bach = Kg Bach / 78.82
+   */
   calcularBatchesTeoricos(fila: SimularSkuRequest): number {
     const kgEntrada = this.calcularKgEntradaRequeridos(fila);
     const kgBatchFormula = this.obtenerKgBatchFormula();
@@ -247,6 +228,10 @@ export class ProgramacionProduccionForm implements OnInit {
     return Number((kgEntrada / kgBatchFormula).toFixed(3));
   }
 
+  /**
+   * Operativo: redondeo hacia arriba.
+   * El Excel muestra el N° Bach teórico; este campo sirve para planificar batches completos.
+   */
   calcularBatchesOperativos(fila: SimularSkuRequest): number {
     const batchesTeoricos = this.calcularBatchesTeoricos(fila);
 
