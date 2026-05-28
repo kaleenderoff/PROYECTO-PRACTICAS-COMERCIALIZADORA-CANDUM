@@ -13,6 +13,7 @@
                 <p class="text-slate-500 text-sm">Cálculo inteligente de batches y planeación de SKUs</p>
             </div>
         </div>
+
         <div class="flex items-center gap-3">
             <button routerLink="/ordenes-produccion"
                 class="px-6 py-3.5 bg-slate-100 text-slate-600 font-bold rounded-2xl hover:bg-slate-200 transition-all active:scale-95">
@@ -21,7 +22,7 @@
         </div>
     </div>
 
-    <!-- CABECERA (Configuración General) -->
+    <!-- CABECERA -->
     <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
         <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/30 flex items-center gap-2">
             <div class="w-2 h-6 bg-indigo-500 rounded-full"></div>
@@ -30,6 +31,7 @@
 
         <div class="p-8 md:p-10">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+
                 <div class="space-y-2">
                     <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
                         Fecha Programada
@@ -140,6 +142,7 @@
                         {{ obtenerKgBatchFormula() | number:'1.0-3' }} kg
                     </span>
                 </div>
+
                 <div class="text-right">
                     <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         Rendimiento
@@ -154,25 +157,36 @@
         <div class="p-8">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                    <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Kg batch fórmula</span>
+                    <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">
+                        Kg batch fórmula
+                    </span>
                     <span class="text-lg font-bold text-indigo-600">
                         {{ obtenerKgBatchFormula() | number:'1.0-3' }}
                     </span>
                 </div>
+
                 <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                    <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Rendimiento</span>
+                    <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">
+                        Rendimiento
+                    </span>
                     <span class="text-lg font-bold text-emerald-600">
                         {{ obtenerRendimientoFormula() | number:'1.0-3' }}%
                     </span>
                 </div>
+
                 <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                    <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Evaporación</span>
+                    <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">
+                        Evaporación
+                    </span>
                     <span class="text-lg font-bold text-slate-700">
                         {{ formulaVigente.reduccionEvaporacionPct || 0 }}%
                     </span>
                 </div>
+
                 <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                    <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Brix Objetivo</span>
+                    <span class="block text-[10px] font-bold text-slate-400 uppercase mb-1">
+                        Brix Objetivo
+                    </span>
                     <span class="text-lg font-bold text-slate-700">
                         {{ formulaVigente.brixObjetivoMin }} - {{ formulaVigente.brixObjetivoMax }}
                     </span>
@@ -183,13 +197,21 @@
                 <table class="w-full text-left">
                     <thead class="bg-slate-50">
                         <tr>
-                            <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase">Ingrediente</th>
-                            <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase">Cálculo</th>
-                            <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase text-right">%</th>
-                            <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase text-right">Cantidad
+                            <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase">
+                                Ingrediente
+                            </th>
+                            <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase">
+                                Cálculo
+                            </th>
+                            <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase text-right">
+                                %
+                            </th>
+                            <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase text-right">
+                                Cantidad
                             </th>
                         </tr>
                     </thead>
+
                     <tbody class="divide-y divide-slate-50">
                         <tr *ngFor="let detalle of formulaVigente.detalles"
                             class="hover:bg-slate-50/50 transition-colors">
@@ -202,15 +224,18 @@
                                         title="Ingrediente Crítico"></span>
                                 </div>
                             </td>
+
                             <td class="px-6 py-3">
                                 <span class="text-[10px] font-bold px-2 py-0.5 rounded"
                                     [ngClass]="detalle.tipoCalculo === 'PORCENTAJE_BATCH' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-500'">
                                     {{ detalle.tipoCalculo === 'FIJO' ? 'FIJO' : 'DINÁMICO' }}
                                 </span>
                             </td>
+
                             <td class="px-6 py-3 text-right text-sm text-slate-600">
                                 {{ detalle.porcentaje }}%
                             </td>
+
                             <td class="px-6 py-3 text-right font-mono text-sm font-bold text-slate-700">
                                 {{ detalle.cantidadKg }} {{ detalle.unidadMedida }}
                             </td>
@@ -228,6 +253,7 @@
                 <i class="bi bi-grid-3x3 text-indigo-500"></i>
                 Planeación por SKU
             </h2>
+
             <button (click)="agregarFila()" [disabled]="!idProducto"
                 class="px-5 py-2.5 bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-900/20 hover:bg-indigo-700 transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2">
                 <i class="bi bi-plus-lg"></i>
@@ -240,7 +266,7 @@
                 <thead>
                     <tr class="bg-slate-50/50">
                         <th
-                            class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest min-w-[460px]">
+                            class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest min-w-[360px]">
                             Selección de SKU
                         </th>
                         <th
@@ -266,34 +292,16 @@
                 <tbody class="divide-y divide-slate-50">
                     <tr *ngFor="let sku of skus; let i = index" class="hover:bg-indigo-50/30 transition-colors group">
                         <td class="px-8 py-4">
-                            <div class="space-y-2">
-                                <div class="relative">
-                                    <input type="text" [(ngModel)]="sku.filtroSku"
-                                        placeholder="Buscar SKU por nombre, código o peso..."
-                                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-sm font-medium">
-
-                                    <button type="button" *ngIf="sku.filtroSku" (click)="limpiarBuscadorSku(sku)"
-                                        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">
-                                        <i class="bi bi-x-circle"></i>
-                                    </button>
-                                </div>
-
-                                <div class="relative">
-                                    <select [(ngModel)]="sku.idSku" (ngModelChange)="onSkuSeleccionado(sku)"
-                                        class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-sm font-medium appearance-none">
-                                        <option [ngValue]="0">Seleccione un formato...</option>
-                                        <option *ngFor="let item of skusFiltrados(sku)" [ngValue]="item.id">
-                                            {{ item.descripcion }} ({{ item.pesoNetoGr }}g)
-                                        </option>
-                                    </select>
-                                    <i
-                                        class="bi bi-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
-                                </div>
-
-                                <p *ngIf="idProducto && skusFiltrados(sku).length === 0"
-                                    class="text-[10px] text-amber-600 font-bold uppercase">
-                                    No hay SKUs que coincidan con la búsqueda.
-                                </p>
+                            <div class="relative">
+                                <select [(ngModel)]="sku.idSku"
+                                    class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-sm font-medium appearance-none">
+                                    <option [ngValue]="0">Seleccione un formato...</option>
+                                    <option *ngFor="let item of skusDisponibles" [ngValue]="item.id">
+                                        {{ item.descripcion }} ({{ item.pesoNetoGr }}g)
+                                    </option>
+                                </select>
+                                <i
+                                    class="bi bi-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                             </div>
                         </td>
 
@@ -394,7 +402,6 @@
             </div>
         </div>
 
-        <!-- Warning and Footer -->
         <div class="p-8 bg-indigo-900 text-indigo-100">
             <div class="flex flex-col md:flex-row items-center justify-between gap-8">
                 <div class="flex items-start gap-4 max-w-2xl">
@@ -410,8 +417,8 @@
                                 }}
                             </strong>
                             La programación operativa se ajusta a baches completos. Cualquier diferencia entre kg
-                            requeridos y
-                            kg de entrada reales deberá ser gestionada por el supervisor en planta.
+                            requeridos
+                            y kg de entrada reales deberá ser gestionada por el supervisor en planta.
                         </p>
                     </div>
                 </div>
@@ -419,6 +426,7 @@
                 <button (click)="crearProgramacion()" [disabled]="!tieneSkusValidos() || guardando"
                     class="px-10 py-4 bg-white text-indigo-900 font-black rounded-2xl shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center gap-3 disabled:opacity-50">
                     <span *ngIf="!guardando">Confirmar Programación</span>
+
                     <span *ngIf="guardando" class="flex items-center gap-2">
                         <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">

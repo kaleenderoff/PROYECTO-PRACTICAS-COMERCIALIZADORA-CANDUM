@@ -16,10 +16,6 @@ import {
 
 import { RouterModule } from '@angular/router';
 
-interface FilaProgramacionSku extends SimularSkuRequest {
-  filtroSku?: string;
-}
-
 @Component({
   selector: 'app-programacion-produccion-form',
   standalone: true,
@@ -46,11 +42,10 @@ export class ProgramacionProduccionForm implements OnInit {
   observaciones = '';
   numBachesPlanManual: number | null = null;
 
-  skus: FilaProgramacionSku[] = [
+  skus: SimularSkuRequest[] = [
     {
       idSku: 0,
-      unidades: 0,
-      filtroSku: ''
+      unidades: 0
     }
   ];
 
@@ -87,7 +82,8 @@ export class ProgramacionProduccionForm implements OnInit {
   onProductoChange(): void {
     this.skusDisponibles = [];
     this.formulaVigente = null;
-    this.skus = [{ idSku: 0, unidades: 0, filtroSku: '' }];
+    this.skus = [{ idSku: 0, unidades: 0 }];
+    this.numBachesPlanManual = null;
 
     if (!this.idProducto) {
       return;
@@ -111,6 +107,8 @@ export class ProgramacionProduccionForm implements OnInit {
       next: formula => {
         this.formulaVigente = formula;
         this.cargandoFormula = false;
+
+        console.log('FORMULA VIGENTE PROGRAMACION:', formula);
       },
       error: error => {
         console.error('Error cargando fórmula vigente', error);
@@ -131,7 +129,7 @@ export class ProgramacionProduccionForm implements OnInit {
   }
 
   agregarFila(): void {
-    this.skus.push({ idSku: 0, unidades: 0, filtroSku: '' });
+    this.skus.push({ idSku: 0, unidades: 0 });
   }
 
   eliminarFila(index: number): void {
@@ -148,40 +146,6 @@ export class ProgramacionProduccionForm implements OnInit {
     );
   }
 
-  skusFiltrados(fila: FilaProgramacionSku): any[] {
-    const texto = (fila.filtroSku || '').trim().toLowerCase();
-
-    if (!texto) {
-      return this.skusDisponibles;
-    }
-
-    return this.skusDisponibles.filter(sku => {
-      const codigo = String(sku.codigoSku || '').toLowerCase();
-      const descripcion = String(sku.descripcion || '').toLowerCase();
-      const producto = String(sku.nombreProducto || '').toLowerCase();
-      const marca = String(sku.nombreMarca || '').toLowerCase();
-      const peso = String(sku.pesoNetoGr || '').toLowerCase();
-
-      return codigo.includes(texto)
-        || descripcion.includes(texto)
-        || producto.includes(texto)
-        || marca.includes(texto)
-        || peso.includes(texto);
-    });
-  }
-
-  limpiarBuscadorSku(fila: FilaProgramacionSku): void {
-    fila.filtroSku = '';
-  }
-
-  onSkuSeleccionado(fila: FilaProgramacionSku): void {
-    const sku = this.obtenerSku(fila.idSku);
-
-    if (sku) {
-      fila.filtroSku = `${sku.descripcion || sku.nombreProducto || ''} ${sku.pesoNetoGr || ''}g`.trim();
-    }
-  }
-
   obtenerKgBatchFormula(): number {
     return Number(
       this.formulaVigente?.kgBatchTotal ??
@@ -189,34 +153,46 @@ export class ProgramacionProduccionForm implements OnInit {
       this.formulaVigente?.kgBachePlan ??
       this.formulaVigente?.cantidadBatchKg ??
       this.formulaVigente?.totalKgBatch ??
+      this.formulaVigente?.tamanoBatchKg ??
+      this.formulaVigente?.tamanioBatchKg ??
       0
     );
   }
 
   obtenerRendimientoFormula(): number {
-    const valorDirecto = Number(
-      this.formulaVigente?.rendimientoTeoricoPct ??
-      this.formulaVigente?.rendimientoPct ??
-      this.formulaVigente?.rendimientoPorcentaje ??
-      this.formulaVigente?.rendimientoEstimadoPct ??
-      this.formulaVigente?.rendimientoEstimado ??
-      this.formulaVigente?.rendimiento ??
-      0
-    );
+    const posiblesValores = [
+      this.formulaVigente?.rendimientoTeoricoPct,
+      this.formulaVigente?.rendimientoPct,
+      this.formulaVigente?.rendimientoPorcentaje,
+      this.formulaVigente?.rendimientoEstimadoPct,
+      this.formulaVigente?.rendimientoEstimado,
+      this.formulaVigente?.rendimiento,
+      this.formulaVigente?.porcentajeRendimiento,
+      this.formulaVigente?.rendimientoTeorico
+    ];
 
-    if (valorDirecto > 0) {
-      return valorDirecto;
+    for (const valor of posiblesValores) {
+      const numero = Number(valor);
+
+      if (!Number.isNaN(numero) && numero > 0) {
+        return numero > 1 ? numero : Number((numero * 100).toFixed(3));
+      }
     }
 
-    const evaporacion = Number(
-      this.formulaVigente?.reduccionEvaporacionPct ??
-      this.formulaVigente?.evaporacionPct ??
-      this.formulaVigente?.porcentajeEvaporacion ??
-      0
-    );
+    const posiblesEvaporaciones = [
+      this.formulaVigente?.reduccionEvaporacionPct,
+      this.formulaVigente?.evaporacionPct,
+      this.formulaVigente?.porcentajeEvaporacion,
+      this.formulaVigente?.reduccionEvaporacion,
+      this.formulaVigente?.evaporacion
+    ];
 
-    if (evaporacion > 0 && evaporacion < 100) {
-      return Number((100 - evaporacion).toFixed(3));
+    for (const valor of posiblesEvaporaciones) {
+      const evaporacion = Number(valor);
+
+      if (!Number.isNaN(evaporacion) && evaporacion > 0 && evaporacion < 100) {
+        return Number((100 - evaporacion).toFixed(3));
+      }
     }
 
     return 0;
@@ -229,11 +205,7 @@ export class ProgramacionProduccionForm implements OnInit {
       return 0;
     }
 
-    if (rendimiento > 1) {
-      return rendimiento / 100;
-    }
-
-    return rendimiento;
+    return rendimiento > 1 ? rendimiento / 100 : rendimiento;
   }
 
   calcularKgProductoTerminado(fila: SimularSkuRequest): number {
@@ -286,7 +258,8 @@ export class ProgramacionProduccionForm implements OnInit {
   }
 
   calcularTotalUnidades(): number {
-    return this.skus.reduce((total, fila) => total + Number(fila.unidades || 0), 0);
+    return this.skus
+      .reduce((total, fila) => total + Number(fila.unidades || 0), 0);
   }
 
   calcularTotalKgPt(): number {
@@ -314,7 +287,8 @@ export class ProgramacionProduccionForm implements OnInit {
   }
 
   calcularTotalBatchesOperativos(): number {
-    return this.skus.reduce((total, fila) => total + this.calcularBatchesOperativos(fila), 0);
+    return this.skus
+      .reduce((total, fila) => total + this.calcularBatchesOperativos(fila), 0);
   }
 
   calcularKgEntradaPorBatchPlan(): number {
@@ -398,7 +372,7 @@ export class ProgramacionProduccionForm implements OnInit {
         this.numBachesPlanManual = null;
         this.formulaVigente = null;
         this.skusDisponibles = [];
-        this.skus = [{ idSku: 0, unidades: 0, filtroSku: '' }];
+        this.skus = [{ idSku: 0, unidades: 0 }];
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
       },
