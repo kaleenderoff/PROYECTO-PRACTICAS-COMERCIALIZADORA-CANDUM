@@ -49,6 +49,14 @@ public class GestionDescremadoRecepcionService implements GestionDescremadoRecep
         validarCalidadAprobada(recepcion);
         validarDisponibleEnRecepcion(recepcion, descremadoRecepcion);
 
+        /*
+         * El descremado consume leche disponible del tanque original de la recepción.
+         * Por eso solo se registra una SALIDA_DESCREME.
+         *
+         * Antes también se registraba una ENTRADA_DESCREME por la misma cantidad,
+         * lo que anulaba el descuento del tanque:
+         * saldo - litrosDescremados + litrosDescremados = mismo saldo.
+         */
         MovimientoLeche movimientoSalida = movimientoLecheUseCase.registrarMovimiento(
                 recepcion.getIdTanque(),
                 TipoMovimientoLeche.SALIDA_DESCREME,
@@ -57,16 +65,8 @@ public class GestionDescremadoRecepcionService implements GestionDescremadoRecep
                 construirReferenciaSalida(recepcion),
                 descremadoRecepcion.getObservaciones());
 
-        MovimientoLeche movimientoEntrada = movimientoLecheUseCase.registrarMovimiento(
-                descremadoRecepcion.getIdTanqueDestino(),
-                TipoMovimientoLeche.ENTRADA_DESCREME,
-                descremadoRecepcion.getLitrosDescremados(),
-                recepcion.getIdUsuario(),
-                construirReferenciaEntrada(recepcion),
-                descremadoRecepcion.getObservaciones());
-
         descremadoRecepcion.setIdMovimientoSalida(movimientoSalida.getId());
-        descremadoRecepcion.setIdMovimientoEntrada(movimientoEntrada.getId());
+        descremadoRecepcion.setIdMovimientoEntrada(null);
 
         return repository.guardar(descremadoRecepcion);
     }
@@ -206,14 +206,6 @@ public class GestionDescremadoRecepcionService implements GestionDescremadoRecep
 
         String lote = descremadoRecepcion.getLoteCrema().trim();
         descremadoRecepcion.setLoteCrema(lote.isBlank() ? null : lote);
-    }
-
-    private String construirReferenciaEntrada(RecepcionLeche recepcion) {
-        if (recepcion.getNumeroRemision() != null && !recepcion.getNumeroRemision().isBlank()) {
-            return "Entrada leche descremada - Remision " + recepcion.getNumeroRemision();
-        }
-
-        return "Entrada leche descremada - Recepcion ID " + recepcion.getId();
     }
 
     private String construirReferenciaSalida(RecepcionLeche recepcion) {
