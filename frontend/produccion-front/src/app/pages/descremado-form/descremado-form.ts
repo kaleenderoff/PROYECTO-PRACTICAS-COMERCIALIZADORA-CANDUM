@@ -14,6 +14,7 @@ import {
   SaldoTanqueLeche
 } from '../../core/services/recepcion-leche';
 import { NotificationService } from '../../core/services/notification';
+import { ControlCalidadLacteaService, EstadoCalidadRecepcion } from '../../core/services/control-calidad-lactea';
 
 @Component({
   selector: 'app-descremado-form',
@@ -30,6 +31,7 @@ export class DescremadoForm implements OnInit {
 
   recepciones: RecepcionLeche[] = [];
   skusCrema: SkuCatalogo[] = [];
+  estadosCalidad: EstadoCalidadRecepcion[] = [];
 
   tanqueRefrigeracion: SaldoTanqueLeche | null = null;
   private lotesCremaRegistrados = new Set<string>();
@@ -41,6 +43,7 @@ export class DescremadoForm implements OnInit {
     private fb: FormBuilder,
     private descremadoService: DescremadoService,
     private recepcionLecheService: RecepcionLecheService,
+    private controlCalidadService: ControlCalidadLacteaService,
     private router: Router,
     private notification: NotificationService
   ) {
@@ -105,28 +108,44 @@ export class DescremadoForm implements OnInit {
 
     this.recepcionLecheService.listarRecepciones().subscribe({
       next: (recepciones) => {
-        this.descremadoService.listar().subscribe({
-          next: (descremados) => {
-            this.descremadosRegistrados = descremados.map(descremado => ({
-              idRecepcionLeche: descremado.idRecepcionLeche,
-              litrosDescremados: Number(descremado.litrosDescremados || 0)
-            }));
+        this.controlCalidadService.listarEstadosRecepcion().subscribe({
+          next: (estados) => {
+            this.estadosCalidad = estados;
 
-            this.lotesCremaRegistrados = new Set(
-              descremados
-                .map(descremado => descremado.loteCrema?.trim().toUpperCase())
-                .filter((lote): lote is string => Boolean(lote))
-            );
+            this.descremadoService.listar().subscribe({
+              next: (descremados) => {
+                this.descremadosRegistrados = descremados.map(descremado => ({
+                  idRecepcionLeche: descremado.idRecepcionLeche,
+                  litrosDescremados: Number(descremado.litrosDescremados || 0)
+                }));
 
-            this.recepciones = recepciones.filter(recepcion =>
-              this.litrosDisponiblesPara(recepcion) > 0
-            ).sort((a, b) => this.fechaOrdenable(b).localeCompare(this.fechaOrdenable(a)));
+                this.lotesCremaRegistrados = new Set(
+                  descremados
+                    .map(descremado => descremado.loteCrema?.trim().toUpperCase())
+                    .filter((lote): lote is string => Boolean(lote))
+                );
 
-            this.cargandoDatos = false;
+                this.recepciones = recepciones
+                  .map(recepcion => ({
+                    ...recepcion,
+                    estadoCalidad: this.estadoCalidadRecepcion(recepcion.id)
+                  }))
+                  .filter(recepcion => this.litrosDisponiblesPara(recepcion) > 0)
+                  .sort((a, b) => this.fechaOrdenable(b).localeCompare(this.fechaOrdenable(a)));
+
+                this.cargandoDatos = false;
+              },
+              error: (err) => {
+                console.error(err);
+                this.error = 'No se pudieron cargar los descremados existentes.';
+                this.notification.error(this.error);
+                this.cargandoDatos = false;
+              }
+            });
           },
           error: (err) => {
             console.error(err);
-            this.error = 'No se pudieron cargar los descremados existentes.';
+            this.error = 'No se pudieron cargar los estados de calidad.';
             this.notification.error(this.error);
             this.cargandoDatos = false;
           }
@@ -211,6 +230,13 @@ export class DescremadoForm implements OnInit {
 
     const litrosDescremados = Number(value.litrosDescremados);
     const litrosDisponibles = this.litrosDisponiblesRecepcion();
+    const estadoCalidad = this.estadoCalidadSeleccionada();
+
+    if (estadoCalidad === 'RETENIDA' || estadoCalidad === 'NO_APROBADA') {
+      this.notification.warning('No se puede descremar una recepcion retenida o no aprobada por calidad.');
+      this.cargando = false;
+      return;
+    }
 
     if (litrosDescremados > litrosDisponibles) {
       this.notification.warning(`Solo hay ${litrosDisponibles.toFixed(2)} L disponibles para esta recepcion.`);
@@ -259,6 +285,56 @@ export class DescremadoForm implements OnInit {
     return this.litrosDisponiblesPara(recepcion);
   }
 
+  litrosRecibidosSeleccionada(): number {
+    return Number(this.recepcionSeleccionada()?.cantidadRecibidaLitros || 0);
+  }
+
+  litrosYaDescremadosSeleccionada(): number {
+    const recepcion = this.recepcionSeleccionada();
+    if (!recepcion) return 0;
+    return this.descremadosRegistrados
+      .filter(item => item.idRecepcionLeche === recepcion.id)
+      .reduce((total, item) => total + item.litrosDescremados, 0);
+  }
+
+  litrosDespuesDescremado(): number {
+    const disponibles = this.litrosDisponiblesRecepcion();
+    const litros = Number(this.form.get('litrosDescremados')?.value || 0);
+    return Math.max(disponibles - litros, 0);
+  }
+
+  rendimientoCremaPor100Litros(): number {
+    const litros = Number(this.form.get('litrosDescremados')?.value || 0);
+    const crema = Number(this.form.get('cremaObtenidaKg')?.value || 0);
+    if (litros <= 0 || crema <= 0) return 0;
+    return (crema / litros) * 100;
+  }
+
+  estadoCalidadSeleccionada(): RecepcionLeche['estadoCalidad'] {
+    const recepcion = this.recepcionSeleccionada();
+    return recepcion?.estadoCalidad || 'SIN_CALIDAD';
+  }
+
+  textoEstadoCalidad(): string {
+    const estado = this.estadoCalidadSeleccionada();
+    if (estado === 'APROBADA') return 'Aprobada';
+    if (estado === 'RETENIDA') return 'Retenida';
+    if (estado === 'NO_APROBADA') return 'No aprobada';
+    return 'Sin control';
+  }
+
+  claseEstadoCalidad(): string {
+    const estado = this.estadoCalidadSeleccionada();
+    if (estado === 'APROBADA') return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+    if (estado === 'RETENIDA' || estado === 'NO_APROBADA') return 'bg-red-50 text-red-700 border-red-100';
+    return 'bg-amber-50 text-amber-700 border-amber-100';
+  }
+
+  puedeDescremarSeleccionada(): boolean {
+    const estado = this.estadoCalidadSeleccionada();
+    return estado !== 'RETENIDA' && estado !== 'NO_APROBADA';
+  }
+
   cremaEstimadaKg(): number {
     const litros = Number(this.form.get('litrosDescremados')?.value || 0);
     return litros * this.kgCremaEsperadoPorLitro;
@@ -285,5 +361,9 @@ export class DescremadoForm implements OnInit {
       .reduce((total, item) => total + item.litrosDescremados, 0);
 
     return Math.max(recibido - descremado, 0);
+  }
+
+  private estadoCalidadRecepcion(idRecepcion: number): RecepcionLeche['estadoCalidad'] {
+    return this.estadosCalidad.find(estado => estado.idRecepcionLeche === idRecepcion)?.estadoCalidad || 'SIN_CALIDAD';
   }
 }

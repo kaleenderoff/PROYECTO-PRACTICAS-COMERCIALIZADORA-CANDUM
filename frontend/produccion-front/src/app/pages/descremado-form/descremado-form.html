@@ -1,4 +1,4 @@
-<div class="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500 pb-24">
+<div class="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500 pb-24">
 
     <div class="flex items-center gap-4">
         <button routerLink="/descremado"
@@ -13,7 +13,7 @@
 
     <div *ngIf="cargandoDatos" class="flex items-center gap-3 p-4 bg-amber-50 text-amber-700 rounded-2xl border border-amber-100 shadow-sm animate-pulse">
         <div class="w-10 h-10 bg-amber-100 rounded-xl"></div>
-        <div class="h-3 bg-amber-200/50 rounded w-1/4"></div>
+        <span class="text-sm font-bold">Cargando recepciones, saldos y calidad...</span>
     </div>
 
     <div *ngIf="error" class="p-4 bg-red-50 text-red-700 rounded-2xl border border-red-100 shadow-sm flex items-center gap-3 font-medium">
@@ -26,7 +26,7 @@
         <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-8 md:p-10 space-y-8">
             <div class="flex items-center gap-3">
                 <div class="w-1.5 h-6 bg-amber-500 rounded-full"></div>
-                <h2 class="font-bold text-slate-800 uppercase tracking-wider text-sm">Configuracion del Proceso</h2>
+                <h2 class="font-bold text-slate-800 uppercase tracking-wider text-sm">Configuracion del proceso</h2>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -47,10 +47,39 @@
 
                 <div class="space-y-2">
                     <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Tanque destino</label>
-                    <input type="text" readonly [value]="tanqueRefrigeracion ? (tanqueRefrigeracion.nombre + ' (' + tanqueRefrigeracion.saldoLitros + ' L)') : 'Sin tanque asignado'"
+                    <input type="text" readonly [value]="tanqueRefrigeracion ? (tanqueRefrigeracion.nombre + ' - saldo actual: ' + (tanqueRefrigeracion.saldoLitros | number:'1.0-3') + ' L') : 'Sin tanque asignado'"
                            class="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-2xl text-slate-500 cursor-not-allowed text-sm font-medium">
                 </div>
+            </div>
 
+            <div *ngIf="recepcionSeleccionada()" class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Proveedor</span>
+                    <p class="mt-1 text-sm font-black text-slate-900">{{ recepcionSeleccionada()?.proveedor }}</p>
+                    <p class="text-xs text-slate-400">{{ recepcionSeleccionada()?.fechaRecepcion | date:'dd/MM/yyyy' }}</p>
+                </div>
+                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Remision</span>
+                    <p class="mt-1 text-sm font-black text-slate-900">{{ recepcionSeleccionada()?.numeroRemision || 'Sin remision' }}</p>
+                    <p class="text-xs text-slate-400">{{ recepcionSeleccionada()?.cantidadRemisionLitros || 0 | number:'1.0-3' }} L reportados</p>
+                </div>
+                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Recibido / usado</span>
+                    <p class="mt-1 text-sm font-black text-slate-900">{{ litrosRecibidosSeleccionada() | number:'1.0-3' }} L</p>
+                    <p class="text-xs text-slate-400">{{ litrosYaDescremadosSeleccionada() | number:'1.0-3' }} L ya descremados</p>
+                </div>
+                <div class="p-4 rounded-2xl border" [ngClass]="claseEstadoCalidad()">
+                    <span class="text-[10px] font-black uppercase tracking-widest">Calidad</span>
+                    <p class="mt-1 text-sm font-black">{{ textoEstadoCalidad() }}</p>
+                    <p class="text-xs opacity-80">Control inicial de recepcion</p>
+                </div>
+            </div>
+
+            <div *ngIf="recepcionSeleccionada() && !puedeDescremarSeleccionada()" class="p-4 bg-red-50 border border-red-100 text-red-700 rounded-2xl font-bold text-sm">
+                Esta recepcion esta retenida o no aprobada por calidad. No se debe usar para descremado.
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="space-y-2">
                     <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Litros a descremar</label>
                     <div class="relative">
@@ -69,14 +98,22 @@
                     </div>
                 </div>
 
-                <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Litros disponibles recepcion</span>
-                        <p class="mt-1 text-xl font-black text-slate-900">{{ litrosDisponiblesRecepcion() | number:'1.0-2' }} L</p>
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Disponible actual</span>
+                        <p class="mt-1 text-xl font-black text-slate-900">{{ litrosDisponiblesRecepcion() | number:'1.0-3' }} L</p>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-100">
+                        <span class="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Despues del descremado</span>
+                        <p class="mt-1 text-xl font-black text-emerald-700">{{ litrosDespuesDescremado() | number:'1.0-3' }} L</p>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-amber-50 border border-amber-100">
+                        <span class="text-[10px] font-black text-amber-600 uppercase tracking-widest">Crema esperada</span>
+                        <p class="mt-1 text-xl font-black text-amber-700">{{ cremaEstimadaKg() | number:'1.0-2' }} kg</p>
                     </div>
                     <div class="p-4 rounded-2xl bg-blue-50 border border-blue-100">
-                        <span class="text-[10px] font-black text-blue-500 uppercase tracking-widest">Leche al tanque</span>
-                        <p class="mt-1 text-sm font-black text-blue-700">{{ tanqueRefrigeracion?.nombre || 'Sin tanque' }}</p>
+                        <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest">Rendimiento crema</span>
+                        <p class="mt-1 text-xl font-black text-blue-700">{{ rendimientoCremaPor100Litros() | number:'1.1-2' }} kg/100L</p>
                     </div>
                 </div>
             </div>
@@ -92,7 +129,7 @@
              class="bg-white rounded-[2.5rem] border border-amber-100 shadow-xl shadow-amber-900/5 p-8 md:p-10 space-y-8 animate-in slide-in-from-top-4 duration-300">
             <div class="flex items-center gap-3">
                 <div class="w-1.5 h-6 bg-amber-600 rounded-full"></div>
-                <h2 class="font-bold text-slate-800 uppercase tracking-wider text-sm">Informacion de Empaque</h2>
+                <h2 class="font-bold text-slate-800 uppercase tracking-wider text-sm">Informacion de empaque de crema</h2>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -146,7 +183,7 @@
                     class="px-6 py-3 text-slate-400 font-bold hover:text-white transition-colors">
                 Cancelar
             </button>
-            <button type="submit" [disabled]="cargando || cargandoDatos"
+            <button type="submit" [disabled]="cargando || cargandoDatos || !puedeDescremarSeleccionada()"
                     class="px-10 py-3 bg-amber-600 text-white font-black rounded-2xl shadow-xl shadow-amber-900/20 hover:bg-amber-500 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center gap-3">
                 <span *ngIf="!cargando">Confirmar registro</span>
                 <span *ngIf="cargando" class="flex items-center gap-2">

@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import {
@@ -16,7 +17,7 @@ import { AuthService } from '../../core/services/auth';
 
 @Component({
   selector: 'app-descremado',
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './descremado.html',
   
 })
@@ -28,6 +29,10 @@ export class Descremado implements OnInit {
 
   cargando = false;
   error = '';
+  filtroFecha = '';
+  filtroProveedor = '';
+  filtroTanque = '';
+  filtroLote = '';
 
   constructor(
     private descremadoService: DescremadoService,
@@ -85,6 +90,10 @@ export class Descremado implements OnInit {
     return `${recepcion.fechaRecepcion} - ${recepcion.proveedor}`;
   }
 
+  obtenerRecepcionEntidad(idRecepcion: number): RecepcionLeche | undefined {
+    return this.recepciones.find(r => r.id === idRecepcion);
+  }
+
   obtenerTanque(idTanque?: number): string {
     if (!idTanque) {
       return '-';
@@ -95,17 +104,105 @@ export class Descremado implements OnInit {
     return tanque?.nombre || `Tanque ${idTanque}`;
   }
 
+  get descremadosFiltrados(): DescremadoRecepcion[] {
+    const proveedor = this.filtroProveedor.trim().toLowerCase();
+    const lote = this.filtroLote.trim().toLowerCase();
+    const idTanque = Number(this.filtroTanque || 0);
+
+    return this.descremados.filter(item => {
+      const recepcion = this.obtenerRecepcionEntidad(item.idRecepcionLeche);
+      const cumpleFecha = !this.filtroFecha || recepcion?.fechaRecepcion === this.filtroFecha;
+      const cumpleProveedor = !proveedor || (recepcion?.proveedor || '').toLowerCase().includes(proveedor);
+      const cumpleTanque = !idTanque || item.idTanqueDestino === idTanque;
+      const cumpleLote = !lote || (item.loteCrema || '').toLowerCase().includes(lote);
+      return cumpleFecha && cumpleProveedor && cumpleTanque && cumpleLote;
+    });
+  }
+
+  limpiarFiltros(): void {
+    this.filtroFecha = '';
+    this.filtroProveedor = '';
+    this.filtroTanque = '';
+    this.filtroLote = '';
+    this.paginaActual = 1;
+  }
+
+  fechaHoy(): string {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  lecheRecibidaHoy(): number {
+    const hoy = this.fechaHoy();
+    return this.recepciones
+      .filter(recepcion => recepcion.fechaRecepcion === hoy)
+      .reduce((total, recepcion) => total + Number(recepcion.cantidadRecibidaLitros || 0), 0);
+  }
+
+  lecheDisponibleParaDescremar(): number {
+    return this.recepciones.reduce((total, recepcion) => total + this.litrosRestantesRecepcion(recepcion.id), 0);
+  }
+
+  lecheDescremadaHoy(): number {
+    const hoy = this.fechaHoy();
+    return this.descremados
+      .filter(item => this.obtenerRecepcionEntidad(item.idRecepcionLeche)?.fechaRecepcion === hoy)
+      .reduce((total, item) => total + Number(item.litrosDescremados || 0), 0);
+  }
+
+  cremaObtenidaHoy(): number {
+    const hoy = this.fechaHoy();
+    return this.descremados
+      .filter(item => this.obtenerRecepcionEntidad(item.idRecepcionLeche)?.fechaRecepcion === hoy)
+      .reduce((total, item) => total + Number(item.cremaObtenidaKg || 0), 0);
+  }
+
+  proveedoresDisponibles(): string[] {
+    return Array.from(new Set(this.recepciones.map(r => r.proveedor).filter(Boolean))).sort();
+  }
+
+  litrosRecibidosRecepcion(idRecepcion: number): number {
+    return Number(this.obtenerRecepcionEntidad(idRecepcion)?.cantidadRecibidaLitros || 0);
+  }
+
+  litrosDescremadosRecepcion(idRecepcion: number): number {
+    return this.descremados
+      .filter(item => item.idRecepcionLeche === idRecepcion)
+      .reduce((total, item) => total + Number(item.litrosDescremados || 0), 0);
+  }
+
+  litrosRestantesRecepcion(idRecepcion: number): number {
+    return Math.max(this.litrosRecibidosRecepcion(idRecepcion) - this.litrosDescremadosRecepcion(idRecepcion), 0);
+  }
+
+  estadoRecepcion(idRecepcion: number): 'Pendiente' | 'Parcial' | 'Completa' {
+    const recibido = this.litrosRecibidosRecepcion(idRecepcion);
+    const descremado = this.litrosDescremadosRecepcion(idRecepcion);
+
+    if (recibido <= 0 || descremado <= 0) {
+      return 'Pendiente';
+    }
+
+    return descremado >= recibido ? 'Completa' : 'Parcial';
+  }
+
+  claseEstado(idRecepcion: number): string {
+    const estado = this.estadoRecepcion(idRecepcion);
+    if (estado === 'Completa') return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+    if (estado === 'Parcial') return 'bg-amber-50 text-amber-700 border-amber-100';
+    return 'bg-slate-50 text-slate-600 border-slate-100';
+  }
+
   // Paginación
   paginaActual = 1;
   itemsPorPagina = 10;
 
   get descremadosPaginados(): DescremadoRecepcion[] {
     const inicio = (this.paginaActual - 1) * this.itemsPorPagina;
-    return this.descremados.slice(inicio, inicio + this.itemsPorPagina);
+    return this.descremadosFiltrados.slice(inicio, inicio + this.itemsPorPagina);
   }
 
   get totalPaginas(): number {
-    return Math.ceil(this.descremados.length / this.itemsPorPagina);
+    return Math.ceil(this.descremadosFiltrados.length / this.itemsPorPagina);
   }
 
   get paginas(): number[] {
