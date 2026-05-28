@@ -122,13 +122,18 @@ export class Descremado implements OnInit {
   }
 
   lecheDisponibleParaDescremar(): number {
-    const hoy = this.fechaHoyLocal();
+    return this.tanques.reduce((total, tanque: any) => {
+      const saldo = Number(
+        tanque.saldoActualLitros ??
+        tanque.saldoLitros ??
+        tanque.cantidadActualLitros ??
+        tanque.litrosDisponibles ??
+        tanque.disponibleLitros ??
+        0
+      );
 
-    return this.recepciones
-      .filter(recepcion => this.esMismaFecha(recepcion.fechaRecepcion, hoy))
-      .reduce((total, recepcion) => {
-        return total + this.litrosRestantesRecepcion(recepcion.id);
-      }, 0);
+      return total + saldo;
+    }, 0);
   }
 
   lecheDescremadaHoy(): number {
