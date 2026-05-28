@@ -45,7 +45,7 @@ export class Descremado implements OnInit {
   filtroLote = '';
 
   paginaActual = 1;
-  tamanioPagina = 10;
+  tamanioPagina = 5;
 
   constructor(
     private descremadoService: DescremadoService,
@@ -203,6 +203,10 @@ export class Descremado implements OnInit {
     this.filtroTanque = '';
     this.filtroLote = '';
     this.paginaActual = 1;
+  }
+
+  obtenerNumeroFila(index: number): number {
+    return ((this.paginaActual - 1) * this.tamanioPagina) + index + 1;
   }
 
   obtenerRecepcion(idRecepcionLeche: number): string {
