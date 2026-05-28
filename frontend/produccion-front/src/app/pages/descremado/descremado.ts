@@ -161,24 +161,26 @@ export class Descremado implements OnInit {
   }
 
   get descremadosFiltrados(): DescremadoRecepcion[] {
-    return this.descremados.filter(item => {
-      const recepcion = this.buscarRecepcion(item.idRecepcionLeche);
+    return this.descremados
+      .filter(item => {
+        const recepcion = this.buscarRecepcion(item.idRecepcionLeche);
 
-      const coincideFecha = !this.filtroFecha
-        || this.esMismaFecha(item.createdAt, this.filtroFecha)
-        || this.esMismaFecha(recepcion?.fechaRecepcion, this.filtroFecha);
+        const coincideFecha = !this.filtroFecha
+          || this.esMismaFecha(item.createdAt, this.filtroFecha)
+          || this.esMismaFecha(recepcion?.fechaRecepcion, this.filtroFecha);
 
-      const coincideProveedor = !this.filtroProveedor
-        || recepcion?.proveedor === this.filtroProveedor;
+        const coincideProveedor = !this.filtroProveedor
+          || recepcion?.proveedor === this.filtroProveedor;
 
-      const coincideTanque = !this.filtroTanque
-        || String(item.idTanqueDestino || '') === String(this.filtroTanque);
+        const coincideTanque = !this.filtroTanque
+          || String(item.idTanqueDestino || '') === String(this.filtroTanque);
 
-      const coincideLote = !this.filtroLote
-        || (item.loteCrema || '').toLowerCase().includes(this.filtroLote.toLowerCase());
+        const coincideLote = !this.filtroLote
+          || (item.loteCrema || '').toLowerCase().includes(this.filtroLote.toLowerCase());
 
-      return coincideFecha && coincideProveedor && coincideTanque && coincideLote;
-    });
+        return coincideFecha && coincideProveedor && coincideTanque && coincideLote;
+      })
+      .sort((a, b) => this.compararDescremadosRecientes(a, b));
   }
 
   get descremadosPaginados(): DescremadoRecepcion[] {
@@ -286,6 +288,27 @@ export class Descremado implements OnInit {
 
   estadoCalidadRecepcion(idRecepcionLeche: number): string {
     return this.estadosCalidad.find(item => Number(item.idRecepcionLeche) === Number(idRecepcionLeche))?.estadoCalidad || 'SIN_CALIDAD';
+  }
+
+  private compararDescremadosRecientes(a: DescremadoRecepcion, b: DescremadoRecepcion): number {
+    const fechaA = this.obtenerTiempoDescremado(a);
+    const fechaB = this.obtenerTiempoDescremado(b);
+
+    if (fechaA !== fechaB) {
+      return fechaB - fechaA;
+    }
+
+    return Number(b.id || 0) - Number(a.id || 0);
+  }
+
+  private obtenerTiempoDescremado(descremado: DescremadoRecepcion): number {
+    const tiempo = new Date(descremado.createdAt || '').getTime();
+
+    if (!Number.isNaN(tiempo)) {
+      return tiempo;
+    }
+
+    return 0;
   }
 
   private buscarRecepcion(idRecepcionLeche: number): RecepcionLeche | undefined {
