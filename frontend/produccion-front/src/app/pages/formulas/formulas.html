@@ -214,7 +214,7 @@
                     <div>
                         <h2 class="text-xl font-bold text-slate-800 tracking-tight">Ingredientes de la Receta</h2>
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
-                            Batch Base: {{ obtenerKgBatchBase() }} kg
+                            Batch Base: {{ obtenerKgBatchBase() | number:'1.0-3' }} kg
                         </p>
                     </div>
 
@@ -380,6 +380,26 @@
                                     [(ngModel)]="nuevoDetalle.cantidadKg" (ngModelChange)="calcularPorcentaje()"
                                     class="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-emerald-600">
                             </div>
+
+                            <div class="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="p-4 bg-white rounded-2xl border border-slate-100">
+                                    <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                        Cantidad calculada kg
+                                    </span>
+                                    <p class="mt-1 text-xl font-black text-slate-900">
+                                        {{ nuevoDetalle.cantidadKg | number:'1.0-3' }} kg
+                                    </p>
+                                </div>
+
+                                <div class="p-4 bg-white rounded-2xl border border-slate-100">
+                                    <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                        Cantidad calculada g
+                                    </span>
+                                    <p class="mt-1 text-xl font-black text-slate-900">
+                                        {{ calcularCantidadGramos() | number:'1.0-1' }} g
+                                    </p>
+                                </div>
+                            </div>
                         </div>
 
                         <div
@@ -409,8 +429,8 @@
                     </div>
 
                     <!-- Ingredients Table -->
-                    <div class="overflow-hidden border border-slate-100 rounded-3xl">
-                        <table class="w-full text-left">
+                    <div class="overflow-x-auto border border-slate-100 rounded-3xl">
+                        <table class="w-full min-w-[900px] text-left">
                             <thead class="bg-slate-50/50">
                                 <tr>
                                     <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase">
@@ -427,6 +447,9 @@
                                     </th>
                                     <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase text-right">
                                         Cantidad Kg
+                                    </th>
+                                    <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase text-right">
+                                        Cantidad g
                                     </th>
                                     <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase text-center">
                                         Status
@@ -456,14 +479,21 @@
                                     </td>
 
                                     <td class="px-6 py-4 text-right font-medium text-slate-600">
-                                        {{ detalle.porcentaje }}%
+                                        {{ detalle.porcentaje | number:'1.0-4' }}%
                                     </td>
 
                                     <td class="px-6 py-4 text-right">
                                         <span class="font-bold text-slate-800">
-                                            {{ detalle.cantidadKg }}
+                                            {{ detalle.cantidadKg | number:'1.0-3' }}
                                         </span>
                                         <span class="text-[10px] text-slate-400 ml-1">kg</span>
+                                    </td>
+
+                                    <td class="px-6 py-4 text-right">
+                                        <span class="font-bold text-slate-800">
+                                            {{ calcularGramosDetalle(detalle) | number:'1.0-1' }}
+                                        </span>
+                                        <span class="text-[10px] text-slate-400 ml-1">g</span>
                                     </td>
 
                                     <td class="px-6 py-4 text-center">
@@ -494,11 +524,15 @@
                                     </td>
 
                                     <td class="px-6 py-4 text-right">
-                                        {{ calcularTotalPorcentaje() }}%
+                                        {{ calcularTotalPorcentaje() | number:'1.0-4' }}%
                                     </td>
 
                                     <td class="px-6 py-4 text-right">
-                                        {{ calcularTotalKg() }} kg
+                                        {{ calcularTotalKg() | number:'1.0-3' }} kg
+                                    </td>
+
+                                    <td class="px-6 py-4 text-right">
+                                        {{ calcularTotalGramos() | number:'1.0-1' }} g
                                     </td>
 
                                     <td colspan="2"></td>
