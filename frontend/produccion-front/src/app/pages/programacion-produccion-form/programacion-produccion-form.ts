@@ -16,6 +16,10 @@ import {
 
 import { RouterModule } from '@angular/router';
 
+interface FilaProgramacionSku extends SimularSkuRequest {
+  filtroSku?: string;
+}
+
 @Component({
   selector: 'app-programacion-produccion-form',
   standalone: true,
@@ -38,14 +42,15 @@ export class ProgramacionProduccionForm implements OnInit {
   idJefeLineaEjecutor: number | null = null;
   idTurno: number | null = null;
 
-  fechaProduccion = new Date().toISOString().substring(0, 10);
+  fechaProduccion = this.fechaHoyLocal();
   observaciones = '';
   numBachesPlanManual: number | null = null;
 
-  skus: SimularSkuRequest[] = [
+  skus: FilaProgramacionSku[] = [
     {
       idSku: 0,
-      unidades: 0
+      unidades: 0,
+      filtroSku: ''
     }
   ];
 
@@ -60,21 +65,21 @@ export class ProgramacionProduccionForm implements OnInit {
 
   cargarProductos(): void {
     this.programacionService.listarProductos().subscribe({
-      next: productos => this.productos = productos,
+      next: productos => this.productos = productos || [],
       error: error => console.error('Error cargando productos', error)
     });
   }
 
   cargarTurnos(): void {
     this.programacionService.listarTurnos().subscribe({
-      next: turnos => this.turnos = turnos,
+      next: turnos => this.turnos = turnos || [],
       error: error => console.error('Error cargando turnos', error)
     });
   }
 
   cargarJefesLinea(): void {
     this.usuarioService.listarPorRol('JEFE_LINEA').subscribe({
-      next: usuarios => this.jefesLinea = usuarios,
+      next: usuarios => this.jefesLinea = usuarios || [],
       error: error => console.error('Error cargando jefes de línea', error)
     });
   }
@@ -82,9 +87,11 @@ export class ProgramacionProduccionForm implements OnInit {
   onProductoChange(): void {
     this.skusDisponibles = [];
     this.formulaVigente = null;
-    this.skus = [{ idSku: 0, unidades: 0 }];
+    this.skus = [{ idSku: 0, unidades: 0, filtroSku: '' }];
 
-    if (!this.idProducto) return;
+    if (!this.idProducto) {
+      return;
+    }
 
     this.cargarSkusPorProducto(this.idProducto);
     this.cargarFormulaVigente(this.idProducto);
@@ -92,7 +99,7 @@ export class ProgramacionProduccionForm implements OnInit {
 
   cargarSkusPorProducto(idProducto: number): void {
     this.programacionService.listarSkusPorProducto(idProducto).subscribe({
-      next: skus => this.skusDisponibles = skus,
+      next: skus => this.skusDisponibles = skus || [],
       error: error => console.error('Error cargando SKUs', error)
     });
   }
@@ -124,7 +131,7 @@ export class ProgramacionProduccionForm implements OnInit {
   }
 
   agregarFila(): void {
-    this.skus.push({ idSku: 0, unidades: 0 });
+    this.skus.push({ idSku: 0, unidades: 0, filtroSku: '' });
   }
 
   eliminarFila(index: number): void {
@@ -141,42 +148,145 @@ export class ProgramacionProduccionForm implements OnInit {
     );
   }
 
+  skusFiltrados(fila: FilaProgramacionSku): any[] {
+    const texto = (fila.filtroSku || '').trim().toLowerCase();
+
+    if (!texto) {
+      return this.skusDisponibles;
+    }
+
+    return this.skusDisponibles.filter(sku => {
+      const codigo = String(sku.codigoSku || '').toLowerCase();
+      const descripcion = String(sku.descripcion || '').toLowerCase();
+      const producto = String(sku.nombreProducto || '').toLowerCase();
+      const marca = String(sku.nombreMarca || '').toLowerCase();
+      const peso = String(sku.pesoNetoGr || '').toLowerCase();
+
+      return codigo.includes(texto)
+        || descripcion.includes(texto)
+        || producto.includes(texto)
+        || marca.includes(texto)
+        || peso.includes(texto);
+    });
+  }
+
+  limpiarBuscadorSku(fila: FilaProgramacionSku): void {
+    fila.filtroSku = '';
+  }
+
+  onSkuSeleccionado(fila: FilaProgramacionSku): void {
+    const sku = this.obtenerSku(fila.idSku);
+
+    if (sku) {
+      fila.filtroSku = `${sku.descripcion || sku.nombreProducto || ''} ${sku.pesoNetoGr || ''}g`.trim();
+    }
+  }
+
   obtenerKgBatchFormula(): number {
-    return Number(this.formulaVigente?.kgBatchTotal || 0);
+    return Number(
+      this.formulaVigente?.kgBatchTotal ??
+      this.formulaVigente?.kgBatch ??
+      this.formulaVigente?.kgBachePlan ??
+      this.formulaVigente?.cantidadBatchKg ??
+      this.formulaVigente?.totalKgBatch ??
+      0
+    );
   }
 
   obtenerRendimientoFormula(): number {
-    return Number(this.formulaVigente?.rendimientoTeoricoPct || 0);
+    const valorDirecto = Number(
+      this.formulaVigente?.rendimientoTeoricoPct ??
+      this.formulaVigente?.rendimientoPct ??
+      this.formulaVigente?.rendimientoPorcentaje ??
+      this.formulaVigente?.rendimientoEstimadoPct ??
+      this.formulaVigente?.rendimientoEstimado ??
+      this.formulaVigente?.rendimiento ??
+      0
+    );
+
+    if (valorDirecto > 0) {
+      return valorDirecto;
+    }
+
+    const evaporacion = Number(
+      this.formulaVigente?.reduccionEvaporacionPct ??
+      this.formulaVigente?.evaporacionPct ??
+      this.formulaVigente?.porcentajeEvaporacion ??
+      0
+    );
+
+    if (evaporacion > 0 && evaporacion < 100) {
+      return Number((100 - evaporacion).toFixed(3));
+    }
+
+    return 0;
+  }
+
+  private obtenerRendimientoDecimal(): number {
+    const rendimiento = this.obtenerRendimientoFormula();
+
+    if (rendimiento <= 0) {
+      return 0;
+    }
+
+    if (rendimiento > 1) {
+      return rendimiento / 100;
+    }
+
+    return rendimiento;
   }
 
   calcularKgProductoTerminado(fila: SimularSkuRequest): number {
     const sku = this.obtenerSku(fila.idSku);
+    const unidades = Number(fila.unidades || 0);
 
-    if (!sku || !fila.unidades) return 0;
+    if (!sku || unidades <= 0) {
+      return 0;
+    }
 
-    return Number(((Number(fila.unidades) * Number(sku.pesoNetoGr)) / 1000).toFixed(3));
+    const pesoNetoGr = Number(sku.pesoNetoGr || 0);
+
+    if (pesoNetoGr <= 0) {
+      return 0;
+    }
+
+    return Number(((unidades * pesoNetoGr) / 1000).toFixed(3));
   }
 
   calcularKgEntradaRequeridos(fila: SimularSkuRequest): number {
     const kgPt = this.calcularKgProductoTerminado(fila);
-    const rendimiento = this.obtenerRendimientoFormula();
+    const rendimientoDecimal = this.obtenerRendimientoDecimal();
 
-    if (kgPt <= 0 || rendimiento <= 0) return 0;
+    if (kgPt <= 0 || rendimientoDecimal <= 0) {
+      return 0;
+    }
 
-    return Number((kgPt / (rendimiento / 100)).toFixed(3));
+    return Number((kgPt / rendimientoDecimal).toFixed(3));
   }
 
   calcularBatchesTeoricos(fila: SimularSkuRequest): number {
     const kgEntrada = this.calcularKgEntradaRequeridos(fila);
     const kgBatchFormula = this.obtenerKgBatchFormula();
 
-    if (kgEntrada <= 0 || kgBatchFormula <= 0) return 0;
+    if (kgEntrada <= 0 || kgBatchFormula <= 0) {
+      return 0;
+    }
 
     return Number((kgEntrada / kgBatchFormula).toFixed(3));
   }
 
   calcularBatchesOperativos(fila: SimularSkuRequest): number {
-    return Math.ceil(this.calcularBatchesTeoricos(fila));
+    const batchesTeoricos = this.calcularBatchesTeoricos(fila);
+
+    if (batchesTeoricos <= 0) {
+      return 0;
+    }
+
+    return Math.ceil(batchesTeoricos);
+  }
+
+  calcularTotalUnidades(): number {
+    return this.skus.reduce((total, fila) => total + Number(fila.unidades || 0), 0);
   }
 
   calcularTotalKgPt(): number {
@@ -204,8 +314,25 @@ export class ProgramacionProduccionForm implements OnInit {
   }
 
   calcularTotalBatchesOperativos(): number {
-    return this.skus
-      .reduce((total, fila) => total + this.calcularBatchesOperativos(fila), 0);
+    return this.skus.reduce((total, fila) => total + this.calcularBatchesOperativos(fila), 0);
+  }
+
+  calcularKgEntradaPorBatchPlan(): number {
+    const batchesPlan = this.numBachesPlanManual !== null
+      ? Number(this.numBachesPlanManual || 0)
+      : this.calcularTotalBatchesOperativos();
+
+    const kgBatch = this.obtenerKgBatchFormula();
+
+    if (batchesPlan <= 0 || kgBatch <= 0) {
+      return 0;
+    }
+
+    return Number((batchesPlan * kgBatch).toFixed(3));
+  }
+
+  calcularDiferenciaKgEntrada(): number {
+    return Number((this.calcularKgEntradaPorBatchPlan() - this.calcularTotalKgEntrada()).toFixed(3));
   }
 
   tieneSkusValidos(): boolean {
@@ -247,7 +374,9 @@ export class ProgramacionProduccionForm implements OnInit {
       idProducto: Number(this.idProducto),
       idTurno: Number(this.idTurno),
       idJefeLineaEjecutor: Number(this.idJefeLineaEjecutor),
-      numBachesPlan: this.numBachesPlanManual !== null ? this.numBachesPlanManual : this.calcularTotalBatchesOperativos(),
+      numBachesPlan: this.numBachesPlanManual !== null
+        ? Number(this.numBachesPlanManual)
+        : this.calcularTotalBatchesOperativos(),
       kgBachePlan: this.obtenerKgBatchFormula(),
       idFormulaVersion: Number(this.formulaVigente.idFormulaVersion ?? this.formulaVigente.id),
       observaciones: this.observaciones?.trim() || 'Programación generada desde pantalla tipo Excel',
@@ -264,12 +393,12 @@ export class ProgramacionProduccionForm implements OnInit {
         this.idProducto = null;
         this.idJefeLineaEjecutor = null;
         this.idTurno = null;
-        this.fechaProduccion = new Date().toISOString().substring(0, 10);
+        this.fechaProduccion = this.fechaHoyLocal();
         this.observaciones = '';
         this.numBachesPlanManual = null;
         this.formulaVigente = null;
         this.skusDisponibles = [];
-        this.skus = [{ idSku: 0, unidades: 0 }];
+        this.skus = [{ idSku: 0, unidades: 0, filtroSku: '' }];
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
       },
@@ -279,5 +408,14 @@ export class ProgramacionProduccionForm implements OnInit {
         this.notification.error(msg);
       }
     });
+  }
+
+  private fechaHoyLocal(): string {
+    const hoy = new Date();
+    const year = hoy.getFullYear();
+    const month = String(hoy.getMonth() + 1).padStart(2, '0');
+    const day = String(hoy.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
   }
 }
