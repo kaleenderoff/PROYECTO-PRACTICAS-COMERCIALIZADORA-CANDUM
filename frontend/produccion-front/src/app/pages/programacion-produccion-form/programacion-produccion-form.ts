@@ -28,12 +28,8 @@ export class ProgramacionProduccionForm implements OnInit {
   private usuarioService = inject(UsuarioService);
   private notification = inject(NotificationService);
 
-  /**
-   * Valores base del Excel actual de Leche Condensada.
-   * Estos quedan como respaldo si el backend todavía no trae esos datos desde la fórmula.
-   */
   private readonly rendimientoExcelDecimalFallback = 0.445;
-  private readonly kgBatchExcelFallback = 78.82;
+  private readonly kgBatchExcelFallback = 72.82;
 
   productos: any[] = [];
   turnos: any[] = [];
@@ -48,10 +44,6 @@ export class ProgramacionProduccionForm implements OnInit {
   fechaProduccion = this.fechaHoyLocal();
   observaciones = '';
 
-  /**
-   * Si está en null, el sistema usa el sugerido automático.
-   * Si Astrid escribe algo, se respeta el valor manual.
-   */
   numBachesPlanManual: number | null = null;
   bachesPlanEditadoManual = false;
 
@@ -121,7 +113,6 @@ export class ProgramacionProduccionForm implements OnInit {
       next: formula => {
         this.formulaVigente = formula;
         this.cargandoFormula = false;
-
         console.log('FORMULA VIGENTE PROGRAMACION:', formula);
       },
       error: error => {
@@ -160,11 +151,50 @@ export class ProgramacionProduccionForm implements OnInit {
     );
   }
 
-  /**
-   * Tamaño base del batch.
-   * Debe venir desde la fórmula vigente.
-   * Si aún no llega desde backend, usa 78.82 del Excel como respaldo.
-   */
+  obtenerDescripcionSku(fila: SimularSkuRequest): string {
+    const sku = this.obtenerSku(fila.idSku);
+
+    if (!sku) {
+      return '-';
+    }
+
+    return sku.descripcion || sku.nombre || sku.codigo || '-';
+  }
+
+  obtenerEnvaseSku(fila: SimularSkuRequest): string {
+    const sku = this.obtenerSku(fila.idSku);
+
+    if (!sku) {
+      return '-';
+    }
+
+    return (
+      sku.envase ||
+      sku.nombreEnvase ||
+      sku.tipoEnvase ||
+      sku.presentacion ||
+      sku.formato ||
+      '-'
+    );
+  }
+
+  obtenerPesoUndSku(fila: SimularSkuRequest): number {
+    const sku = this.obtenerSku(fila.idSku);
+
+    if (!sku) {
+      return 0;
+    }
+
+    return Number(
+      sku.pesoNetoGr ||
+      sku.pesoUndGr ||
+      sku.pesoUnidadGr ||
+      sku.pesoUnidad ||
+      sku.peso ||
+      0
+    );
+  }
+
   obtenerKgBatchFormula(): number {
     const valorDirecto = Number(
       this.formulaVigente?.kgBatchTotal ??
@@ -191,13 +221,13 @@ export class ProgramacionProduccionForm implements OnInit {
       return Number(totalDetalles.toFixed(3));
     }
 
-    return this.kgBatchExcelFallback;
+    if (this.idProducto) {
+      return this.kgBatchExcelFallback;
+    }
+
+    return 0;
   }
 
-  /**
-   * Rendimiento del proceso.
-   * En el Excel actual se usa 0.445 = 44.5%.
-   */
   obtenerRendimientoFormula(): number {
     const posiblesValores = [
       this.formulaVigente?.rendimientoTeoricoPct,
@@ -231,31 +261,17 @@ export class ProgramacionProduccionForm implements OnInit {
     return rendimiento > 1 ? rendimiento / 100 : rendimiento;
   }
 
-  /**
-   * Excel:
-   * Kilos = Unidades * Peso unidad / 1000
-   */
   calcularKgProductoTerminado(fila: SimularSkuRequest): number {
-    const sku = this.obtenerSku(fila.idSku);
     const unidades = Number(fila.unidades || 0);
+    const pesoNetoGr = this.obtenerPesoUndSku(fila);
 
-    if (!sku || unidades <= 0) {
-      return 0;
-    }
-
-    const pesoNetoGr = Number(sku.pesoNetoGr || 0);
-
-    if (pesoNetoGr <= 0) {
+    if (unidades <= 0 || pesoNetoGr <= 0) {
       return 0;
     }
 
     return Number(((unidades * pesoNetoGr) / 1000).toFixed(3));
   }
 
-  /**
-   * Excel:
-   * Kg Bach = Kilos / rendimiento
-   */
   calcularKgEntradaRequeridos(fila: SimularSkuRequest): number {
     const kgPt = this.calcularKgProductoTerminado(fila);
     const rendimientoDecimal = this.obtenerRendimientoDecimal();
@@ -267,10 +283,6 @@ export class ProgramacionProduccionForm implements OnInit {
     return Number((kgPt / rendimientoDecimal).toFixed(3));
   }
 
-  /**
-   * Excel:
-   * N° Bach = Kg Bach / tamaño batch fórmula
-   */
   calcularBatchesTeoricos(fila: SimularSkuRequest): number {
     const kgEntrada = this.calcularKgEntradaRequeridos(fila);
     const kgBatchFormula = this.obtenerKgBatchFormula();
@@ -280,19 +292,6 @@ export class ProgramacionProduccionForm implements OnInit {
     }
 
     return Number((kgEntrada / kgBatchFormula).toFixed(3));
-  }
-
-  /**
-   * Por fila se muestra solo como referencia.
-   */
-  calcularBatchesOperativos(fila: SimularSkuRequest): number {
-    const batchesTeoricos = this.calcularBatchesTeoricos(fila);
-
-    if (batchesTeoricos <= 0) {
-      return 0;
-    }
-
-    return Math.ceil(batchesTeoricos);
   }
 
   calcularTotalUnidades(): number {
@@ -324,10 +323,6 @@ export class ProgramacionProduccionForm implements OnInit {
     );
   }
 
-  /**
-   * Este es el valor correcto operativo:
-   * CEIL(total N° Bach), no la suma de CEIL por cada SKU.
-   */
   calcularBatchesSugeridos(): number {
     const totalBatchesTeoricos = this.calcularTotalBatchesTeoricos();
 
