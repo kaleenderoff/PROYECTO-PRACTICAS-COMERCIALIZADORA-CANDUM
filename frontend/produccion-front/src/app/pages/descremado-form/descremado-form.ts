@@ -13,11 +13,16 @@ import {
   RecepcionLecheService,
   SaldoTanqueLeche
 } from '../../core/services/recepcion-leche';
+
 import { NotificationService } from '../../core/services/notification';
-import { ControlCalidadLacteaService, EstadoCalidadRecepcion } from '../../core/services/control-calidad-lactea';
+import {
+  ControlCalidadLacteaService,
+  EstadoCalidadRecepcion
+} from '../../core/services/control-calidad-lactea';
 
 @Component({
   selector: 'app-descremado-form',
+  standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './descremado-form.html',
 })
@@ -34,8 +39,12 @@ export class DescremadoForm implements OnInit {
   estadosCalidad: EstadoCalidadRecepcion[] = [];
 
   tanqueRefrigeracion: SaldoTanqueLeche | null = null;
+
   private lotesCremaRegistrados = new Set<string>();
-  private descremadosRegistrados: Array<{ idRecepcionLeche: number; litrosDescremados: number }> = [];
+  private descremadosRegistrados: Array<{
+    idRecepcionLeche: number;
+    litrosDescremados: number;
+  }> = [];
 
   form;
 
@@ -110,28 +119,27 @@ export class DescremadoForm implements OnInit {
       next: (recepciones) => {
         this.controlCalidadService.listarEstadosRecepcion().subscribe({
           next: (estados) => {
-            this.estadosCalidad = estados;
+            this.estadosCalidad = estados || [];
 
             this.descremadoService.listar().subscribe({
               next: (descremados) => {
-                this.descremadosRegistrados = descremados.map(descremado => ({
-                  idRecepcionLeche: descremado.idRecepcionLeche,
+                this.descremadosRegistrados = (descremados || []).map(descremado => ({
+                  idRecepcionLeche: Number(descremado.idRecepcionLeche),
                   litrosDescremados: Number(descremado.litrosDescremados || 0)
                 }));
 
                 this.lotesCremaRegistrados = new Set(
-                  descremados
+                  (descremados || [])
                     .map(descremado => descremado.loteCrema?.trim().toUpperCase())
                     .filter((lote): lote is string => Boolean(lote))
                 );
 
-                this.recepciones = recepciones
+                this.recepciones = (recepciones || [])
                   .map(recepcion => ({
                     ...recepcion,
                     estadoCalidad: this.estadoCalidadRecepcion(recepcion.id)
                   }))
-                  .filter(recepcion => this.litrosDisponiblesPara(recepcion) > 0)
-                  .sort((a, b) => this.fechaOrdenable(b).localeCompare(this.fechaOrdenable(a)));
+                  .sort((a, b) => this.compararRecepcionesRecientes(a, b));
 
                 this.cargandoDatos = false;
               },
@@ -161,7 +169,7 @@ export class DescremadoForm implements OnInit {
 
     this.recepcionLecheService.listarSaldosTanques().subscribe({
       next: (data) => {
-        const tanque = data.find(t =>
+        const tanque = (data || []).find(t =>
           t.activo &&
           (
             t.nombre.toUpperCase().includes('REFRIGERACION')
@@ -186,7 +194,7 @@ export class DescremadoForm implements OnInit {
 
     this.descremadoService.listarSkus().subscribe({
       next: (data) => {
-        this.skusCrema = data.filter(sku =>
+        this.skusCrema = (data || []).filter(sku =>
           sku.activo &&
           (
             sku.descripcion.toUpperCase().includes('CREMA')
@@ -200,6 +208,12 @@ export class DescremadoForm implements OnInit {
         this.notification.error(this.error);
       }
     });
+  }
+
+  get recepcionesPendientesDescremar(): RecepcionLeche[] {
+    return this.recepciones
+      .filter(recepcion => this.litrosDisponiblesParaVista(recepcion) > 0)
+      .sort((a, b) => this.compararRecepcionesRecientes(a, b));
   }
 
   guardar(): void {
@@ -273,7 +287,7 @@ export class DescremadoForm implements OnInit {
 
   recepcionSeleccionada(): RecepcionLeche | undefined {
     const id = Number(this.form.get('idRecepcionLeche')?.value || 0);
-    return this.recepciones.find(recepcion => recepcion.id === id);
+    return this.recepciones.find(recepcion => Number(recepcion.id) === id);
   }
 
   litrosDisponiblesRecepcion(): number {
@@ -291,22 +305,31 @@ export class DescremadoForm implements OnInit {
 
   litrosYaDescremadosSeleccionada(): number {
     const recepcion = this.recepcionSeleccionada();
-    if (!recepcion) return 0;
+
+    if (!recepcion) {
+      return 0;
+    }
+
     return this.descremadosRegistrados
-      .filter(item => item.idRecepcionLeche === recepcion.id)
-      .reduce((total, item) => total + item.litrosDescremados, 0);
+      .filter(item => Number(item.idRecepcionLeche) === Number(recepcion.id))
+      .reduce((total, item) => total + Number(item.litrosDescremados || 0), 0);
   }
 
   litrosDespuesDescremado(): number {
     const disponibles = this.litrosDisponiblesRecepcion();
     const litros = Number(this.form.get('litrosDescremados')?.value || 0);
+
     return Math.max(disponibles - litros, 0);
   }
 
   rendimientoCremaPor100Litros(): number {
     const litros = Number(this.form.get('litrosDescremados')?.value || 0);
     const crema = Number(this.form.get('cremaObtenidaKg')?.value || 0);
-    if (litros <= 0 || crema <= 0) return 0;
+
+    if (litros <= 0 || crema <= 0) {
+      return 0;
+    }
+
     return (crema / litros) * 100;
   }
 
@@ -317,16 +340,33 @@ export class DescremadoForm implements OnInit {
 
   textoEstadoCalidad(): string {
     const estado = this.estadoCalidadSeleccionada();
-    if (estado === 'APROBADA') return 'Aprobada';
-    if (estado === 'RETENIDA') return 'Retenida';
-    if (estado === 'NO_APROBADA') return 'No aprobada';
+
+    if (estado === 'APROBADA') {
+      return 'Aprobada';
+    }
+
+    if (estado === 'RETENIDA') {
+      return 'Retenida';
+    }
+
+    if (estado === 'NO_APROBADA') {
+      return 'No aprobada';
+    }
+
     return 'Sin control';
   }
 
   claseEstadoCalidad(): string {
     const estado = this.estadoCalidadSeleccionada();
-    if (estado === 'APROBADA') return 'bg-emerald-50 text-emerald-700 border-emerald-100';
-    if (estado === 'RETENIDA' || estado === 'NO_APROBADA') return 'bg-red-50 text-red-700 border-red-100';
+
+    if (estado === 'APROBADA') {
+      return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+    }
+
+    if (estado === 'RETENIDA' || estado === 'NO_APROBADA') {
+      return 'bg-red-50 text-red-700 border-red-100';
+    }
+
     return 'bg-amber-50 text-amber-700 border-amber-100';
   }
 
@@ -347,23 +387,44 @@ export class DescremadoForm implements OnInit {
   cremaEmpacadaKg(): number {
     const unidades = Number(this.form.get('unidadesCrema')?.value || 0);
     const kgUnidad = Number(this.form.get('kgPorUnidadCrema')?.value || 0);
+
     return unidades * kgUnidad;
   }
 
-  private fechaOrdenable(recepcion: RecepcionLeche): string {
-    return `${recepcion.fechaRecepcion || ''}-${String(recepcion.id).padStart(8, '0')}`;
+  private compararRecepcionesRecientes(a: RecepcionLeche, b: RecepcionLeche): number {
+    const fechaA = this.tiempoRecepcion(a);
+    const fechaB = this.tiempoRecepcion(b);
+
+    if (fechaA !== fechaB) {
+      return fechaB - fechaA;
+    }
+
+    return Number(b.id || 0) - Number(a.id || 0);
+  }
+
+  private tiempoRecepcion(recepcion: RecepcionLeche): number {
+    const tiempo = new Date(recepcion.fechaRecepcion || '').getTime();
+
+    if (!Number.isNaN(tiempo)) {
+      return tiempo;
+    }
+
+    return 0;
   }
 
   private litrosDisponiblesPara(recepcion: RecepcionLeche): number {
     const recibido = Number(recepcion.cantidadRecibidaLitros || 0);
+
     const descremado = this.descremadosRegistrados
-      .filter(item => item.idRecepcionLeche === recepcion.id)
-      .reduce((total, item) => total + item.litrosDescremados, 0);
+      .filter(item => Number(item.idRecepcionLeche) === Number(recepcion.id))
+      .reduce((total, item) => total + Number(item.litrosDescremados || 0), 0);
 
     return Math.max(recibido - descremado, 0);
   }
 
   private estadoCalidadRecepcion(idRecepcion: number): RecepcionLeche['estadoCalidad'] {
-    return this.estadosCalidad.find(estado => estado.idRecepcionLeche === idRecepcion)?.estadoCalidad || 'SIN_CALIDAD';
+    return this.estadosCalidad
+      .find(estado => Number(estado.idRecepcionLeche) === Number(idRecepcion))
+      ?.estadoCalidad || 'SIN_CALIDAD';
   }
 }
