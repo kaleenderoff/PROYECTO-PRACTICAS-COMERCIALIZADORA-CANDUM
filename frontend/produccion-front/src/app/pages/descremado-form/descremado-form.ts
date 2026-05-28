@@ -212,7 +212,7 @@ export class DescremadoForm implements OnInit {
 
   get recepcionesPendientesDescremar(): RecepcionLeche[] {
     return this.recepciones
-      .filter(recepcion => this.litrosDisponiblesParaVista(recepcion) > 0)
+      .filter(recepcion => !this.tieneDescremadoRegistrado(recepcion.id))
       .sort((a, b) => this.compararRecepcionesRecientes(a, b));
   }
 
@@ -389,6 +389,12 @@ export class DescremadoForm implements OnInit {
     const kgUnidad = Number(this.form.get('kgPorUnidadCrema')?.value || 0);
 
     return unidades * kgUnidad;
+  }
+
+  private tieneDescremadoRegistrado(idRecepcionLeche: number): boolean {
+    return this.descremadosRegistrados.some(item =>
+      Number(item.idRecepcionLeche) === Number(idRecepcionLeche)
+    );
   }
 
   private compararRecepcionesRecientes(a: RecepcionLeche, b: RecepcionLeche): number {
