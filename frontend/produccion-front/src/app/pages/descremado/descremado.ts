@@ -45,7 +45,7 @@ export class Descremado implements OnInit {
   filtroLote = '';
 
   paginaActual = 1;
-  tamanioPagina = 5;
+  tamanioPagina = 10;
 
   constructor(
     private descremadoService: DescremadoService,
