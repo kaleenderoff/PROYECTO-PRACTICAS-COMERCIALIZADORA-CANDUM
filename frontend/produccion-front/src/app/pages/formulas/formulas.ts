@@ -11,7 +11,6 @@ import { AuthService } from '../../core/services/auth';
     standalone: true,
     imports: [CommonModule, FormsModule],
     templateUrl: './formulas.html',
-    
 })
 export class Formulas implements OnInit {
 
@@ -49,6 +48,19 @@ export class Formulas implements OnInit {
         documentoAprobacion: '',
         observacionesTecnicas: '',
         idCreadoPor: 1
+    };
+
+    versionEdit = {
+        fechaInicioVigencia: '',
+        fechaFinVigencia: '',
+        kgBatchTotal: 0,
+        reduccionEvaporacionPct: 0,
+        rendimientoTeoricoPct: 0,
+        brixObjetivoMin: 0,
+        brixObjetivoMax: 0,
+        aprobadoPor: '',
+        documentoAprobacion: '',
+        observacionesTecnicas: ''
     };
 
     nuevoDetalle = {
@@ -206,6 +218,10 @@ export class Formulas implements OnInit {
             v => Number(v.idFormulaVersion) === Number(this.idFormulaVersion)
         ) || null;
 
+        if (this.formulaSeleccionada) {
+            this.cargarVersionEdit();
+        }
+
         this.limpiarMensajes();
         this.reiniciarDetalle();
     }
@@ -218,6 +234,72 @@ export class Formulas implements OnInit {
         return !['VIGENTE', 'REEMPLAZADA', 'INACTIVA'].includes(
             this.formulaSeleccionada.estado
         );
+    }
+
+    cargarVersionEdit(): void {
+        if (!this.formulaSeleccionada) return;
+
+        this.versionEdit = {
+            fechaInicioVigencia: this.formulaSeleccionada.fechaInicioVigencia || '',
+            fechaFinVigencia: this.formulaSeleccionada.fechaFinVigencia || '',
+            kgBatchTotal: Number(this.formulaSeleccionada.kgBatchTotal || 0),
+            reduccionEvaporacionPct: Number(this.formulaSeleccionada.reduccionEvaporacionPct || 0),
+            rendimientoTeoricoPct: Number(this.formulaSeleccionada.rendimientoTeoricoPct || 0),
+            brixObjetivoMin: Number(this.formulaSeleccionada.brixObjetivoMin || 0),
+            brixObjetivoMax: Number(this.formulaSeleccionada.brixObjetivoMax || 0),
+            aprobadoPor: this.formulaSeleccionada.aprobadoPor || '',
+            documentoAprobacion: this.formulaSeleccionada.documentoAprobacion || '',
+            observacionesTecnicas: this.formulaSeleccionada.observacionesTecnicas || ''
+        };
+    }
+
+    guardarCambiosVersion(): void {
+        if (!this.authService.canManageCatalogosTecnicos()) return;
+
+        this.limpiarMensajes();
+
+        if (!this.idFormulaVersion) {
+            this.mensajeError = 'Seleccione una versión.';
+            return;
+        }
+
+        if (!this.puedeEditarFormula()) {
+            this.mensajeError = 'Solo se pueden editar versiones en BORRADOR.';
+            return;
+        }
+
+        if (Number(this.versionEdit.kgBatchTotal) <= 0) {
+            this.mensajeError = 'El kg batch debe ser mayor a cero.';
+            return;
+        }
+
+        if (Number(this.versionEdit.rendimientoTeoricoPct) <= 0) {
+            this.mensajeError = 'El rendimiento debe ser mayor a cero.';
+            return;
+        }
+
+        const body = {
+            fechaInicioVigencia: this.versionEdit.fechaInicioVigencia || null,
+            fechaFinVigencia: this.versionEdit.fechaFinVigencia || null,
+            kgBatchTotal: Number(this.versionEdit.kgBatchTotal),
+            reduccionEvaporacionPct: Number(this.versionEdit.reduccionEvaporacionPct || 0),
+            rendimientoTeoricoPct: Number(this.versionEdit.rendimientoTeoricoPct),
+            brixObjetivoMin: Number(this.versionEdit.brixObjetivoMin || 0),
+            brixObjetivoMax: Number(this.versionEdit.brixObjetivoMax || 0),
+            aprobadoPor: this.versionEdit.aprobadoPor?.trim() || null,
+            documentoAprobacion: this.versionEdit.documentoAprobacion?.trim() || null,
+            observacionesTecnicas: this.versionEdit.observacionesTecnicas?.trim() || null
+        };
+
+        this.formulaService.actualizarVersion(this.idFormulaVersion, body).subscribe({
+            next: formulaActualizada => {
+                this.formulaSeleccionada = formulaActualizada;
+                this.cargarVersionEdit();
+                this.mostrarOk('Versión actualizada correctamente. Las cantidades dinámicas fueron recalculadas.');
+                this.cargarVersiones(true);
+            },
+            error: error => this.mostrarError(error)
+        });
     }
 
     obtenerKgBatchBase(): number {

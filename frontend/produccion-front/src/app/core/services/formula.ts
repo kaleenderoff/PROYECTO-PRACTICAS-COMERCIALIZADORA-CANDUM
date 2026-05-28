@@ -53,6 +53,13 @@ export class FormulaService {
         );
     }
 
+    actualizarVersion(idFormulaVersion: number, body: any): Observable<any> {
+        return this.http.put(
+            `${this.formulasUrl}/versiones/${idFormulaVersion}`,
+            body
+        );
+    }
+
     agregarDetalle(idFormulaVersion: number, body: any): Observable<any> {
         return this.http.post(
             `${this.formulasUrl}/versiones/${idFormulaVersion}/detalles`,
