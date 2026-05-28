@@ -1,18 +1,23 @@
 spring:
   application:
     name: produccion-api
+
   profiles:
     active: dev
+
   security:
     filter:
       dispatcher-types: request, error, async
+
   jackson:
     time-zone: America/Bogota
+
   jpa:
     properties:
       hibernate:
         jdbc:
           time_zone: America/Bogota
+
   flyway:
     enabled: true
     baseline-on-migrate: true

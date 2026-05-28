@@ -13,31 +13,46 @@ import {
   RecepcionLecheService,
   SaldoTanqueLeche
 } from '../../core/services/recepcion-leche';
+
+import {
+  ControlCalidadLacteaService,
+  EstadoCalidadRecepcion
+} from '../../core/services/control-calidad-lactea';
+
 import { AuthService } from '../../core/services/auth';
+import { NotificationService } from '../../core/services/notification';
 
 @Component({
   selector: 'app-descremado',
-  imports: [CommonModule, FormsModule, RouterLink],
+  standalone: true,
+  imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './descremado.html',
-  
+  styleUrl: './descremado.scss'
 })
 export class Descremado implements OnInit {
+
+  cargando = false;
+  error = '';
 
   descremados: DescremadoRecepcion[] = [];
   recepciones: RecepcionLeche[] = [];
   tanques: SaldoTanqueLeche[] = [];
+  estadosCalidad: EstadoCalidadRecepcion[] = [];
 
-  cargando = false;
-  error = '';
   filtroFecha = '';
   filtroProveedor = '';
   filtroTanque = '';
   filtroLote = '';
 
+  paginaActual = 1;
+  tamanioPagina = 10;
+
   constructor(
     private descremadoService: DescremadoService,
     private recepcionLecheService: RecepcionLecheService,
-    public authService: AuthService
+    private controlCalidadService: ControlCalidadLacteaService,
+    public authService: AuthService,
+    private notification: NotificationService
   ) { }
 
   ngOnInit(): void {
@@ -48,75 +63,140 @@ export class Descremado implements OnInit {
     this.cargando = true;
     this.error = '';
 
-    this.recepcionLecheService.listarRecepciones().subscribe({
-      next: (recepciones) => {
-        this.recepciones = recepciones;
+    this.descremadoService.listar().subscribe({
+      next: (descremados: DescremadoRecepcion[]) => {
+        this.descremados = descremados || [];
 
-        this.recepcionLecheService.listarSaldosTanques().subscribe({
-          next: (tanques) => {
-            this.tanques = tanques;
+        this.recepcionLecheService.listarRecepciones().subscribe({
+          next: (recepciones: RecepcionLeche[]) => {
+            this.recepciones = recepciones || [];
 
-            this.descremadoService.listar().subscribe({
-              next: (data) => {
-                this.descremados = data.slice().sort((a, b) =>
-                  this.fechaOrdenable(b).localeCompare(this.fechaOrdenable(a))
-                );
-                this.cargando = false;
+            this.recepcionLecheService.listarSaldosTanques().subscribe({
+              next: (tanques: SaldoTanqueLeche[]) => {
+                this.tanques = tanques || [];
+
+                this.controlCalidadService.listarEstadosRecepcion().subscribe({
+                  next: (estados: EstadoCalidadRecepcion[]) => {
+                    this.estadosCalidad = estados || [];
+                    this.cargando = false;
+                  },
+                  error: (err) => {
+                    console.error(err);
+                    this.error = 'No se pudieron cargar los estados de calidad.';
+                    this.notification.error(this.error);
+                    this.cargando = false;
+                  }
+                });
               },
               error: (err) => {
                 console.error(err);
-                this.error = 'No se pudieron cargar los descremados.';
+                this.error = 'No se pudieron cargar los tanques.';
+                this.notification.error(this.error);
                 this.cargando = false;
               }
             });
+          },
+          error: (err) => {
+            console.error(err);
+            this.error = 'No se pudieron cargar las recepciones de leche.';
+            this.notification.error(this.error);
+            this.cargando = false;
           }
         });
       },
       error: (err) => {
         console.error(err);
-        this.error = 'No se pudieron cargar los datos.';
+        this.error = 'No se pudieron cargar los registros de descremado.';
+        this.notification.error(this.error);
         this.cargando = false;
       }
     });
   }
 
-  obtenerRecepcion(idRecepcion: number): string {
-    const recepcion = this.recepciones.find(r => r.id === idRecepcion);
+  lecheRecibidaHoy(): number {
+    const hoy = this.fechaHoyLocal();
 
-    if (!recepcion) {
-      return 'Recepción no encontrada';
-    }
-
-    return `${recepcion.fechaRecepcion} - ${recepcion.proveedor}`;
+    return this.recepciones
+      .filter(recepcion => this.esMismaFecha(recepcion.fechaRecepcion, hoy))
+      .reduce((total, recepcion) => total + Number(recepcion.cantidadRecibidaLitros || 0), 0);
   }
 
-  obtenerRecepcionEntidad(idRecepcion: number): RecepcionLeche | undefined {
-    return this.recepciones.find(r => r.id === idRecepcion);
+  lecheDisponibleParaDescremar(): number {
+    const hoy = this.fechaHoyLocal();
+
+    return this.recepciones
+      .filter(recepcion => this.esMismaFecha(recepcion.fechaRecepcion, hoy))
+      .reduce((total, recepcion) => {
+        return total + this.litrosRestantesRecepcion(recepcion.id);
+      }, 0);
   }
 
-  obtenerTanque(idTanque?: number): string {
-    if (!idTanque) {
-      return '-';
-    }
+  lecheDescremadaHoy(): number {
+    const hoy = this.fechaHoyLocal();
 
-    const tanque = this.tanques.find(t => t.idTanque === idTanque);
+    return this.descremados
+      .filter(descremado => this.esMismaFecha(descremado.createdAt, hoy))
+      .reduce((total, descremado) => total + Number(descremado.litrosDescremados || 0), 0);
+  }
 
-    return tanque?.nombre || `Tanque ${idTanque}`;
+  cremaObtenidaHoy(): number {
+    const hoy = this.fechaHoyLocal();
+
+    return this.descremados
+      .filter(descremado => this.esMismaFecha(descremado.createdAt, hoy))
+      .reduce((total, descremado) => total + Number(descremado.cremaObtenidaKg || 0), 0);
+  }
+
+  proveedoresDisponibles(): string[] {
+    const proveedores = this.recepciones
+      .map(recepcion => recepcion.proveedor)
+      .filter((proveedor): proveedor is string => Boolean(proveedor));
+
+    return Array.from(new Set(proveedores)).sort();
   }
 
   get descremadosFiltrados(): DescremadoRecepcion[] {
-    const proveedor = this.filtroProveedor.trim().toLowerCase();
-    const lote = this.filtroLote.trim().toLowerCase();
-    const idTanque = Number(this.filtroTanque || 0);
-
     return this.descremados.filter(item => {
-      const recepcion = this.obtenerRecepcionEntidad(item.idRecepcionLeche);
-      const cumpleFecha = !this.filtroFecha || recepcion?.fechaRecepcion === this.filtroFecha;
-      const cumpleProveedor = !proveedor || (recepcion?.proveedor || '').toLowerCase().includes(proveedor);
-      const cumpleTanque = !idTanque || item.idTanqueDestino === idTanque;
-      const cumpleLote = !lote || (item.loteCrema || '').toLowerCase().includes(lote);
-      return cumpleFecha && cumpleProveedor && cumpleTanque && cumpleLote;
+      const recepcion = this.buscarRecepcion(item.idRecepcionLeche);
+
+      const coincideFecha = !this.filtroFecha
+        || this.esMismaFecha(item.createdAt, this.filtroFecha)
+        || this.esMismaFecha(recepcion?.fechaRecepcion, this.filtroFecha);
+
+      const coincideProveedor = !this.filtroProveedor
+        || recepcion?.proveedor === this.filtroProveedor;
+
+      const coincideTanque = !this.filtroTanque
+        || String(item.idTanqueDestino || '') === String(this.filtroTanque);
+
+      const coincideLote = !this.filtroLote
+        || (item.loteCrema || '').toLowerCase().includes(this.filtroLote.toLowerCase());
+
+      return coincideFecha && coincideProveedor && coincideTanque && coincideLote;
     });
+  }
+
+  get descremadosPaginados(): DescremadoRecepcion[] {
+    const inicio = (this.paginaActual - 1) * this.tamanioPagina;
+    const fin = inicio + this.tamanioPagina;
+
+    return this.descremadosFiltrados.slice(inicio, fin);
+  }
+
+  get totalPaginas(): number {
+    return Math.max(Math.ceil(this.descremadosFiltrados.length / this.tamanioPagina), 1);
+  }
+
+  get paginas(): number[] {
+    return Array.from({ length: this.totalPaginas }, (_, index) => index + 1);
+  }
+
+  cambiarPagina(pagina: number): void {
+    if (pagina < 1 || pagina > this.totalPaginas) {
+      return;
+    }
+
+    this.paginaActual = pagina;
   }
 
   limpiarFiltros(): void {
@@ -127,105 +207,128 @@ export class Descremado implements OnInit {
     this.paginaActual = 1;
   }
 
-  fechaHoy(): string {
-    return this.fechaLocal(new Date());
-  }
+  obtenerRecepcion(idRecepcionLeche: number): string {
+    const recepcion = this.buscarRecepcion(idRecepcionLeche);
 
-  lecheRecibidaHoy(): number {
-    const hoy = this.fechaHoy();
-    return this.recepciones
-      .filter(recepcion => recepcion.fechaRecepcion === hoy)
-      .reduce((total, recepcion) => total + Number(recepcion.cantidadRecibidaLitros || 0), 0);
-  }
-
-  lecheDisponibleParaDescremar(): number {
-    const hoy = this.fechaHoy();
-    return this.recepciones
-      .filter(recepcion => recepcion.fechaRecepcion === hoy)
-      .reduce((total, recepcion) => total + this.litrosRestantesRecepcion(recepcion.id), 0);
-  }
-
-  lecheDescremadaHoy(): number {
-    const hoy = this.fechaHoy();
-    return this.descremados
-      .filter(item => this.obtenerRecepcionEntidad(item.idRecepcionLeche)?.fechaRecepcion === hoy)
-      .reduce((total, item) => total + Number(item.litrosDescremados || 0), 0);
-  }
-
-  cremaObtenidaHoy(): number {
-    const hoy = this.fechaHoy();
-    return this.descremados
-      .filter(item => this.obtenerRecepcionEntidad(item.idRecepcionLeche)?.fechaRecepcion === hoy)
-      .reduce((total, item) => total + Number(item.cremaObtenidaKg || 0), 0);
-  }
-
-  proveedoresDisponibles(): string[] {
-    return Array.from(new Set(this.recepciones.map(r => r.proveedor).filter(Boolean))).sort();
-  }
-
-  litrosRecibidosRecepcion(idRecepcion: number): number {
-    return Number(this.obtenerRecepcionEntidad(idRecepcion)?.cantidadRecibidaLitros || 0);
-  }
-
-  litrosDescremadosRecepcion(idRecepcion: number): number {
-    return this.descremados
-      .filter(item => item.idRecepcionLeche === idRecepcion)
-      .reduce((total, item) => total + Number(item.litrosDescremados || 0), 0);
-  }
-
-  litrosRestantesRecepcion(idRecepcion: number): number {
-    return Math.max(this.litrosRecibidosRecepcion(idRecepcion) - this.litrosDescremadosRecepcion(idRecepcion), 0);
-  }
-
-  estadoRecepcion(idRecepcion: number): 'Pendiente' | 'Parcial' | 'Completa' {
-    const recibido = this.litrosRecibidosRecepcion(idRecepcion);
-    const descremado = this.litrosDescremadosRecepcion(idRecepcion);
-
-    if (recibido <= 0 || descremado <= 0) {
-      return 'Pendiente';
+    if (!recepcion) {
+      return `Recepción #${idRecepcionLeche}`;
     }
 
-    return descremado >= recibido ? 'Completa' : 'Parcial';
+    const fecha = this.normalizarFecha(recepcion.fechaRecepcion);
+    const proveedor = recepcion.proveedor || 'Sin proveedor';
+    const remision = recepcion.numeroRemision ? ` - Rem. ${recepcion.numeroRemision}` : '';
+
+    return `${fecha} - ${proveedor}${remision}`;
   }
 
-  claseEstado(idRecepcion: number): string {
-    const estado = this.estadoRecepcion(idRecepcion);
-    if (estado === 'Completa') return 'bg-emerald-50 text-emerald-700 border-emerald-100';
-    if (estado === 'Parcial') return 'bg-amber-50 text-amber-700 border-amber-100';
+  litrosRecibidosRecepcion(idRecepcionLeche: number): number {
+    const recepcion = this.buscarRecepcion(idRecepcionLeche);
+    return Number(recepcion?.cantidadRecibidaLitros || 0);
+  }
+
+  litrosRestantesRecepcion(idRecepcionLeche: number): number {
+    const recibido = this.litrosRecibidosRecepcion(idRecepcionLeche);
+
+    const descremado = this.descremados
+      .filter(item => Number(item.idRecepcionLeche) === Number(idRecepcionLeche))
+      .reduce((total, item) => total + Number(item.litrosDescremados || 0), 0);
+
+    return Math.max(recibido - descremado, 0);
+  }
+
+  obtenerTanque(idTanqueDestino?: number): string {
+    if (!idTanqueDestino) {
+      return 'Sin tanque';
+    }
+
+    const tanque = this.tanques.find(item => Number(item.idTanque) === Number(idTanqueDestino));
+
+    return tanque?.nombre || `Tanque #${idTanqueDestino}`;
+  }
+
+  estadoRecepcion(idRecepcionLeche: number): string {
+    const recibido = this.litrosRecibidosRecepcion(idRecepcionLeche);
+    const restante = this.litrosRestantesRecepcion(idRecepcionLeche);
+
+    if (recibido <= 0) {
+      return 'Sin dato';
+    }
+
+    if (restante <= 0) {
+      return 'Completa';
+    }
+
+    if (restante < recibido) {
+      return 'Parcial';
+    }
+
+    return 'Pendiente';
+  }
+
+  claseEstado(idRecepcionLeche: number): string {
+    const estado = this.estadoRecepcion(idRecepcionLeche);
+
+    if (estado === 'Completa') {
+      return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+    }
+
+    if (estado === 'Parcial') {
+      return 'bg-amber-50 text-amber-700 border-amber-100';
+    }
+
     return 'bg-slate-50 text-slate-600 border-slate-100';
   }
 
-  // Paginación
-  paginaActual = 1;
-  itemsPorPagina = 10;
-
-  get descremadosPaginados(): DescremadoRecepcion[] {
-    const inicio = (this.paginaActual - 1) * this.itemsPorPagina;
-    return this.descremadosFiltrados.slice(inicio, inicio + this.itemsPorPagina);
+  estadoCalidadRecepcion(idRecepcionLeche: number): string {
+    return this.estadosCalidad.find(item => Number(item.idRecepcionLeche) === Number(idRecepcionLeche))?.estadoCalidad || 'SIN_CALIDAD';
   }
 
-  get totalPaginas(): number {
-    return Math.ceil(this.descremadosFiltrados.length / this.itemsPorPagina);
+  private buscarRecepcion(idRecepcionLeche: number): RecepcionLeche | undefined {
+    return this.recepciones.find(recepcion => Number(recepcion.id) === Number(idRecepcionLeche));
   }
 
-  get paginas(): number[] {
-    return Array.from({ length: this.totalPaginas }, (_, i) => i + 1);
+  private esMismaFecha(fecha: unknown, fechaComparar: string): boolean {
+    return this.normalizarFecha(fecha) === fechaComparar;
   }
 
-  cambiarPagina(p: number): void {
-    if (p >= 1 && p <= this.totalPaginas) {
-      this.paginaActual = p;
-    }
-  }
+  private fechaHoyLocal(): string {
+    const hoy = new Date();
+    const year = hoy.getFullYear();
+    const month = String(hoy.getMonth() + 1).padStart(2, '0');
+    const day = String(hoy.getDate()).padStart(2, '0');
 
-  private fechaOrdenable(descremado: DescremadoRecepcion): string {
-    return `${descremado.createdAt || ''}-${String(descremado.id).padStart(8, '0')}`;
-  }
-
-  private fechaLocal(fecha: Date): string {
-    const year = fecha.getFullYear();
-    const month = String(fecha.getMonth() + 1).padStart(2, '0');
-    const day = String(fecha.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  private normalizarFecha(fecha: unknown): string {
+    if (!fecha) {
+      return '';
+    }
+
+    if (typeof fecha === 'string') {
+      if (fecha.includes('T')) {
+        return fecha.split('T')[0];
+      }
+
+      return fecha.substring(0, 10);
+    }
+
+    if (fecha instanceof Date) {
+      const year = fecha.getFullYear();
+      const month = String(fecha.getMonth() + 1).padStart(2, '0');
+      const day = String(fecha.getDate()).padStart(2, '0');
+
+      return `${year}-${month}-${day}`;
+    }
+
+    if (Array.isArray(fecha) && fecha.length >= 3) {
+      const year = fecha[0];
+      const month = String(fecha[1]).padStart(2, '0');
+      const day = String(fecha[2]).padStart(2, '0');
+
+      return `${year}-${month}-${day}`;
+    }
+
+    return String(fecha).substring(0, 10);
   }
 }

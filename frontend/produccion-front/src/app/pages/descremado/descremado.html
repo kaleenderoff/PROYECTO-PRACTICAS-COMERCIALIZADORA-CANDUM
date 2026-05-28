@@ -1,18 +1,20 @@
 <div class="space-y-8 animate-in fade-in duration-500">
 
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+    <div
+        class="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
         <div class="flex items-center gap-5">
             <div class="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 shadow-inner">
                 <i class="bi bi-droplet-half text-2xl"></i>
             </div>
             <div>
                 <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Descremado de Leche</h1>
-                <p class="text-slate-500 text-sm">Control de separacion de grasas, saldos y crema obtenida</p>
+                <p class="text-slate-500 text-sm">Control de separación de grasas, saldos y crema obtenida</p>
             </div>
         </div>
+
         <div *ngIf="authService.canCreateOperacionesLinea()" class="flex items-center gap-3">
             <a routerLink="/descremado/nuevo"
-               class="px-6 py-3.5 bg-amber-600 text-white font-bold rounded-2xl shadow-lg shadow-amber-900/20 hover:bg-amber-700 transition-all active:scale-95 flex items-center gap-2">
+                class="px-6 py-3.5 bg-amber-600 text-white font-bold rounded-2xl shadow-lg shadow-amber-900/20 hover:bg-amber-700 transition-all active:scale-95 flex items-center gap-2">
                 <i class="bi bi-plus-lg"></i>
                 Nuevo descremado
             </a>
@@ -22,30 +24,48 @@
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
         <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
             <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Leche recibida hoy</span>
-            <p class="mt-2 text-2xl font-black text-blue-700">{{ lecheRecibidaHoy() | number:'1.0-3' }} <span class="text-xs text-slate-400">L</span></p>
+            <p class="mt-2 text-2xl font-black text-blue-700">
+                {{ lecheRecibidaHoy() | number:'1.0-3' }}
+                <span class="text-xs text-slate-400">L</span>
+            </p>
         </div>
+
         <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
-            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Disponible para descremar</span>
-            <p class="mt-2 text-2xl font-black text-emerald-700">{{ lecheDisponibleParaDescremar() | number:'1.0-3' }} <span class="text-xs text-slate-400">L</span></p>
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Disponible para
+                descremar</span>
+            <p class="mt-2 text-2xl font-black text-emerald-700">
+                {{ lecheDisponibleParaDescremar() | number:'1.0-3' }}
+                <span class="text-xs text-slate-400">L</span>
+            </p>
         </div>
+
         <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
             <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Descremada hoy</span>
-            <p class="mt-2 text-2xl font-black text-amber-700">{{ lecheDescremadaHoy() | number:'1.0-3' }} <span class="text-xs text-slate-400">L</span></p>
+            <p class="mt-2 text-2xl font-black text-amber-700">
+                {{ lecheDescremadaHoy() | number:'1.0-3' }}
+                <span class="text-xs text-slate-400">L</span>
+            </p>
         </div>
+
         <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
             <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Crema obtenida hoy</span>
-            <p class="mt-2 text-2xl font-black text-amber-700">{{ cremaObtenidaHoy() | number:'1.0-2' }} <span class="text-xs text-slate-400">kg</span></p>
+            <p class="mt-2 text-2xl font-black text-amber-700">
+                {{ cremaObtenidaHoy() | number:'1.0-2' }}
+                <span class="text-xs text-slate-400">kg</span>
+            </p>
         </div>
     </div>
 
-    <div *ngIf="cargando" class="flex items-center gap-3 p-5 bg-white border border-slate-100 rounded-3xl shadow-sm animate-pulse">
+    <div *ngIf="cargando"
+        class="flex items-center gap-3 p-5 bg-white border border-slate-100 rounded-3xl shadow-sm animate-pulse">
         <div class="w-10 h-10 bg-slate-100 rounded-xl"></div>
         <div class="flex-1 space-y-2">
             <div class="h-4 bg-slate-100 rounded w-1/4"></div>
         </div>
     </div>
 
-    <div *ngIf="error" class="p-5 bg-red-50 text-red-700 rounded-3xl border border-red-100 shadow-sm flex items-center gap-4 font-medium">
+    <div *ngIf="error"
+        class="p-5 bg-red-50 text-red-700 rounded-3xl border border-red-100 shadow-sm flex items-center gap-4 font-medium">
         <i class="bi bi-exclamation-circle-fill"></i>
         {{ error }}
     </div>
@@ -53,22 +73,31 @@
     <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <input type="date" [(ngModel)]="filtroFecha" (ngModelChange)="paginaActual = 1"
-                   class="px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-700">
+                class="px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-700">
+
             <select [(ngModel)]="filtroProveedor" (ngModelChange)="paginaActual = 1"
-                    class="px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-700">
+                class="px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-700">
                 <option value="">Todas las fincas</option>
-                <option *ngFor="let proveedor of proveedoresDisponibles()" [value]="proveedor">{{ proveedor }}</option>
+                <option *ngFor="let proveedor of proveedoresDisponibles()" [value]="proveedor">
+                    {{ proveedor }}
+                </option>
             </select>
+
             <select [(ngModel)]="filtroTanque" (ngModelChange)="paginaActual = 1"
-                    class="px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-700">
+                class="px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-700">
                 <option value="">Todos los tanques</option>
-                <option *ngFor="let tanque of tanques" [value]="tanque.idTanque">{{ tanque.nombre }}</option>
+                <option *ngFor="let tanque of tanques" [value]="tanque.idTanque">
+                    {{ tanque.nombre }}
+                </option>
             </select>
+
             <div class="flex gap-3">
                 <input type="text" [(ngModel)]="filtroLote" (ngModelChange)="paginaActual = 1"
-                       class="flex-1 px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-700"
-                       placeholder="Lote crema">
-                <button type="button" (click)="limpiarFiltros()" class="px-4 py-3 rounded-2xl bg-slate-100 text-slate-600 font-black hover:bg-slate-200">
+                    class="flex-1 px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-700"
+                    placeholder="Lote crema">
+
+                <button type="button" (click)="limpiarFiltros()"
+                    class="px-4 py-3 rounded-2xl bg-slate-100 text-slate-600 font-black hover:bg-slate-200">
                     Limpiar
                 </button>
             </div>
@@ -87,45 +116,76 @@
             <table class="w-full text-left">
                 <thead>
                     <tr class="bg-slate-50/50">
-                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Fecha / Procedencia</th>
-                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Recibido</th>
-                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Descremado</th>
-                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Restante</th>
-                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tanque destino</th>
-                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Crema</th>
-                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Lote / Estado</th>
+                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Fecha /
+                            Procedencia</th>
+                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">
+                            Recibido</th>
+                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">
+                            Descremado</th>
+                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">
+                            Restante</th>
+                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tanque
+                            destino</th>
+                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">
+                            Crema</th>
+                        <th
+                            class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">
+                            Lote / Estado</th>
                     </tr>
                 </thead>
+
                 <tbody class="divide-y divide-slate-50 text-sm">
                     <tr *ngFor="let item of descremadosPaginados" class="hover:bg-amber-50/30 transition-colors group">
                         <td class="px-8 py-5">
-                            <span class="text-slate-500 text-xs font-medium block">Recepcion</span>
-                            <span class="text-slate-900 font-bold tracking-tight">{{ obtenerRecepcion(item.idRecepcionLeche) }}</span>
-                            <p class="text-xs text-slate-400 italic mt-1 truncate" [title]="item.observaciones">{{ item.observaciones || 'Sin observaciones' }}</p>
+                            <span class="text-slate-500 text-xs font-medium block">Recepción</span>
+                            <span class="text-slate-900 font-bold tracking-tight">
+                                {{ obtenerRecepcion(item.idRecepcionLeche) }}
+                            </span>
+                            <p class="text-xs text-slate-400 italic mt-1 truncate" [title]="item.observaciones">
+                                {{ item.observaciones || 'Sin observaciones' }}
+                            </p>
                         </td>
+
                         <td class="px-8 py-5 text-right font-mono font-bold text-slate-700">
-                            {{ litrosRecibidosRecepcion(item.idRecepcionLeche) | number:'1.0-2' }} <span class="text-[10px] text-slate-400">L</span>
+                            {{ litrosRecibidosRecepcion(item.idRecepcionLeche) | number:'1.0-2' }}
+                            <span class="text-[10px] text-slate-400">L</span>
                         </td>
+
                         <td class="px-8 py-5 text-right font-mono font-bold text-amber-700">
-                            {{ item.litrosDescremados | number:'1.0-2' }} <span class="text-[10px] text-slate-400">L</span>
+                            {{ item.litrosDescremados | number:'1.0-2' }}
+                            <span class="text-[10px] text-slate-400">L</span>
                         </td>
+
                         <td class="px-8 py-5 text-right font-mono font-bold text-emerald-700">
-                            {{ litrosRestantesRecepcion(item.idRecepcionLeche) | number:'1.0-2' }} <span class="text-[10px] text-slate-400">L</span>
+                            {{ litrosRestantesRecepcion(item.idRecepcionLeche) | number:'1.0-2' }}
+                            <span class="text-[10px] text-slate-400">L</span>
                         </td>
+
                         <td class="px-8 py-5">
-                            <span class="px-3 py-1 bg-blue-50 text-blue-700 rounded-lg text-xs font-black uppercase tracking-tighter border border-blue-100 shadow-sm">
+                            <span
+                                class="px-3 py-1 bg-blue-50 text-blue-700 rounded-lg text-xs font-black uppercase tracking-tighter border border-blue-100 shadow-sm">
                                 {{ obtenerTanque(item.idTanqueDestino) }}
                             </span>
                         </td>
+
                         <td class="px-8 py-5 text-right">
                             <div class="flex flex-col items-end">
-                                <span class="font-black text-amber-700">{{ item.cremaObtenidaKg | number:'1.2-2' }} kg</span>
-                                <span class="text-[10px] text-slate-400">{{ item.unidadesCrema || 0 }} unidades</span>
+                                <span class="font-black text-amber-700">
+                                    {{ item.cremaObtenidaKg || 0 | number:'1.2-2' }} kg
+                                </span>
+                                <span class="text-[10px] text-slate-400">
+                                    {{ item.unidadesCrema || 0 }} unidades
+                                </span>
                             </div>
                         </td>
+
                         <td class="px-8 py-5 text-center">
-                            <span class="px-2 py-1 bg-slate-900 text-white rounded text-[10px] font-mono font-bold">{{ item.loteCrema || '-' }}</span>
-                            <span class="mt-2 inline-block px-2 py-1 rounded-lg border text-[10px] font-black uppercase" [ngClass]="claseEstado(item.idRecepcionLeche)">
+                            <span class="px-2 py-1 bg-slate-900 text-white rounded text-[10px] font-mono font-bold">
+                                {{ item.loteCrema || '-' }}
+                            </span>
+
+                            <span class="mt-2 inline-block px-2 py-1 rounded-lg border text-[10px] font-black uppercase"
+                                [ngClass]="claseEstado(item.idRecepcionLeche)">
                                 {{ estadoRecepcion(item.idRecepcionLeche) }}
                             </span>
                         </td>
@@ -133,19 +193,28 @@
                 </tbody>
             </table>
 
-            <div *ngIf="!cargando && descremadosFiltrados.length === 0" class="flex flex-col items-center justify-center py-20 bg-slate-50/20">
+            <div *ngIf="!cargando && descremadosFiltrados.length === 0"
+                class="flex flex-col items-center justify-center py-20 bg-slate-50/20">
                 <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center text-slate-300 mb-4">
                     <i class="bi bi-droplet-half text-4xl"></i>
                 </div>
+
                 <p class="text-slate-500 font-medium tracking-tight">No se encontraron procesos de descremado</p>
-                <a *ngIf="authService.canCreateOperacionesLinea()" routerLink="/descremado/nuevo" class="mt-4 text-amber-600 font-bold hover:underline text-sm">Iniciar nuevo proceso</a>
+
+                <a *ngIf="authService.canCreateOperacionesLinea()" routerLink="/descremado/nuevo"
+                    class="mt-4 text-amber-600 font-bold hover:underline text-sm">
+                    Iniciar nuevo proceso
+                </a>
             </div>
         </div>
 
-        <div *ngIf="totalPaginas > 1" class="px-8 py-6 bg-slate-50/30 border-t border-slate-100 flex items-center justify-between">
+        <div *ngIf="totalPaginas > 1"
+            class="px-8 py-6 bg-slate-50/30 border-t border-slate-100 flex items-center justify-between">
             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                Pagina {{ paginaActual }} de {{ totalPaginas }} ({{ descremadosFiltrados.length }} filtrados / {{ descremados.length }} total)
+                Página {{ paginaActual }} de {{ totalPaginas }}
+                ({{ descremadosFiltrados.length }} filtrados / {{ descremados.length }} total)
             </span>
+
             <div class="flex items-center gap-2">
                 <button (click)="cambiarPagina(paginaActual - 1)" [disabled]="paginaActual === 1"
                     class="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-white border border-transparent hover:border-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all text-slate-600">

@@ -28,281 +28,302 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private static final String ROL_ADMIN = "ADMIN";
-    private static final String ROL_DUENO_EMPRESA = "DUENO_EMPRESA";
-    private static final String ROL_JEFE_PLANTA = "JEFE_PLANTA";
-    private static final String ROL_JEFE_PRODUCCION = "JEFE_PRODUCCION";
-    private static final String ROL_JEFE_LINEA = "JEFE_LINEA";
-    private static final String ROL_AUXILIAR_CALIDAD = "AUXILIAR_CALIDAD";
+        private static final String ROL_ADMIN = "ADMIN";
+        private static final String ROL_DUENO_EMPRESA = "DUENO_EMPRESA";
+        private static final String ROL_JEFE_PLANTA = "JEFE_PLANTA";
+        private static final String ROL_JEFE_PRODUCCION = "JEFE_PRODUCCION";
+        private static final String ROL_JEFE_LINEA = "JEFE_LINEA";
+        private static final String ROL_AUXILIAR_CALIDAD = "AUXILIAR_CALIDAD";
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final AuditoriaHttpFilter auditoriaHttpFilter;
-    private final UserDetailsService userDetailsService;
-    private final JwtAuthenticationEntryPoint authenticationEntryPoint;
-    private final JwtAccessDeniedHandler accessDeniedHandler;
+        private final JwtAuthenticationFilter jwtAuthenticationFilter;
+        private final AuditoriaHttpFilter auditoriaHttpFilter;
+        private final UserDetailsService userDetailsService;
+        private final JwtAuthenticationEntryPoint authenticationEntryPoint;
+        private final JwtAccessDeniedHandler accessDeniedHandler;
 
-    public SecurityConfig(
-            JwtAuthenticationFilter jwtAuthenticationFilter,
-            AuditoriaHttpFilter auditoriaHttpFilter,
-            UserDetailsService userDetailsService,
-            JwtAuthenticationEntryPoint authenticationEntryPoint,
-            JwtAccessDeniedHandler accessDeniedHandler) {
+        public SecurityConfig(
+                        JwtAuthenticationFilter jwtAuthenticationFilter,
+                        AuditoriaHttpFilter auditoriaHttpFilter,
+                        UserDetailsService userDetailsService,
+                        JwtAuthenticationEntryPoint authenticationEntryPoint,
+                        JwtAccessDeniedHandler accessDeniedHandler) {
 
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-        this.auditoriaHttpFilter = auditoriaHttpFilter;
-        this.userDetailsService = userDetailsService;
-        this.authenticationEntryPoint = authenticationEntryPoint;
-        this.accessDeniedHandler = accessDeniedHandler;
-    }
+                this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+                this.auditoriaHttpFilter = auditoriaHttpFilter;
+                this.userDetailsService = userDetailsService;
+                this.authenticationEntryPoint = authenticationEntryPoint;
+                this.accessDeniedHandler = accessDeniedHandler;
+        }
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())
+                http
+                                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                                .csrf(csrf -> csrf.disable())
 
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .sessionManagement(session -> session
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(authenticationEntryPoint)
-                        .accessDeniedHandler(accessDeniedHandler))
+                                .exceptionHandling(exception -> exception
+                                                .authenticationEntryPoint(authenticationEntryPoint)
+                                                .accessDeniedHandler(accessDeniedHandler))
 
-                .authorizeHttpRequests(auth -> auth
+                                .authorizeHttpRequests(auth -> auth
 
-                        // PERMITIR OPTIONS (PREFLIGHT)
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                                                // PERMITIR OPTIONS (PREFLIGHT)
+                                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // AUTH
-                        .requestMatchers("/auth/**", "/error").permitAll()
+                                                // AUTH
+                                                .requestMatchers("/auth/**", "/error").permitAll()
 
-                        // PERFIL
-                        .requestMatchers("/me").authenticated()
-                        .requestMatchers("/usuarios/mi-password").authenticated()
+                                                // PERFIL
+                                                .requestMatchers("/me").authenticated()
+                                                .requestMatchers("/usuarios/mi-password").authenticated()
 
-                        // USUARIOS
-                        .requestMatchers(HttpMethod.GET, "/usuarios/**")
-                        .hasAnyRole(
-                                ROL_ADMIN,
-                                ROL_DUENO_EMPRESA,
-                                ROL_JEFE_PLANTA,
-                                ROL_JEFE_PRODUCCION)
+                                                // USUARIOS
+                                                .requestMatchers(HttpMethod.GET, "/usuarios/**")
+                                                .hasAnyRole(
+                                                                ROL_ADMIN,
+                                                                ROL_DUENO_EMPRESA,
+                                                                ROL_JEFE_PLANTA,
+                                                                ROL_JEFE_PRODUCCION)
 
-                        .requestMatchers("/usuarios/**")
-                        .hasRole(ROL_ADMIN)
+                                                .requestMatchers("/usuarios/**")
+                                                .hasRole(ROL_ADMIN)
 
-                        // CATALOGOS
-                        .requestMatchers(HttpMethod.GET, "/catalogos/**")
-                        .authenticated()
+                                                // CATALOGOS
+                                                .requestMatchers(HttpMethod.GET, "/catalogos/**")
+                                                .authenticated()
 
-                        .requestMatchers("/catalogos/**")
-                        .hasAnyRole(
-                                ROL_ADMIN,
-                                ROL_JEFE_PRODUCCION)
+                                                .requestMatchers("/catalogos/**")
+                                                .hasAnyRole(
+                                                                ROL_ADMIN,
+                                                                ROL_JEFE_PRODUCCION)
 
-                        // FORMULAS
-                        .requestMatchers(HttpMethod.GET, "/formulas/**")
-                        .hasAnyRole(
-                                ROL_ADMIN,
-                                ROL_DUENO_EMPRESA,
-                                ROL_JEFE_PLANTA,
-                                ROL_JEFE_PRODUCCION,
-                                ROL_JEFE_LINEA,
-                                ROL_AUXILIAR_CALIDAD)
+                                                // FORMULAS
+                                                .requestMatchers(HttpMethod.GET, "/formulas/**")
+                                                .hasAnyRole(
+                                                                ROL_ADMIN,
+                                                                ROL_DUENO_EMPRESA,
+                                                                ROL_JEFE_PLANTA,
+                                                                ROL_JEFE_PRODUCCION,
+                                                                ROL_JEFE_LINEA,
+                                                                ROL_AUXILIAR_CALIDAD)
 
-                        .requestMatchers("/formulas/**")
-                        .hasAnyRole(
-                                ROL_ADMIN,
-                                ROL_JEFE_PRODUCCION)
+                                                .requestMatchers("/formulas/**")
+                                                .hasAnyRole(
+                                                                ROL_ADMIN,
+                                                                ROL_JEFE_PRODUCCION)
 
-                        // PROGRAMACIONES
-                        .requestMatchers(HttpMethod.GET, "/programaciones/**", "/programacion-skus/**")
-                        .hasAnyRole(
-                                ROL_ADMIN,
-                                ROL_DUENO_EMPRESA,
-                                ROL_JEFE_PLANTA,
-                                ROL_JEFE_PRODUCCION)
+                                                // PROGRAMACIONES
+                                                .requestMatchers(HttpMethod.GET, "/programaciones/**",
+                                                                "/programacion-skus/**")
+                                                .hasAnyRole(
+                                                                ROL_ADMIN,
+                                                                ROL_DUENO_EMPRESA,
+                                                                ROL_JEFE_PLANTA,
+                                                                ROL_JEFE_PRODUCCION)
 
-                        .requestMatchers("/programaciones/**", "/programacion-skus/**")
-                        .hasAnyRole(
-                                ROL_ADMIN,
-                                ROL_JEFE_PRODUCCION)
+                                                .requestMatchers("/programaciones/**", "/programacion-skus/**")
+                                                .hasAnyRole(
+                                                                ROL_ADMIN,
+                                                                ROL_JEFE_PRODUCCION)
 
-                        // RECEPCION LECHE
-                        .requestMatchers(HttpMethod.GET, "/recepciones-leche/**")
-                        .hasAnyRole(
-                                ROL_ADMIN,
-                                ROL_DUENO_EMPRESA,
-                                ROL_JEFE_PLANTA,
-                                ROL_JEFE_PRODUCCION,
-                                ROL_JEFE_LINEA,
-                                ROL_AUXILIAR_CALIDAD)
+                                                // RECEPCION LECHE
+                                                .requestMatchers(HttpMethod.GET, "/recepciones-leche/**")
+                                                .hasAnyRole(
+                                                                ROL_ADMIN,
+                                                                ROL_DUENO_EMPRESA,
+                                                                ROL_JEFE_PLANTA,
+                                                                ROL_JEFE_PRODUCCION,
+                                                                ROL_JEFE_LINEA,
+                                                                ROL_AUXILIAR_CALIDAD)
 
-                        // DESCREMADO Y MOVIMIENTOS
-                        .requestMatchers(HttpMethod.GET, "/descremados-recepcion/**", "/movimientos-leche/**")
-                        .hasAnyRole(
-                                ROL_ADMIN,
-                                ROL_DUENO_EMPRESA,
-                                ROL_JEFE_PLANTA,
-                                ROL_JEFE_PRODUCCION,
-                                ROL_JEFE_LINEA,
-                                ROL_AUXILIAR_CALIDAD)
+                                                // DESCREMADO Y MOVIMIENTOS
+                                                .requestMatchers(HttpMethod.GET, "/descremados-recepcion/**",
+                                                                "/movimientos-leche/**")
+                                                .hasAnyRole(
+                                                                ROL_ADMIN,
+                                                                ROL_DUENO_EMPRESA,
+                                                                ROL_JEFE_PLANTA,
+                                                                ROL_JEFE_PRODUCCION,
+                                                                ROL_JEFE_LINEA,
+                                                                ROL_AUXILIAR_CALIDAD)
 
-                        .requestMatchers("/recepciones-leche/**", "/descremados-recepcion/**", "/movimientos-leche/**")
-                        .hasAnyRole(
-                                ROL_ADMIN,
-                                ROL_JEFE_LINEA)
+                                                .requestMatchers("/recepciones-leche/**", "/descremados-recepcion/**",
+                                                                "/movimientos-leche/**")
+                                                .hasAnyRole(
+                                                                ROL_ADMIN,
+                                                                ROL_JEFE_LINEA)
 
-                        // TANQUES
-                        .requestMatchers(HttpMethod.GET, "/tanques-leche/**")
-                        .hasAnyRole(
-                                ROL_ADMIN,
-                                ROL_DUENO_EMPRESA,
-                                ROL_JEFE_PLANTA,
-                                ROL_JEFE_PRODUCCION,
-                                ROL_JEFE_LINEA,
-                                ROL_AUXILIAR_CALIDAD)
+                                                // TANQUES
+                                                .requestMatchers(HttpMethod.GET, "/tanques-leche/**")
+                                                .hasAnyRole(
+                                                                ROL_ADMIN,
+                                                                ROL_DUENO_EMPRESA,
+                                                                ROL_JEFE_PLANTA,
+                                                                ROL_JEFE_PRODUCCION,
+                                                                ROL_JEFE_LINEA,
+                                                                ROL_AUXILIAR_CALIDAD)
 
-                        .requestMatchers("/tanques-leche/**")
-                        .hasRole(ROL_ADMIN)
+                                                .requestMatchers("/tanques-leche/**")
+                                                .hasRole(ROL_ADMIN)
 
-                        // CONSULTA DE ORDENES Y EJECUCION
-                        .requestMatchers(HttpMethod.GET, "/ordenes-produccion/**", "/ejecucion-batch/**", "/producciones-lactea/**")
-                        .hasAnyRole(
-                                ROL_ADMIN,
-                                ROL_DUENO_EMPRESA,
-                                ROL_JEFE_PLANTA,
-                                ROL_JEFE_PRODUCCION,
-                                ROL_JEFE_LINEA,
-                                ROL_AUXILIAR_CALIDAD)
+                                                // CONSULTA DE ORDENES Y EJECUCION
+                                                .requestMatchers(HttpMethod.GET, "/ordenes-produccion/**",
+                                                                "/ejecucion-batch/**", "/producciones-lactea/**")
+                                                .hasAnyRole(
+                                                                ROL_ADMIN,
+                                                                ROL_DUENO_EMPRESA,
+                                                                ROL_JEFE_PLANTA,
+                                                                ROL_JEFE_PRODUCCION,
+                                                                ROL_JEFE_LINEA,
+                                                                ROL_AUXILIAR_CALIDAD)
 
-                        // ORDENES Y EJECUCION
-                        .requestMatchers("/ordenes-produccion/**", "/ejecucion-batch/**", "/producciones-lactea/**")
-                        .hasAnyRole(
-                                ROL_ADMIN,
-                                ROL_JEFE_LINEA)
+                                                // ORDENES Y EJECUCION
+                                                .requestMatchers("/ordenes-produccion/**", "/ejecucion-batch/**",
+                                                                "/producciones-lactea/**")
+                                                .hasAnyRole(
+                                                                ROL_ADMIN,
+                                                                ROL_JEFE_LINEA)
 
-                        // CALIDAD
-                        .requestMatchers(HttpMethod.GET, "/mediciones-calidad-lactea/**", "/controles-calidad-lactea/**")
-                        .hasAnyRole(
-                                ROL_ADMIN,
-                                ROL_DUENO_EMPRESA,
-                                ROL_JEFE_PLANTA,
-                                ROL_JEFE_PRODUCCION,
-                                ROL_AUXILIAR_CALIDAD)
+                                                // CALIDAD
+                                                // JEFE_LINEA puede consultar calidad para saber si una recepcion esta
+                                                // aprobada,
+                                                // retenida o no aprobada antes de usarla en descremado o produccion.
+                                                .requestMatchers(HttpMethod.GET, "/mediciones-calidad-lactea/**",
+                                                                "/controles-calidad-lactea/**")
+                                                .hasAnyRole(
+                                                                ROL_ADMIN,
+                                                                ROL_DUENO_EMPRESA,
+                                                                ROL_JEFE_PLANTA,
+                                                                ROL_JEFE_PRODUCCION,
+                                                                ROL_JEFE_LINEA,
+                                                                ROL_AUXILIAR_CALIDAD)
 
-                        .requestMatchers("/mediciones-calidad-lactea/**", "/controles-calidad-lactea/**")
-                        .hasAnyRole(
-                                ROL_ADMIN,
-                                ROL_AUXILIAR_CALIDAD)
+                                                // Solo ADMIN y AUXILIAR_CALIDAD pueden crear, editar o eliminar
+                                                // controles de calidad.
+                                                .requestMatchers("/mediciones-calidad-lactea/**",
+                                                                "/controles-calidad-lactea/**")
+                                                .hasAnyRole(
+                                                                ROL_ADMIN,
+                                                                ROL_AUXILIAR_CALIDAD)
 
-                        // EMPAQUE Y OTROS PROCESOS MES
-                        .requestMatchers(HttpMethod.GET,
-                                "/empaques-lacteos/**",
-                                "/productos-terminados-lacteos/**",
-                                "/registros-insumo-lacteo/**",
-                                "/dashboard-operativo/**",
-                                "/reportes/lacteos/**")
-                        .hasAnyRole(
-                                ROL_ADMIN,
-                                ROL_DUENO_EMPRESA,
-                                ROL_JEFE_PLANTA,
-                                ROL_JEFE_PRODUCCION)
+                                                // EMPAQUE Y OTROS PROCESOS MES
+                                                .requestMatchers(HttpMethod.GET,
+                                                                "/empaques-lacteos/**",
+                                                                "/productos-terminados-lacteos/**",
+                                                                "/registros-insumo-lacteo/**",
+                                                                "/dashboard-operativo/**",
+                                                                "/reportes/lacteos/**")
+                                                .hasAnyRole(
+                                                                ROL_ADMIN,
+                                                                ROL_DUENO_EMPRESA,
+                                                                ROL_JEFE_PLANTA,
+                                                                ROL_JEFE_PRODUCCION)
 
-                        .requestMatchers(
-                                "/empaques-lacteos/**",
-                                "/productos-terminados-lacteos/**",
-                                "/registros-insumo-lacteo/**")
-                        .hasRole(ROL_ADMIN)
+                                                .requestMatchers(
+                                                                "/empaques-lacteos/**",
+                                                                "/productos-terminados-lacteos/**",
+                                                                "/registros-insumo-lacteo/**")
+                                                .hasRole(ROL_ADMIN)
 
-                        // DASHBOARD GENERAL
-                        .requestMatchers("/dashboard/**")
-                        .hasAnyRole(
-                                ROL_ADMIN,
-                                ROL_DUENO_EMPRESA,
-                                ROL_JEFE_PLANTA,
-                                ROL_JEFE_PRODUCCION)
+                                                // DASHBOARD GENERAL
+                                                .requestMatchers("/dashboard/**")
+                                                .hasAnyRole(
+                                                                ROL_ADMIN,
+                                                                ROL_DUENO_EMPRESA,
+                                                                ROL_JEFE_PLANTA,
+                                                                ROL_JEFE_PRODUCCION)
 
-                        // VALIDACION FORMAL DE ORDENES
-                        .requestMatchers(HttpMethod.GET, "/validaciones-orden-produccion/**")
-                        .hasAnyRole(
-                                ROL_ADMIN,
-                                ROL_DUENO_EMPRESA,
-                                ROL_JEFE_PLANTA,
-                                ROL_JEFE_PRODUCCION)
+                                                // VALIDACION FORMAL DE ORDENES
+                                                .requestMatchers(HttpMethod.GET, "/validaciones-orden-produccion/**")
+                                                .hasAnyRole(
+                                                                ROL_ADMIN,
+                                                                ROL_DUENO_EMPRESA,
+                                                                ROL_JEFE_PLANTA,
+                                                                ROL_JEFE_PRODUCCION)
 
-                        .requestMatchers("/validaciones-orden-produccion/**")
-                        .hasAnyRole(
-                                ROL_ADMIN,
-                                ROL_JEFE_PRODUCCION)
+                                                .requestMatchers("/validaciones-orden-produccion/**")
+                                                .hasAnyRole(
+                                                                ROL_ADMIN,
+                                                                ROL_JEFE_PRODUCCION)
 
-                        // AUDITORIA
-                        .requestMatchers(HttpMethod.GET, "/auditoria/**")
-                        .hasAnyRole(
-                                ROL_ADMIN,
-                                ROL_DUENO_EMPRESA,
-                                ROL_JEFE_PLANTA)
+                                                // AUDITORIA
+                                                .requestMatchers(HttpMethod.GET, "/auditoria/**")
+                                                .hasAnyRole(
+                                                                ROL_ADMIN,
+                                                                ROL_DUENO_EMPRESA,
+                                                                ROL_JEFE_PLANTA)
 
-                        // TODO LO DEMAS
-                        .anyRequest().authenticated())
+                                                // TODO LO DEMAS
+                                                .anyRequest().authenticated())
 
-                .authenticationProvider(authenticationProvider())
+                                .authenticationProvider(authenticationProvider())
 
-                .addFilterBefore(
-                        jwtAuthenticationFilter,
-                        UsernamePasswordAuthenticationFilter.class)
+                                .addFilterBefore(
+                                                jwtAuthenticationFilter,
+                                                UsernamePasswordAuthenticationFilter.class)
 
-                .addFilterAfter(
-                        auditoriaHttpFilter,
-                        JwtAuthenticationFilter.class);
+                                .addFilterAfter(
+                                                auditoriaHttpFilter,
+                                                JwtAuthenticationFilter.class);
 
-        return http.build();
-    }
+                return http.build();
+        }
 
-    @Bean
-    public FilterRegistrationBean<AuditoriaHttpFilter> auditoriaHttpFilterRegistration(
-            AuditoriaHttpFilter filter) {
-        FilterRegistrationBean<AuditoriaHttpFilter> registration = new FilterRegistrationBean<>(filter);
-        registration.setEnabled(false);
-        return registration;
-    }
+        @Bean
+        public FilterRegistrationBean<AuditoriaHttpFilter> auditoriaHttpFilterRegistration(
+                        AuditoriaHttpFilter filter) {
+                FilterRegistrationBean<AuditoriaHttpFilter> registration = new FilterRegistrationBean<>(filter);
+                registration.setEnabled(false);
+                return registration;
+        }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("*"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers"));
-        configuration.setExposedHeaders(List.of("Authorization"));
-        configuration.setAllowCredentials(false);
-        configuration.setMaxAge(3600L);
+        @Bean
+        public CorsConfigurationSource corsConfigurationSource() {
+                CorsConfiguration configuration = new CorsConfiguration();
+                configuration.setAllowedOrigins(List.of("*"));
+                configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+                configuration.setAllowedHeaders(List.of(
+                                "Authorization",
+                                "Content-Type",
+                                "X-Requested-With",
+                                "Accept",
+                                "Origin",
+                                "Access-Control-Request-Method",
+                                "Access-Control-Request-Headers"));
+                configuration.setExposedHeaders(List.of("Authorization"));
+                configuration.setAllowCredentials(false);
+                configuration.setMaxAge(3600L);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+                source.registerCorsConfiguration("/**", configuration);
 
-    @Bean
-    public AuthenticationProvider authenticationProvider() {
+                return source;
+        }
 
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder());
+        @Bean
+        public AuthenticationProvider authenticationProvider() {
 
-        return provider;
-    }
+                DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+                provider.setUserDetailsService(userDetailsService);
+                provider.setPasswordEncoder(passwordEncoder());
 
-    @Bean
-    public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration config) throws Exception {
+                return provider;
+        }
 
-        return config.getAuthenticationManager();
-    }
+        @Bean
+        public AuthenticationManager authenticationManager(
+                        AuthenticationConfiguration config) throws Exception {
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
+                return config.getAuthenticationManager();
+        }
 
-        return new BCryptPasswordEncoder();
-    }
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+
+                return new BCryptPasswordEncoder();
+        }
 }

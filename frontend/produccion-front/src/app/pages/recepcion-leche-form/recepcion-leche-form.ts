@@ -20,6 +20,7 @@ import { NotificationService } from '../../core/services/notification';
 
 @Component({
   selector: 'app-recepcion-leche-form',
+  standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './recepcion-leche-form.html',
 })
@@ -49,7 +50,7 @@ export class RecepcionLecheForm implements OnInit {
     private notification: NotificationService
   ) {
     this.form = this.fb.group({
-      fechaRecepcion: [new Date().toISOString().slice(0, 10), Validators.required],
+      fechaRecepcion: [this.fechaHoyLocal(), Validators.required],
       tipoMateriaPrima: [this.tipoMateriaPrima, Validators.required],
       proveedor: ['', Validators.required],
       idTanque: [null, Validators.required],
@@ -272,5 +273,14 @@ export class RecepcionLecheForm implements OnInit {
     }
 
     return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+  }
+
+  private fechaHoyLocal(): string {
+    const hoy = new Date();
+    const year = hoy.getFullYear();
+    const month = String(hoy.getMonth() + 1).padStart(2, '0');
+    const day = String(hoy.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
   }
 }

@@ -5,110 +5,120 @@
             <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Catálogo de SKUs</h1>
             <p class="text-slate-500 mt-1">Gestión de presentaciones y productos terminados.</p>
         </div>
+
         <div class="flex items-center gap-3">
             <div class="relative group">
-                <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
+                <i
+                    class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
                 <input type="text" [(ngModel)]="filtro" (ngModelChange)="paginaActual = 1" placeholder="Buscar SKU..."
                     class="pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none w-64 transition-all shadow-sm">
             </div>
+
             <button *ngIf="authService.canManageCatalogosTecnicos()" (click)="toggleFormulario()"
-                    [class]="mostrarFormulario ? 'bg-slate-200 text-slate-700 hover:bg-slate-300' : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-900/20'"
-                    class="px-5 py-2 font-bold rounded-xl transition-all active:scale-95 flex items-center gap-2">
+                [class]="mostrarFormulario ? 'bg-slate-200 text-slate-700 hover:bg-slate-300' : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-900/20'"
+                class="px-5 py-2 font-bold rounded-xl transition-all active:scale-95 flex items-center gap-2">
                 <i class="bi" [class]="mostrarFormulario ? 'bi-x-lg' : 'bi-plus-lg'"></i>
                 {{ mostrarFormulario ? 'Cancelar' : 'Agregar SKU' }}
             </button>
         </div>
     </header>
 
-    <!-- Formulario de Creación/Edición (collapsible) -->
+    <!-- Formulario de Creación/Edición -->
     <div *ngIf="mostrarFormulario && authService.canManageCatalogosTecnicos()"
-         class="bg-white rounded-3xl shadow-sm border border-blue-100 overflow-hidden animate-in slide-in-from-top-4 duration-300">
+        class="bg-white rounded-3xl shadow-sm border border-blue-100 overflow-hidden animate-in slide-in-from-top-4 duration-300">
+
         <div class="p-6 border-b border-slate-50 bg-slate-50/50">
             <h2 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                <i class="bi" [ngClass]="modoEdicion ? 'bi-pencil-square text-amber-500' : 'bi-plus-circle text-blue-500'"></i>
+                <i class="bi"
+                    [ngClass]="modoEdicion ? 'bi-pencil-square text-amber-500' : 'bi-plus-circle text-blue-500'"></i>
                 {{ modoEdicion ? 'Editar SKU' : 'Crear Nuevo SKU' }}
             </h2>
         </div>
 
         <div class="p-8">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Producto -->
                 <div class="space-y-2">
-                    <label class="text-sm font-medium text-slate-700">Producto Principal <span class="text-red-500">*</span></label>
-                    <select [(ngModel)]="nuevoSku.idProducto" 
+                    <label class="text-sm font-medium text-slate-700">Producto Principal <span
+                            class="text-red-500">*</span></label>
+                    <select [(ngModel)]="nuevoSku.idProducto"
                         class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all">
                         <option [ngValue]="null" disabled>Seleccione un producto</option>
                         <option *ngFor="let p of productos" [ngValue]="p.id">{{ p.nombre }}</option>
                     </select>
                 </div>
 
-                <!-- Código SKU -->
                 <div class="space-y-2">
-                    <label class="text-sm font-medium text-slate-700">Código SKU <span class="text-red-500">*</span></label>
+                    <label class="text-sm font-medium text-slate-700">Código SKU <span
+                            class="text-red-500">*</span></label>
                     <input type="text" [(ngModel)]="nuevoSku.codigoSku" placeholder="Ej: COND-145-G"
                         class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all">
                 </div>
 
-                <!-- Marca -->
                 <div class="space-y-2">
                     <label class="text-sm font-medium text-slate-700">Marca <span class="text-red-500">*</span></label>
-                    <select [(ngModel)]="nuevoSku.idMarca" 
+                    <select [(ngModel)]="nuevoSku.idMarca"
                         class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all">
                         <option [ngValue]="null" disabled>Seleccione una marca</option>
                         <option *ngFor="let m of marcas" [ngValue]="m.id">{{ m.nombre }}</option>
                     </select>
                 </div>
 
-                <!-- Descripción -->
                 <div class="md:col-span-2 space-y-2">
-                    <label class="text-sm font-medium text-slate-700">Descripción completa <span class="text-red-500">*</span></label>
+                    <label class="text-sm font-medium text-slate-700">Descripción completa <span
+                            class="text-red-500">*</span></label>
                     <input type="text" [(ngModel)]="nuevoSku.descripcion" placeholder="Ej: Leche Condensada Lata 145g"
                         class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all">
                 </div>
 
-                <!-- Peso Neto -->
                 <div class="space-y-2">
-                    <label class="text-sm font-medium text-slate-700">Peso Neto (g) <span class="text-red-500">*</span></label>
+                    <label class="text-sm font-medium text-slate-700">Peso Neto (g) <span
+                            class="text-red-500">*</span></label>
                     <div class="flex gap-2">
-                        <input type="number" [(ngModel)]="nuevoSku.pesoNetoGr" 
+                        <input type="number" [(ngModel)]="nuevoSku.pesoNetoGr"
                             class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-right">
-                        <input type="text" [(ngModel)]="nuevoSku.unidadMedida" 
-                            class="w-20 px-4 py-2.5 bg-slate-200 border-none rounded-xl text-center font-bold text-slate-600" readonly>
+                        <input type="text" [(ngModel)]="nuevoSku.unidadMedida"
+                            class="w-20 px-4 py-2.5 bg-slate-200 border-none rounded-xl text-center font-bold text-slate-600"
+                            readonly>
                     </div>
                 </div>
 
-                <!-- Tipo Envase -->
                 <div class="space-y-2">
                     <label class="text-sm font-medium text-slate-700">Tipo de Envase</label>
-                    <select [(ngModel)]="nuevoSku.tipoEnvase" 
+                    <select [(ngModel)]="nuevoSku.tipoEnvase"
                         class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all">
                         <option *ngFor="let t of tiposEnvase" [value]="t">{{ t }}</option>
                     </select>
                 </div>
 
-                <!-- Unidades por Caja -->
                 <div class="space-y-2">
                     <label class="text-sm font-medium text-slate-700">Unidades por Caja</label>
-                    <input type="number" [(ngModel)]="nuevoSku.unidadesPorCaja" 
+                    <input type="number" [(ngModel)]="nuevoSku.unidadesPorCaja"
                         class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-right">
                 </div>
 
-                <!-- Toggles -->
                 <div class="flex items-end gap-6 pb-2">
                     <label class="flex items-center gap-3 cursor-pointer group">
-                        <div class="relative w-12 h-6 bg-slate-200 rounded-full transition-colors group-has-[:checked]:bg-blue-600">
+                        <div
+                            class="relative w-12 h-6 bg-slate-200 rounded-full transition-colors group-has-[:checked]:bg-blue-600">
                             <input type="checkbox" [(ngModel)]="nuevoSku.activo" class="sr-only peer">
-                            <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-6 shadow-sm"></div>
+                            <div
+                                class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-6 shadow-sm">
+                            </div>
                         </div>
-                        <span class="text-sm font-medium text-slate-600 group-hover:text-slate-900 transition-colors">Activo</span>
+                        <span
+                            class="text-sm font-medium text-slate-600 group-hover:text-slate-900 transition-colors">Activo</span>
                     </label>
 
                     <label class="flex items-center gap-3 cursor-pointer group">
-                        <div class="relative w-12 h-6 bg-slate-200 rounded-full transition-colors group-has-[:checked]:bg-indigo-600">
+                        <div
+                            class="relative w-12 h-6 bg-slate-200 rounded-full transition-colors group-has-[:checked]:bg-indigo-600">
                             <input type="checkbox" [(ngModel)]="nuevoSku.esExport" class="sr-only peer">
-                            <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-6 shadow-sm"></div>
+                            <div
+                                class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-6 shadow-sm">
+                            </div>
                         </div>
-                        <span class="text-sm font-medium text-slate-600 group-hover:text-slate-900 transition-colors">Exportación</span>
+                        <span
+                            class="text-sm font-medium text-slate-600 group-hover:text-slate-900 transition-colors">Exportación</span>
                     </label>
                 </div>
             </div>
@@ -118,18 +128,21 @@
                     class="px-6 py-2.5 text-slate-600 hover:bg-slate-100 rounded-xl font-medium transition-colors">
                     Cancelar
                 </button>
-                <button (click)="guardarSku()" 
+
+                <button (click)="guardarSku()"
                     class="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold shadow-lg shadow-blue-500/30 transition-all hover:-translate-y-0.5 active:translate-y-0">
                     {{ modoEdicion ? 'Actualizar SKU' : 'Crear SKU' }}
                 </button>
             </div>
 
-            <!-- Alertas -->
-            <div *ngIf="mensajeOk" class="mt-6 p-4 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-2xl flex items-center gap-3 animate-slide-up">
+            <div *ngIf="mensajeOk"
+                class="mt-6 p-4 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-2xl flex items-center gap-3 animate-slide-up">
                 <i class="bi bi-check-circle-fill text-xl"></i>
                 <span class="font-medium">{{ mensajeOk }}</span>
             </div>
-            <div *ngIf="mensajeError" class="mt-6 p-4 bg-rose-50 border border-rose-100 text-rose-700 rounded-2xl flex items-center gap-3 animate-slide-up">
+
+            <div *ngIf="mensajeError"
+                class="mt-6 p-4 bg-rose-50 border border-rose-100 text-rose-700 rounded-2xl flex items-center gap-3 animate-slide-up">
                 <i class="bi bi-exclamation-triangle-fill text-xl"></i>
                 <span class="font-medium">{{ mensajeError }}</span>
             </div>
@@ -139,78 +152,114 @@
     <!-- Tabla de SKUs -->
     <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
+            <table class="w-full min-w-[1180px] table-fixed text-left border-collapse">
                 <thead>
                     <tr class="bg-slate-50/50">
-                        <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">#</th>
-                        <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">SKU</th>
-                        <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Producto</th>
-                        <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Peso Neto</th>
-                        <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Estado</th>
-                        <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Acciones</th>
+                        <th class="w-16 px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">#</th>
+                        <th class="w-48 px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">SKU
+                        </th>
+                        <th class="w-64 px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                            Producto</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Descripción
+                        </th>
+                        <th
+                            class="w-36 px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">
+                            Peso Neto</th>
+                        <th
+                            class="w-36 px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">
+                            Estado</th>
+                        <th
+                            class="w-40 px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">
+                            Acciones</th>
                     </tr>
                 </thead>
+
                 <tbody class="divide-y divide-slate-50">
-                    <tr *ngFor="let s of skusPaginados; let i = index" class="hover:bg-slate-50/50 transition-colors group">
+                    <tr *ngFor="let s of skusPaginados; let i = index"
+                        class="hover:bg-slate-50/50 transition-colors group">
                         <td class="px-6 py-4 text-xs font-bold text-slate-300">
                             {{ (paginaActual - 1) * itemsPorPagina + i + 1 }}
                         </td>
+
                         <td class="px-6 py-4">
                             <span class="font-mono text-sm font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg">
                                 {{ s.codigoSku }}
                             </span>
                         </td>
+
                         <td class="px-6 py-4">
-                            <div class="text-sm font-semibold text-slate-800">{{ s.nombreProducto }}</div>
-                            <div class="text-xs text-slate-400">{{ s.nombreMarca }}</div>
+                            <div class="text-sm font-semibold text-slate-800 truncate" [title]="s.nombreProducto">
+                                {{ s.nombreProducto }}
+                            </div>
+                            <div class="text-xs text-slate-400 truncate" [title]="s.nombreMarca">
+                                {{ s.nombreMarca }}
+                            </div>
                         </td>
-                        <td class="px-6 py-4 text-sm text-slate-600">{{ s.descripcion }}</td>
+
+                        <td class="px-6 py-4 text-sm text-slate-600">
+                            <div class="truncate" [title]="s.descripcion">
+                                {{ s.descripcion }}
+                            </div>
+                        </td>
+
                         <td class="px-6 py-4 text-right">
                             <span class="text-sm font-bold text-slate-700">{{ s.pesoNetoGr | number }}</span>
-                            <span class="text-xs text-slate-400 ml-1">{{ s.unidadMedida }}</span>
+                            <span class="text-xs text-slate-400 ml-1">{{ s.unidadMedida || 'gr' }}</span>
                         </td>
+
                         <td class="px-6 py-4 text-center">
-                            <span [ngClass]="s.activo ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-400'"
+                            <span
+                                [ngClass]="s.activo ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-400'"
                                 class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
                                 {{ s.activo ? 'Activo' : 'Inactivo' }}
                             </span>
                         </td>
+
                         <td class="px-6 py-4">
                             <div class="flex justify-center gap-2">
                                 <button *ngIf="authService.canManageCatalogosTecnicos()" (click)="editarSku(s)"
-                                        class="w-10 h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:shadow-md transition-all"
-                                        title="Editar SKU">
+                                    class="w-10 h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:shadow-md transition-all"
+                                    title="Editar SKU">
                                     <i class="bi bi-pencil-fill"></i>
                                 </button>
+
                                 <button *ngIf="authService.canManageCatalogosTecnicos()" (click)="toggleEstado(s)"
-                                        class="w-10 h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:shadow-md transition-all"
-                                        [title]="s.activo ? 'Inactivar' : 'Activar'">
-                                    <i class="bi" [ngClass]="s.activo ? 'bi-toggle-on text-emerald-600' : 'bi-toggle-off text-slate-400'"></i>
+                                    class="w-10 h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:shadow-md transition-all"
+                                    [title]="s.activo ? 'Inactivar' : 'Activar'">
+                                    <i class="bi"
+                                        [ngClass]="s.activo ? 'bi-toggle-on text-emerald-600' : 'bi-toggle-off text-slate-400'"></i>
                                 </button>
+
                                 <button *ngIf="authService.canManageCatalogosTecnicos()" (click)="eliminarSku(s.id)"
-                                        class="w-10 h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 hover:shadow-md transition-all"
-                                        title="Eliminar SKU">
+                                    class="w-10 h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 hover:shadow-md transition-all"
+                                    title="Eliminar SKU">
                                     <i class="bi bi-trash3-fill"></i>
                                 </button>
-                                <span *ngIf="!authService.canManageCatalogosTecnicos()" class="text-xs text-slate-300 italic">Solo lectura</span>
+
+                                <span *ngIf="!authService.canManageCatalogosTecnicos()"
+                                    class="text-xs text-slate-300 italic">
+                                    Solo lectura
+                                </span>
                             </div>
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
-        
+
         <!-- Paginación -->
-        <div *ngIf="totalPaginas > 1" class="px-6 py-4 bg-slate-50/50 border-t border-slate-50 flex items-center justify-between">
+        <div *ngIf="totalPaginas > 1"
+            class="px-6 py-4 bg-slate-50/50 border-t border-slate-50 flex items-center justify-between">
             <span class="text-sm text-slate-500 font-medium">
                 Página {{ paginaActual }} de {{ totalPaginas }}
             </span>
+
             <div class="flex items-center gap-2">
                 <button (click)="cambiarPagina(paginaActual - 1)" [disabled]="paginaActual === 1"
                     class="p-2 rounded-lg hover:bg-white border border-transparent hover:border-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
                     <i class="bi bi-chevron-left"></i>
                 </button>
-                
+
                 <div class="flex items-center gap-1">
                     <button *ngFor="let p of paginas" (click)="cambiarPagina(p)"
                         [ngClass]="paginaActual === p ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'hover:bg-white border border-transparent hover:border-slate-200 text-slate-600'"
@@ -225,7 +274,7 @@
                 </button>
             </div>
         </div>
-        
+
         <!-- Empty State -->
         <div *ngIf="skusFiltrados.length === 0" class="p-12 text-center">
             <div class="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-4">

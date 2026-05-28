@@ -80,7 +80,6 @@ export class AuthService {
     };
     return roles[rol] || rol.replace('_', ' ');
   }
-
 
   isDuenoEmpresa(): boolean {
     return this.getRol() === 'DUENO_EMPRESA';
@@ -129,7 +128,6 @@ export class AuthService {
     return this.hasAnyRole(['ADMIN', 'JEFE_LINEA']);
   }
 
-  // Solo JEFE_LINEA puede registrar recepciones de leche y descremados
   canCreateOperacionesLinea(): boolean {
     return this.isJefeLinea();
   }
