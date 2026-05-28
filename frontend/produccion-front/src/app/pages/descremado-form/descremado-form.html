@@ -2,7 +2,7 @@
 
     <div class="flex items-center gap-4">
         <button routerLink="/descremado"
-                class="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-500 hover:text-amber-600 hover:border-amber-100 transition-all">
+            class="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-500 hover:text-amber-600 hover:border-amber-100 transition-all">
             <i class="bi bi-arrow-left"></i>
         </button>
         <div>
@@ -11,12 +11,14 @@
         </div>
     </div>
 
-    <div *ngIf="cargandoDatos" class="flex items-center gap-3 p-4 bg-amber-50 text-amber-700 rounded-2xl border border-amber-100 shadow-sm animate-pulse">
+    <div *ngIf="cargandoDatos"
+        class="flex items-center gap-3 p-4 bg-amber-50 text-amber-700 rounded-2xl border border-amber-100 shadow-sm animate-pulse">
         <div class="w-10 h-10 bg-amber-100 rounded-xl"></div>
         <span class="text-sm font-bold">Cargando recepciones, saldos y calidad...</span>
     </div>
 
-    <div *ngIf="error" class="p-4 bg-red-50 text-red-700 rounded-2xl border border-red-100 shadow-sm flex items-center gap-3 font-medium">
+    <div *ngIf="error"
+        class="p-4 bg-red-50 text-red-700 rounded-2xl border border-red-100 shadow-sm flex items-center gap-3 font-medium">
         <i class="bi bi-exclamation-triangle-fill"></i>
         {{ error }}
     </div>
@@ -31,43 +33,76 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Recepcion pendiente de descremar</label>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+                        Recepcion pendiente de descremar
+                    </label>
+
                     <div class="relative">
                         <select formControlName="idRecepcionLeche"
-                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all text-slate-900 appearance-none text-sm">
+                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all text-slate-900 appearance-none text-sm">
                             <option [ngValue]="null">Seleccione recepcion...</option>
+
                             <option *ngFor="let recepcion of recepciones" [value]="recepcion.id">
-                                {{ recepcion.fechaRecepcion | date:'dd/MM' }} - {{ recepcion.proveedor }} (disp. {{ litrosDisponiblesParaVista(recepcion) | number:'1.0-2' }} L)
+                                {{ recepcion.fechaRecepcion | date:'dd/MM' }} -
+                                {{ recepcion.proveedor || 'Sin finca' }} -
+                                Rem. {{ recepcion.numeroRemision || 'Sin remision' }}
+                                (disp. {{ litrosDisponiblesParaVista(recepcion) | number:'1.0-2' }} L)
                             </option>
                         </select>
-                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+
+                        <i
+                            class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                     </div>
-                    <p *ngIf="form.get('idRecepcionLeche')?.invalid && form.get('idRecepcionLeche')?.touched" class="text-[10px] text-red-500 font-bold ml-1 uppercase">Requerido</p>
+
+                    <p *ngIf="form.get('idRecepcionLeche')?.invalid && form.get('idRecepcionLeche')?.touched"
+                        class="text-[10px] text-red-500 font-bold ml-1 uppercase">
+                        Requerido
+                    </p>
                 </div>
 
                 <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Tanque destino</label>
-                    <input type="text" readonly [value]="tanqueRefrigeracion ? (tanqueRefrigeracion.nombre + ' - saldo actual: ' + (tanqueRefrigeracion.saldoLitros | number:'1.0-3') + ' L') : 'Sin tanque asignado'"
-                           class="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-2xl text-slate-500 cursor-not-allowed text-sm font-medium">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+                        Tanque destino
+                    </label>
+
+                    <input type="text" readonly
+                        [value]="tanqueRefrigeracion ? (tanqueRefrigeracion.nombre + ' - saldo actual: ' + (tanqueRefrigeracion.saldoLitros | number:'1.0-3') + ' L') : 'Sin tanque asignado'"
+                        class="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-2xl text-slate-500 cursor-not-allowed text-sm font-medium">
                 </div>
             </div>
 
             <div *ngIf="recepcionSeleccionada()" class="grid grid-cols-1 lg:grid-cols-4 gap-4">
                 <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
                     <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Proveedor</span>
-                    <p class="mt-1 text-sm font-black text-slate-900">{{ recepcionSeleccionada()?.proveedor }}</p>
-                    <p class="text-xs text-slate-400">{{ recepcionSeleccionada()?.fechaRecepcion | date:'dd/MM/yyyy' }}</p>
+                    <p class="mt-1 text-sm font-black text-slate-900">
+                        {{ recepcionSeleccionada()?.proveedor || 'Sin finca' }}
+                    </p>
+                    <p class="text-xs text-slate-400">
+                        {{ recepcionSeleccionada()?.fechaRecepcion | date:'dd/MM/yyyy' }}
+                    </p>
                 </div>
+
                 <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
                     <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Remision</span>
-                    <p class="mt-1 text-sm font-black text-slate-900">{{ recepcionSeleccionada()?.numeroRemision || 'Sin remision' }}</p>
-                    <p class="text-xs text-slate-400">{{ recepcionSeleccionada()?.cantidadRemisionLitros || 0 | number:'1.0-3' }} L reportados</p>
+                    <p class="mt-1 text-sm font-black text-slate-900">
+                        {{ recepcionSeleccionada()?.numeroRemision || 'Sin remision' }}
+                    </p>
+                    <p class="text-xs text-slate-400">
+                        {{ recepcionSeleccionada()?.cantidadRemisionLitros || 0 | number:'1.0-3' }} L reportados
+                    </p>
                 </div>
+
                 <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Recibido / usado</span>
-                    <p class="mt-1 text-sm font-black text-slate-900">{{ litrosRecibidosSeleccionada() | number:'1.0-3' }} L</p>
-                    <p class="text-xs text-slate-400">{{ litrosYaDescremadosSeleccionada() | number:'1.0-3' }} L ya descremados</p>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Recibido /
+                        usado</span>
+                    <p class="mt-1 text-sm font-black text-slate-900">
+                        {{ litrosRecibidosSeleccionada() | number:'1.0-3' }} L
+                    </p>
+                    <p class="text-xs text-slate-400">
+                        {{ litrosYaDescremadosSeleccionada() | number:'1.0-3' }} L ya descremados
+                    </p>
                 </div>
+
                 <div class="p-4 rounded-2xl border" [ngClass]="claseEstadoCalidad()">
                     <span class="text-[10px] font-black uppercase tracking-widest">Calidad</span>
                     <p class="mt-1 text-sm font-black">{{ textoEstadoCalidad() }}</p>
@@ -75,121 +110,181 @@
                 </div>
             </div>
 
-            <div *ngIf="recepcionSeleccionada() && !puedeDescremarSeleccionada()" class="p-4 bg-red-50 border border-red-100 text-red-700 rounded-2xl font-bold text-sm">
+            <div *ngIf="recepcionSeleccionada() && !puedeDescremarSeleccionada()"
+                class="p-4 bg-red-50 border border-red-100 text-red-700 rounded-2xl font-bold text-sm">
                 Esta recepcion esta retenida o no aprobada por calidad. No se debe usar para descremado.
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Litros a descremar</label>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+                        Litros a descremar
+                    </label>
+
                     <div class="relative">
                         <input type="number" formControlName="litrosDescremados" placeholder="0.00"
-                               class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all text-slate-900 font-bold">
+                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all text-slate-900 font-bold">
                         <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 font-bold">L</span>
                     </div>
                 </div>
 
                 <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Crema obtenida real (kg)</label>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+                        Crema obtenida real (kg)
+                    </label>
+
                     <div class="relative">
                         <input type="number" formControlName="cremaObtenidaKg" placeholder="0.00"
-                               class="w-full px-4 py-3 bg-amber-50 border border-amber-100 rounded-2xl focus:ring-4 focus:ring-amber-500/20 focus:border-amber-500 outline-none transition-all text-amber-900 font-bold">
+                            class="w-full px-4 py-3 bg-amber-50 border border-amber-100 rounded-2xl focus:ring-4 focus:ring-amber-500/20 focus:border-amber-500 outline-none transition-all text-amber-900 font-bold">
                         <span class="absolute right-4 top-1/2 -translate-y-1/2 text-amber-300 font-bold">KG</span>
                     </div>
                 </div>
 
                 <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Disponible actual</span>
-                        <p class="mt-1 text-xl font-black text-slate-900">{{ litrosDisponiblesRecepcion() | number:'1.0-3' }} L</p>
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            Disponible actual
+                        </span>
+                        <p class="mt-1 text-xl font-black text-slate-900">
+                            {{ litrosDisponiblesRecepcion() | number:'1.0-3' }} L
+                        </p>
                     </div>
+
                     <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-100">
-                        <span class="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Despues del descremado</span>
-                        <p class="mt-1 text-xl font-black text-emerald-700">{{ litrosDespuesDescremado() | number:'1.0-3' }} L</p>
+                        <span class="text-[10px] font-black text-emerald-600 uppercase tracking-widest">
+                            Despues del descremado
+                        </span>
+                        <p class="mt-1 text-xl font-black text-emerald-700">
+                            {{ litrosDespuesDescremado() | number:'1.0-3' }} L
+                        </p>
                     </div>
+
                     <div class="p-4 rounded-2xl bg-amber-50 border border-amber-100">
-                        <span class="text-[10px] font-black text-amber-600 uppercase tracking-widest">Crema esperada</span>
-                        <p class="mt-1 text-xl font-black text-amber-700">{{ cremaEstimadaKg() | number:'1.0-2' }} kg</p>
+                        <span class="text-[10px] font-black text-amber-600 uppercase tracking-widest">
+                            Crema esperada
+                        </span>
+                        <p class="mt-1 text-xl font-black text-amber-700">
+                            {{ cremaEstimadaKg() | number:'1.0-2' }} kg
+                        </p>
                     </div>
+
                     <div class="p-4 rounded-2xl bg-blue-50 border border-blue-100">
-                        <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest">Rendimiento crema</span>
-                        <p class="mt-1 text-xl font-black text-blue-700">{{ rendimientoCremaPor100Litros() | number:'1.1-2' }} kg/100L</p>
+                        <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest">
+                            Rendimiento crema
+                        </span>
+                        <p class="mt-1 text-xl font-black text-blue-700">
+                            {{ rendimientoCremaPor100Litros() | number:'1.1-2' }} kg/100L
+                        </p>
                     </div>
                 </div>
             </div>
 
             <div class="pt-4 flex items-center gap-3">
                 <input type="checkbox" id="registraCremaEmpacada" formControlName="registraCremaEmpacada"
-                       class="w-5 h-5 rounded-lg text-amber-600 focus:ring-amber-500 border-slate-300 transition-all cursor-pointer">
-                <label for="registraCremaEmpacada" class="text-sm font-bold text-slate-600 cursor-pointer select-none">Registrar empaque inmediato de crema</label>
+                    class="w-5 h-5 rounded-lg text-amber-600 focus:ring-amber-500 border-slate-300 transition-all cursor-pointer">
+
+                <label for="registraCremaEmpacada" class="text-sm font-bold text-slate-600 cursor-pointer select-none">
+                    Registrar empaque inmediato de crema
+                </label>
             </div>
         </div>
 
         <div *ngIf="form.get('registraCremaEmpacada')?.value"
-             class="bg-white rounded-[2.5rem] border border-amber-100 shadow-xl shadow-amber-900/5 p-8 md:p-10 space-y-8 animate-in slide-in-from-top-4 duration-300">
+            class="bg-white rounded-[2.5rem] border border-amber-100 shadow-xl shadow-amber-900/5 p-8 md:p-10 space-y-8 animate-in slide-in-from-top-4 duration-300">
+
             <div class="flex items-center gap-3">
                 <div class="w-1.5 h-6 bg-amber-600 rounded-full"></div>
-                <h2 class="font-bold text-slate-800 uppercase tracking-wider text-sm">Informacion de empaque de crema</h2>
+                <h2 class="font-bold text-slate-800 uppercase tracking-wider text-sm">
+                    Informacion de empaque de crema
+                </h2>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div class="md:col-span-2 space-y-2">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Presentacion (SKU)</label>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+                        Presentacion (SKU)
+                    </label>
+
                     <div class="relative">
                         <select formControlName="idSkuCrema"
-                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all text-slate-900 appearance-none text-sm font-medium">
+                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all text-slate-900 appearance-none text-sm font-medium">
                             <option [ngValue]="null">Seleccione SKU de crema...</option>
                             <option *ngFor="let sku of skusCrema" [value]="sku.id">
                                 {{ sku.descripcion }} ({{ sku.pesoNetoGr }}g) - {{ sku.tipoEnvase }}
                             </option>
                         </select>
-                        <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                        <i
+                            class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                     </div>
                 </div>
 
                 <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Lote produccion</label>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+                        Lote produccion
+                    </label>
+
                     <input type="text" formControlName="loteCrema" placeholder="Ej: CR-001"
-                           class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all text-sm font-mono font-bold">
+                        class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all text-sm font-mono font-bold">
                 </div>
 
                 <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Unidades</label>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+                        Unidades
+                    </label>
+
                     <input type="number" formControlName="unidadesCrema" placeholder="0"
-                           class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all text-sm font-bold text-slate-700">
+                        class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all text-sm font-bold text-slate-700">
                 </div>
 
                 <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Kg / unidad</label>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+                        Kg / unidad
+                    </label>
+
                     <input type="number" formControlName="kgPorUnidadCrema" placeholder="0.00"
-                           class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all text-sm">
+                        class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all text-sm">
                 </div>
 
                 <div class="md:col-span-3 p-4 rounded-2xl bg-amber-50 border border-amber-100">
-                    <span class="text-[10px] font-black text-amber-500 uppercase tracking-widest">Crema empacada calculada</span>
-                    <p class="mt-1 text-xl font-black text-amber-700">{{ cremaEmpacadaKg() | number:'1.0-2' }} kg</p>
+                    <span class="text-[10px] font-black text-amber-500 uppercase tracking-widest">
+                        Crema empacada calculada
+                    </span>
+                    <p class="mt-1 text-xl font-black text-amber-700">
+                        {{ cremaEmpacadaKg() | number:'1.0-2' }} kg
+                    </p>
                 </div>
             </div>
         </div>
 
         <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-8 md:p-10 space-y-4">
-            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Observaciones operativas</label>
-            <textarea formControlName="observaciones" rows="3" placeholder="Detalles sobre el proceso, temperatura, etc..."
-                      class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-[2rem] focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all text-sm resize-none"></textarea>
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+                Observaciones operativas
+            </label>
+
+            <textarea formControlName="observaciones" rows="3"
+                placeholder="Detalles sobre el proceso, temperatura, etc..."
+                class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-[2rem] focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all text-sm resize-none"></textarea>
         </div>
 
-        <div class="fixed bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-4xl bg-slate-900/90 backdrop-blur-xl px-8 py-4 rounded-3xl border border-slate-700/50 flex items-center justify-between shadow-2xl z-50 animate-in slide-in-from-bottom-8 duration-700">
+        <div
+            class="fixed bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-4xl bg-slate-900/90 backdrop-blur-xl px-8 py-4 rounded-3xl border border-slate-700/50 flex items-center justify-between shadow-2xl z-50 animate-in slide-in-from-bottom-8 duration-700">
             <button type="button" routerLink="/descremado"
-                    class="px-6 py-3 text-slate-400 font-bold hover:text-white transition-colors">
+                class="px-6 py-3 text-slate-400 font-bold hover:text-white transition-colors">
                 Cancelar
             </button>
+
             <button type="submit" [disabled]="cargando || cargandoDatos || !puedeDescremarSeleccionada()"
-                    class="px-10 py-3 bg-amber-600 text-white font-black rounded-2xl shadow-xl shadow-amber-900/20 hover:bg-amber-500 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center gap-3">
+                class="px-10 py-3 bg-amber-600 text-white font-black rounded-2xl shadow-xl shadow-amber-900/20 hover:bg-amber-500 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center gap-3">
+
                 <span *ngIf="!cargando">Confirmar registro</span>
+
                 <span *ngIf="cargando" class="flex items-center gap-2">
                     <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                        </circle>
+                        <path class="opacity-75" fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                        </path>
                     </svg>
                     Sincronizando...
                 </span>
