@@ -122,17 +122,8 @@ export class Descremado implements OnInit {
   }
 
   lecheDisponibleParaDescremar(): number {
-    return this.tanques.reduce((total, tanque: any) => {
-      const saldo = Number(
-        tanque.saldoActualLitros ??
-        tanque.saldoLitros ??
-        tanque.cantidadActualLitros ??
-        tanque.litrosDisponibles ??
-        tanque.disponibleLitros ??
-        0
-      );
-
-      return total + saldo;
+    return this.recepciones.reduce((total, recepcion) => {
+      return total + this.litrosRestantesRecepcion(recepcion.id);
     }, 0);
   }
 
@@ -140,7 +131,7 @@ export class Descremado implements OnInit {
     const hoy = this.fechaHoyLocal();
 
     return this.descremados
-      .filter(descremado => this.esMismaFecha(descremado.createdAt, hoy))
+      .filter(descremado => this.esMismaFechaDescremado(descremado, hoy))
       .reduce((total, descremado) => total + Number(descremado.litrosDescremados || 0), 0);
   }
 
@@ -148,7 +139,7 @@ export class Descremado implements OnInit {
     const hoy = this.fechaHoyLocal();
 
     return this.descremados
-      .filter(descremado => this.esMismaFecha(descremado.createdAt, hoy))
+      .filter(descremado => this.esMismaFechaDescremado(descremado, hoy))
       .reduce((total, descremado) => total + Number(descremado.cremaObtenidaKg || 0), 0);
   }
 
@@ -166,7 +157,7 @@ export class Descremado implements OnInit {
         const recepcion = this.buscarRecepcion(item.idRecepcionLeche);
 
         const coincideFecha = !this.filtroFecha
-          || this.esMismaFecha(item.createdAt, this.filtroFecha)
+          || this.esMismaFechaDescremado(item, this.filtroFecha)
           || this.esMismaFecha(recepcion?.fechaRecepcion, this.filtroFecha);
 
         const coincideProveedor = !this.filtroProveedor
@@ -290,6 +281,18 @@ export class Descremado implements OnInit {
     return this.estadosCalidad.find(item => Number(item.idRecepcionLeche) === Number(idRecepcionLeche))?.estadoCalidad || 'SIN_CALIDAD';
   }
 
+  private esMismaFechaDescremado(descremado: DescremadoRecepcion, fechaComparar: string): boolean {
+    const fechaCreacion = this.normalizarFecha(descremado.createdAt);
+
+    if (fechaCreacion) {
+      return fechaCreacion === fechaComparar;
+    }
+
+    const recepcion = this.buscarRecepcion(descremado.idRecepcionLeche);
+
+    return this.normalizarFecha(recepcion?.fechaRecepcion) === fechaComparar;
+  }
+
   private compararDescremadosRecientes(a: DescremadoRecepcion, b: DescremadoRecepcion): number {
     const fechaA = this.obtenerTiempoDescremado(a);
     const fechaB = this.obtenerTiempoDescremado(b);
@@ -306,6 +309,13 @@ export class Descremado implements OnInit {
 
     if (!Number.isNaN(tiempo)) {
       return tiempo;
+    }
+
+    const recepcion = this.buscarRecepcion(descremado.idRecepcionLeche);
+    const tiempoRecepcion = new Date(recepcion?.fechaRecepcion || '').getTime();
+
+    if (!Number.isNaN(tiempoRecepcion)) {
+      return tiempoRecepcion;
     }
 
     return 0;
