@@ -26,4 +26,8 @@ public interface CalidadRecepcionLecheJpaRepository extends JpaRepository<Calida
            "  WHERE c2.recepcionLeche.id = c.recepcionLeche.id" +
            ")")
     List<Object[]> findLatestEstadoPorRecepcion();
+
+    @Query("SELECT c FROM CalidadRecepcionLecheEntity c " +
+           "ORDER BY c.recepcionLeche.id ASC, c.fechaControl DESC, c.id DESC")
+    List<CalidadRecepcionLecheEntity> findAllOrdenadasParaEstadoRecepcion();
 }

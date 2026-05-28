@@ -128,7 +128,7 @@ export class Descremado implements OnInit {
   }
 
   fechaHoy(): string {
-    return new Date().toISOString().slice(0, 10);
+    return this.fechaLocal(new Date());
   }
 
   lecheRecibidaHoy(): number {
@@ -139,7 +139,10 @@ export class Descremado implements OnInit {
   }
 
   lecheDisponibleParaDescremar(): number {
-    return this.recepciones.reduce((total, recepcion) => total + this.litrosRestantesRecepcion(recepcion.id), 0);
+    const hoy = this.fechaHoy();
+    return this.recepciones
+      .filter(recepcion => recepcion.fechaRecepcion === hoy)
+      .reduce((total, recepcion) => total + this.litrosRestantesRecepcion(recepcion.id), 0);
   }
 
   lecheDescremadaHoy(): number {
@@ -217,5 +220,12 @@ export class Descremado implements OnInit {
 
   private fechaOrdenable(descremado: DescremadoRecepcion): string {
     return `${descremado.createdAt || ''}-${String(descremado.id).padStart(8, '0')}`;
+  }
+
+  private fechaLocal(fecha: Date): string {
+    const year = fecha.getFullYear();
+    const month = String(fecha.getMonth() + 1).padStart(2, '0');
+    const day = String(fecha.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }

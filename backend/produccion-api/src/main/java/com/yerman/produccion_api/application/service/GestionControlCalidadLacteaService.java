@@ -19,7 +19,9 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class GestionControlCalidadLacteaService {
@@ -499,24 +501,29 @@ public class GestionControlCalidadLacteaService {
                         .toList());
     }
 
+    @Transactional
     public List<EstadoCalidadRecepcionResponse> listarEstadosRecepcion() {
-        return calidadRecepcionRepository.findLatestEstadoPorRecepcion()
-                .stream()
-                .map(row -> {
-                    Long idRecepcion = ((Number) row[0]).longValue();
-                    Boolean aprobado = (Boolean) row[1];
-                    Boolean retenido = (Boolean) row[2];
-                    String estado;
-                    if (Boolean.TRUE.equals(retenido)) {
-                        estado = "RETENIDA";
-                    } else if (Boolean.TRUE.equals(aprobado)) {
-                        estado = "APROBADA";
-                    } else {
-                        estado = "NO_APROBADA";
-                    }
-                    return new EstadoCalidadRecepcionResponse(idRecepcion, estado);
-                })
-                .toList();
+        Map<Long, EstadoCalidadRecepcionResponse> estados = new LinkedHashMap<>();
+
+        calidadRecepcionRepository.findAllOrdenadasParaEstadoRecepcion()
+                .forEach(control -> {
+                    Long idRecepcion = control.getRecepcionLeche().getId();
+                    estados.computeIfAbsent(idRecepcion, ignored -> new EstadoCalidadRecepcionResponse(
+                            idRecepcion,
+                            estadoRecepcion(control.getAprobado(), control.getRetenido())));
+                });
+
+        return List.copyOf(estados.values());
+    }
+
+    private String estadoRecepcion(Boolean aprobado, Boolean retenido) {
+        if (Boolean.TRUE.equals(retenido)) {
+            return "RETENIDA";
+        }
+        if (Boolean.TRUE.equals(aprobado)) {
+            return "APROBADA";
+        }
+        return "NO_APROBADA";
     }
 
     private <T> T ref(Class<T> type, Long id) {
