@@ -50,12 +50,12 @@ public class GestionDescremadoRecepcionService implements GestionDescremadoRecep
         validarDisponibleEnRecepcion(recepcion, descremadoRecepcion);
 
         /*
-         * El descremado consume leche disponible del tanque original de la recepción.
-         * Por eso solo se registra una SALIDA_DESCREME.
+         * El descremado consume leche del tanque donde entró la recepción.
+         * Por eso aquí SOLO se registra SALIDA_DESCREME.
          *
-         * Antes también se registraba una ENTRADA_DESCREME por la misma cantidad,
-         * lo que anulaba el descuento del tanque:
-         * saldo - litrosDescremados + litrosDescremados = mismo saldo.
+         * No se debe registrar ENTRADA_DESCREME por la misma cantidad,
+         * porque eso vuelve a sumar lo que se acaba de restar y el saldo
+         * del tanque queda igual.
          */
         MovimientoLeche movimientoSalida = movimientoLecheUseCase.registrarMovimiento(
                 recepcion.getIdTanque(),
