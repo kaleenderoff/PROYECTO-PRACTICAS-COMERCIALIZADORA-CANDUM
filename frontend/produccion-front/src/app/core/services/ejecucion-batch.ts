@@ -19,7 +19,7 @@ export interface FinalizarBatchRequest {
   conNovedad?: boolean;
   huboReproceso?: boolean;
   batchConforme?: boolean;
-  brixFinal?: number;
+  brixFinal: number;
   tipoNovedad?: TipoNovedad | null;
 }
 
@@ -50,7 +50,7 @@ export interface EjecucionBatch {
 export class EjecucionBatchService {
   private apiUrl = `${environment.apiUrl}/ejecucion-batch`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   iniciar(request: IniciarBatchRequest): Observable<EjecucionBatch> {
     return this.http.post<EjecucionBatch>(`${this.apiUrl}/iniciar`, request);
@@ -58,6 +58,10 @@ export class EjecucionBatchService {
 
   finalizar(id: number, request: FinalizarBatchRequest): Observable<EjecucionBatch> {
     return this.http.patch<EjecucionBatch>(`${this.apiUrl}/${id}/finalizar`, request);
+  }
+
+  actualizarFinalizado(id: number, request: FinalizarBatchRequest): Observable<EjecucionBatch> {
+    return this.http.patch<EjecucionBatch>(`${this.apiUrl}/${id}/actualizar-finalizado`, request);
   }
 
   eliminar(id: number): Observable<void> {

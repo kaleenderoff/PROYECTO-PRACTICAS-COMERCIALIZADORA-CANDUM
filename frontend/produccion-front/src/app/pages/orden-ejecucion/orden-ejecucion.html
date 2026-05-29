@@ -8,14 +8,17 @@
                         [ngClass]="orden.idTanqueLeche ? 'bg-blue-50 text-blue-600' : 'bg-amber-100 text-amber-600'">
                         <i class="bi bi-water text-xl"></i>
                     </div>
+
                     <div>
                         <p class="text-[10px] font-black uppercase tracking-widest"
                             [ngClass]="orden.idTanqueLeche ? 'text-blue-500' : 'text-amber-600'">
                             Tanque de leche descremada
                         </p>
+
                         <h3 class="text-base font-black text-slate-900 mt-1">
                             {{ orden.nombreTanqueLeche || 'Seleccione el tanque antes de finalizar' }}
                         </h3>
+
                         <p class="text-xs text-slate-500 font-medium mt-1">
                             De este tanque se descontara la leche usada al cerrar la orden.
                         </p>
@@ -26,6 +29,7 @@
                     <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">
                         Tanque origen
                     </label>
+
                     <div class="relative">
                         <select [ngModel]="orden.idTanqueLeche || ''" (change)="cambiarTanqueOrden($event)"
                             class="w-full px-5 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-black text-slate-800 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none appearance-none transition-all">
@@ -34,6 +38,7 @@
                                 {{ tanque.nombre }} - {{ tanque.saldoLitros | number:'1.0-2' }} L
                             </option>
                         </select>
+
                         <i
                             class="bi bi-chevron-down absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                     </div>
@@ -52,18 +57,25 @@
                 class="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
                 <i class="bi bi-play-circle-fill text-2xl"></i>
             </div>
+
             <div>
                 <div class="flex items-center gap-3">
-                    <h1 class="text-2xl font-black text-slate-900 tracking-tight">Ejecución Operativa</h1>
+                    <h1 class="text-2xl font-black text-slate-900 tracking-tight">
+                        Ejecución Operativa
+                    </h1>
+
                     <span *ngIf="orden"
                         class="px-3 py-1 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-lg border border-blue-100 uppercase tracking-widest">
                         Orden: {{ orden.numeroOrden }}
                     </span>
                 </div>
-                <p class="text-slate-500 text-sm font-medium">Registro de baches y control de marmitas en tiempo real
+
+                <p class="text-slate-500 text-sm font-medium">
+                    Registro de baches y control de marmitas en tiempo real
                 </p>
             </div>
         </div>
+
         <div class="flex items-center gap-3">
             <a [routerLink]="['/ordenes-produccion', idOrden]"
                 class="px-6 py-3.5 bg-white text-slate-600 font-bold rounded-2xl border border-slate-200 hover:bg-slate-50 transition-all flex items-center gap-2">
@@ -79,11 +91,13 @@
         <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
             <i class="bi bi-exclamation-triangle-fill text-amber-600 text-xl"></i>
         </div>
+
         <div class="flex-1">
             <p class="text-sm font-black text-amber-800 mb-1">
                 {{ totalBatchesActivos }} batch{{ totalBatchesActivos > 1 ? 'es' : '' }} en proceso activo{{
                 totalBatchesActivos > 1 ? 's' : '' }}
             </p>
+
             <p class="text-xs text-amber-700 font-medium leading-relaxed">
                 Puede continuar la producción normalmente. Si algún batch quedó abierto por una caída de sesión o error,
                 usa el botón <strong>eliminar</strong> en la tarjeta del batch para anularlo y volver a iniciarlo
@@ -101,6 +115,7 @@
                 </div>
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Kg Entrada</span>
             </div>
+
             <div class="flex items-baseline gap-2">
                 <span class="text-2xl font-black text-slate-900">{{ kgEntradaAcumulados | number:'1.1-1' }}</span>
                 <span class="text-xs text-slate-400 font-bold">Kg</span>
@@ -114,6 +129,7 @@
                 </div>
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Salida Proceso</span>
             </div>
+
             <div class="flex items-baseline gap-2">
                 <span class="text-2xl font-black text-slate-900">{{ kgProducidosAcumulados | number:'1.1-1' }}</span>
                 <span class="text-xs text-slate-400 font-bold text-amber-600">Kg Marmitas</span>
@@ -127,6 +143,7 @@
                 </div>
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Producto Terminado</span>
             </div>
+
             <div class="flex items-baseline gap-2">
                 <span class="text-2xl font-black text-slate-900">{{ totalKgSkus | number:'1.1-1' }}</span>
                 <span class="text-xs text-slate-400 font-bold text-emerald-600">Kg SKU</span>
@@ -138,12 +155,15 @@
                 <div class="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600">
                     <i class="bi bi-droplet-half text-xl"></i>
                 </div>
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Reducción
-                    Evaporación</span>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                    Reducción Evaporación
+                </span>
             </div>
+
             <div class="flex items-baseline gap-2">
-                <span class="text-2xl font-black text-slate-900">{{ (kgEntradaAcumulados - kgProducidosAcumulados) |
-                    number:'1.1-1' }}</span>
+                <span class="text-2xl font-black text-slate-900">
+                    {{ (kgEntradaAcumulados - kgProducidosAcumulados) | number:'1.1-1' }}
+                </span>
                 <span class="text-xs text-slate-400 font-bold text-rose-600">Kg</span>
             </div>
         </div>
@@ -155,6 +175,7 @@
                 </div>
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Diferencia Empaque</span>
             </div>
+
             <div class="flex items-baseline gap-2">
                 <span class="text-2xl font-black text-slate-900">{{ balanceEmpaque | number:'1.1-1' }}</span>
                 <span class="text-xs text-slate-400 font-bold text-indigo-600">Kg</span>
@@ -168,6 +189,7 @@
                 </div>
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Rendimiento Proceso</span>
             </div>
+
             <div class="flex items-baseline gap-2">
                 <span class="text-2xl font-black text-slate-900">{{ rendimientoPromedio | number:'1.1-1' }}%</span>
                 <span class="text-xs text-slate-400 font-bold">Real</span>
@@ -191,17 +213,21 @@
                         <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-3 px-1">
                             Estado de Marmitas
                         </label>
+
                         <div class="grid grid-cols-3 gap-2 mb-6">
                             <div *ngFor="let m of estadoMarmitas"
                                 class="p-2 rounded-xl border text-center transition-all flex flex-col justify-between min-h-[60px]"
                                 [ngClass]="m.ocupada ? 'bg-blue-50 border-blue-100 text-blue-700 shadow-sm' : 'bg-slate-50 border-slate-100 text-slate-400'">
                                 <p class="text-[8px] font-black uppercase">{{ m.nombre }}</p>
+
                                 <div class="flex items-center justify-center gap-1 my-1">
                                     <span class="w-1.5 h-1.5 rounded-full"
                                         [ngClass]="m.ocupada ? 'bg-blue-500 animate-pulse' : 'bg-slate-300'"></span>
-                                    <span class="text-[10px] font-black">{{ m.ocupada ? '#' + m.batchActual : 'LIBRE'
-                                        }}</span>
+                                    <span class="text-[10px] font-black">
+                                        {{ m.ocupada ? '#' + m.batchActual : 'LIBRE' }}
+                                    </span>
                                 </div>
+
                                 <div class="text-[7px] font-black uppercase opacity-60 border-t border-current/10 pt-1">
                                     {{ m.totalBatches }} {{ m.totalBatches === 1 ? 'Ciclo' : 'Ciclos' }}
                                 </div>
@@ -213,6 +239,7 @@
                         <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2 px-1">
                             Nueva Marmita
                         </label>
+
                         <div class="relative">
                             <i class="bi bi-cpu absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
                             <select [(ngModel)]="nuevoBatch.idMarmita"
@@ -288,8 +315,10 @@
                     <i class="bi bi-list-task text-slate-400"></i>
                     Batches de la Orden
                 </h3>
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">{{ batches.length }}
-                    TOTALES</span>
+
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                    {{ batches.length }} TOTALES
+                </span>
             </div>
 
             <div *ngIf="batches.length === 0"
@@ -297,9 +326,12 @@
                 <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-200 mb-4">
                     <i class="bi bi-inboxes text-4xl"></i>
                 </div>
+
                 <h4 class="text-slate-900 font-bold mb-1">No hay batches iniciados</h4>
-                <p class="text-slate-400 text-sm max-w-xs">Comience registrando el primer batch en el formulario
-                    lateral.</p>
+
+                <p class="text-slate-400 text-sm max-w-xs">
+                    Comience registrando el primer batch en el formulario lateral.
+                </p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -321,6 +353,7 @@
                             class="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-black">
                             {{ b.numeroBatch }}
                         </div>
+
                         <div>
                             <h4 class="text-base font-black text-slate-900">Batch #{{ b.numeroBatch }}</h4>
                             <p class="text-xs text-slate-500 font-medium">{{ b.nombreMarmita || 'Marmita Desconocida' }}
@@ -330,8 +363,9 @@
 
                     <div class="grid grid-cols-2 gap-4 mb-6">
                         <div class="p-3 bg-slate-50 rounded-2xl">
-                            <span
-                                class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Entrada</span>
+                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">
+                                Entrada
+                            </span>
                             <span class="text-sm font-black text-slate-700">{{ b.kgEntrada }} Kg</span>
                         </div>
 
@@ -364,14 +398,15 @@
 
                         <ng-container *ngIf="b.estado !== 'EN_PROCESO' || estaFinalizada">
                             <div class="p-3 bg-slate-50 rounded-2xl">
-                                <span
-                                    class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Salida</span>
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">
+                                    Salida
+                                </span>
                                 <span class="text-sm font-black text-emerald-600">{{ b.kgProducidos || '--' }} Kg</span>
                             </div>
                         </ng-container>
                     </div>
 
-                    <div *ngIf="b.estado === 'FINALIZADO'" class="mb-6 space-y-2 px-2">
+                    <div *ngIf="b.estado === 'FINALIZADO' || b.estado === 'CON_NOVEDAD'" class="mb-6 space-y-2 px-2">
                         <div class="flex items-center justify-between">
                             <span class="text-[10px] font-bold text-slate-400 uppercase">Rendimiento</span>
                             <span class="text-xs font-black"
@@ -379,10 +414,14 @@
                                 {{ b.rendimientoPct | number:'1.1-2' }}%
                             </span>
                         </div>
-                        <div *ngIf="b.brixFinal" class="flex items-center justify-between">
+
+                        <div class="flex items-center justify-between">
                             <span class="text-[10px] font-bold text-slate-400 uppercase">Brix Final</span>
-                            <span class="text-xs font-black text-slate-700">{{ b.brixFinal | number:'1.1-2' }}</span>
+                            <span class="text-xs font-black text-slate-700">
+                                {{ b.brixFinal || '--' }}
+                            </span>
                         </div>
+
                         <div class="flex items-center justify-between">
                             <span class="text-[10px] font-bold text-slate-400 uppercase">Leche descontada</span>
                             <span *ngIf="b.idMovimientoLeche"
@@ -401,8 +440,10 @@
                     <div *ngIf="b.estado === 'EN_PROCESO' && !estaFinalizada" class="mb-6">
                         <div
                             class="p-4 bg-white border border-amber-100 rounded-2xl shadow-sm focus-within:ring-4 focus-within:ring-amber-500/10 focus-within:border-amber-500 transition-all">
-                            <span class="text-[9px] font-bold text-amber-500 uppercase tracking-widest block mb-2">Brix
-                                final</span>
+                            <span class="text-[9px] font-bold text-amber-500 uppercase tracking-widest block mb-2">
+                                Brix final
+                            </span>
+
                             <div class="flex items-center gap-2">
                                 <i class="bi bi-droplet-half text-amber-300 text-sm"></i>
                                 <input type="number" [(ngModel)]="b.brixFinal"
@@ -418,6 +459,7 @@
                             <input type="checkbox" [(ngModel)]="b.conNovedad" class="w-4 h-4 rounded accent-amber-500">
                             <span class="text-xs font-bold text-slate-600">¿Hubo novedad en este batch?</span>
                         </label>
+
                         <div *ngIf="b.conNovedad" class="relative">
                             <select [(ngModel)]="b.tipoNovedad"
                                 class="w-full px-4 py-3 bg-amber-50 border border-amber-200 rounded-2xl text-xs font-bold text-amber-800 focus:ring-2 focus:ring-amber-500 outline-none appearance-none transition-all">
@@ -435,14 +477,24 @@
                             <i class="bi bi-check-circle"></i>
                             FINALIZAR
                         </button>
+
                         <button (click)="eliminarBatch(b)"
                             class="w-12 h-12 bg-slate-100 text-slate-400 rounded-xl hover:bg-red-50 hover:text-red-600 transition-all flex items-center justify-center">
                             <i class="bi bi-trash-fill"></i>
                         </button>
                     </div>
 
-                    <div *ngIf="b.estado === 'FINALIZADO'" class="text-[10px] text-slate-400 italic">
-                        Fin: {{ b.fechaFin | date:'shortTime' }}
+                    <div *ngIf="b.estado === 'FINALIZADO' || b.estado === 'CON_NOVEDAD'"
+                        class="flex items-center justify-between gap-3 mt-4">
+                        <div class="text-[10px] text-slate-400 italic">
+                            Fin: {{ b.fechaFin | date:'shortTime' }}
+                        </div>
+
+                        <button *ngIf="!estaFinalizada" type="button" (click)="abrirEdicionBatch(b)"
+                            class="px-3 py-2 bg-slate-100 text-slate-500 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-50 hover:text-blue-600 transition-all">
+                            <i class="bi bi-pencil-square mr-1"></i>
+                            Editar
+                        </button>
                     </div>
                 </div>
             </div>
@@ -457,6 +509,7 @@
                 <i class="bi bi-clock-history text-indigo-600"></i>
                 Bitácora de Tiempos (Timeline)
             </h3>
+
             <span class="px-3 py-1 bg-slate-100 text-slate-600 rounded-lg text-[10px] font-black uppercase">
                 Trazabilidad MES
             </span>
@@ -464,35 +517,42 @@
 
         <div class="relative">
             <div class="absolute left-4 top-0 bottom-0 w-0.5 bg-slate-100 ml-[-1px]"></div>
+
             <div class="space-y-8 relative">
                 <div *ngFor="let b of batches.slice().reverse()" class="flex items-start gap-6 relative">
                     <div class="w-8 h-8 rounded-full border-4 border-white shadow-sm flex items-center justify-center z-10"
-                        [ngClass]="b.estado === 'FINALIZADO' ? 'bg-emerald-500' : 'bg-blue-500 animate-pulse'">
+                        [ngClass]="b.estado === 'FINALIZADO' || b.estado === 'CON_NOVEDAD' ? 'bg-emerald-500' : 'bg-blue-500 animate-pulse'">
                         <i
-                            [class]="b.estado === 'FINALIZADO' ? 'bi bi-check-lg text-white text-[10px]' : 'bi bi-play-fill text-white text-[10px]'"></i>
+                            [class]="b.estado === 'FINALIZADO' || b.estado === 'CON_NOVEDAD' ? 'bi bi-check-lg text-white text-[10px]' : 'bi bi-play-fill text-white text-[10px]'"></i>
                     </div>
+
                     <div
                         class="flex-1 bg-slate-50/50 p-4 rounded-2xl border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
                             <div class="flex items-center gap-2 mb-1">
-                                <span class="text-xs font-black text-slate-900 uppercase">Batch #{{ b.numeroBatch
-                                    }}</span>
+                                <span class="text-xs font-black text-slate-900 uppercase">
+                                    Batch #{{ b.numeroBatch }}
+                                </span>
+
                                 <span
                                     class="px-2 py-0.5 bg-white border border-slate-200 rounded text-[8px] font-black uppercase text-slate-500">
                                     {{ b.nombreMarmita }}
                                 </span>
                             </div>
+
                             <p class="text-xs text-slate-500 font-medium">
-                                {{ b.estado === 'FINALIZADO' ? 'Proceso completado con éxito' : 'Carga de materia prima
-                                en curso' }}
+                                {{ b.estado === 'FINALIZADO' || b.estado === 'CON_NOVEDAD' ? 'Proceso completado' :
+                                'Carga de materia prima en curso' }}
                             </p>
                         </div>
+
                         <div
                             class="flex items-center gap-6 text-[10px] font-black uppercase tracking-wider text-slate-400">
                             <div class="flex flex-col items-end">
                                 <span class="opacity-50">Inicio</span>
                                 <span class="text-slate-700 font-bold">{{ b.fechaInicio | date:'shortTime' }}</span>
                             </div>
+
                             <div *ngIf="b.fechaFin" class="flex flex-col items-end">
                                 <span class="opacity-50">Fin</span>
                                 <span class="text-slate-700 font-bold">{{ b.fechaFin | date:'shortTime' }}</span>
@@ -511,9 +571,11 @@
             class="bg-slate-50/50 px-8 py-6 border-b border-slate-100 flex flex-col md:flex-row justify-between items-md-center gap-4">
             <div>
                 <h3 class="text-xl font-black text-slate-900">Resultado Final de Producción</h3>
-                <p class="text-sm text-slate-500 font-medium">Registre las unidades reales producidas para cada SKU de
-                    esta orden</p>
+                <p class="text-sm text-slate-500 font-medium">
+                    Registre las unidades reales producidas para cada SKU de esta orden
+                </p>
             </div>
+
             <button (click)="guardarProduccionReal()" [disabled]="cargando || estaFinalizada"
                 class="bg-indigo-600 text-white px-8 py-4 rounded-2xl font-black hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 flex items-center gap-2 active:scale-95 disabled:opacity-50">
                 <i class="bi bi-save-fill"></i>
@@ -543,35 +605,39 @@
                                 Observaciones</th>
                         </tr>
                     </thead>
+
                     <tbody class="divide-y divide-slate-50">
                         <tr *ngFor="let s of skusEditables" class="group transition-colors hover:bg-slate-50/50">
                             <td class="py-6 px-2">
                                 <p class="font-black text-slate-900">{{ s.codigoSku }}</p>
                                 <p class="text-xs text-slate-500 font-medium">{{ s.descripcionSku }}</p>
                             </td>
+
                             <td class="py-6 px-2 text-center">
                                 <div class="inline-flex flex-col items-center p-2 bg-slate-50 rounded-xl min-w-[80px]">
                                     <span class="text-sm font-black text-slate-700">{{ s.unidadesPlan }}</span>
                                     <span class="text-[9px] font-bold text-slate-400 uppercase">Unidades</span>
                                 </div>
                             </td>
+
                             <td class="py-6 px-2 text-center">
                                 <input type="number" [(ngModel)]="s.unidadesReales"
                                     (ngModelChange)="onUnidadesRealesChange(s)"
                                     class="w-full px-3 py-3 bg-slate-50 border-none rounded-xl text-sm font-black text-slate-700 focus:ring-2 focus:ring-indigo-500 transition-all outline-none text-center">
                             </td>
+
                             <td class="py-6 px-2 text-center">
                                 <span class="text-sm font-black px-3 py-1 rounded-lg"
                                     [ngClass]="s.desviacion === 0 ? 'bg-slate-50 text-slate-400' : (s.desviacion > 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600')">
                                     {{ s.desviacion > 0 ? '+' : '' }}{{ s.desviacion }}
                                 </span>
                             </td>
+
                             <td class="py-6 px-2">
-                                <div class="relative group/kg">
-                                    <input type="text" [value]="(s.cantidadReal | number:'1.2-2') + ' kg'" readonly
-                                        class="w-full px-3 py-3 bg-slate-100/50 border-none rounded-xl text-sm font-bold text-slate-400 cursor-not-allowed text-right">
-                                </div>
+                                <input type="text" [value]="(s.cantidadReal | number:'1.2-2') + ' kg'" readonly
+                                    class="w-full px-3 py-3 bg-slate-100/50 border-none rounded-xl text-sm font-bold text-slate-400 cursor-not-allowed text-right">
                             </td>
+
                             <td class="py-6 px-2">
                                 <input type="text" [(ngModel)]="s.observaciones" placeholder="Novedades..."
                                     class="w-full px-4 py-3 bg-slate-50 border-none rounded-xl text-sm font-medium text-slate-600 focus:ring-2 focus:ring-indigo-500 transition-all outline-none">
@@ -584,20 +650,32 @@
             <!-- Resumen de Consistencia -->
             <div class="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="p-4 bg-blue-50/50 rounded-2xl border border-blue-100/50">
-                    <p class="text-[9px] font-bold text-blue-400 uppercase tracking-widest mb-1">Entrada Real (Batches)
+                    <p class="text-[9px] font-bold text-blue-400 uppercase tracking-widest mb-1">
+                        Entrada Real (Batches)
                     </p>
-                    <p class="text-lg font-black text-blue-700">{{ kgEntradaAcumulados | number:'1.2-2' }} kg</p>
+                    <p class="text-lg font-black text-blue-700">
+                        {{ kgEntradaAcumulados | number:'1.2-2' }} kg
+                    </p>
                 </div>
+
                 <div class="p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100/50">
-                    <p class="text-[9px] font-bold text-emerald-400 uppercase tracking-widest mb-1">Producción Real
-                        (Marmitas)</p>
-                    <p class="text-lg font-black text-emerald-700">{{ kgProducidosAcumulados | number:'1.2-2' }} kg</p>
+                    <p class="text-[9px] font-bold text-emerald-400 uppercase tracking-widest mb-1">
+                        Producción Real (Marmitas)
+                    </p>
+                    <p class="text-lg font-black text-emerald-700">
+                        {{ kgProducidosAcumulados | number:'1.2-2' }} kg
+                    </p>
                 </div>
+
                 <div class="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100/50">
-                    <p class="text-[9px] font-bold text-indigo-400 uppercase tracking-widest mb-1">Producto Terminado
-                        (SKUs)</p>
-                    <p class="text-lg font-black text-indigo-700">{{ totalKgSkus | number:'1.2-2' }} kg</p>
+                    <p class="text-[9px] font-bold text-indigo-400 uppercase tracking-widest mb-1">
+                        Producto Terminado (SKUs)
+                    </p>
+                    <p class="text-lg font-black text-indigo-700">
+                        {{ totalKgSkus | number:'1.2-2' }} kg
+                    </p>
                 </div>
+
                 <div class="p-4 rounded-2xl border transition-colors"
                     [ngClass]="Math.abs(desviacionConsistencia) < 5 ? 'bg-emerald-50/50 border-emerald-100/50' : 'bg-rose-50/50 border-rose-100/50'">
                     <p class="text-[9px] font-bold uppercase tracking-widest mb-1"
@@ -618,11 +696,16 @@
                     class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-slate-200 mb-6 shadow-sm">
                     <i class="bi bi-shield-check text-3xl"></i>
                 </div>
-                <h4 class="text-lg font-black text-slate-900 mb-2 text-center">Finalizar Ciclo de Producción</h4>
+
+                <h4 class="text-lg font-black text-slate-900 mb-2 text-center">
+                    Finalizar Ciclo de Producción
+                </h4>
+
                 <p class="text-sm text-slate-500 mb-8 text-center max-w-md font-medium leading-relaxed">
                     Una vez completados todos los batches y verificadas las unidades producidas, proceda al cierre
                     oficial de la orden de producción.
                 </p>
+
                 <button (click)="finalizarOrden()" [disabled]="cargando || totalBatchesActivos > 0 || estaFinalizada"
                     [ngClass]="{'opacity-50 grayscale cursor-not-allowed': totalBatchesActivos > 0 || estaFinalizada}"
                     class="bg-slate-900 text-white px-12 py-5 rounded-[2rem] font-black hover:bg-black transition-all shadow-2xl shadow-slate-200 flex items-center gap-3 active:scale-95 group">
@@ -630,11 +713,13 @@
                         class="bi bi-patch-check-fill text-emerald-400 text-xl group-hover:scale-110 transition-transform"></i>
                     {{ estaFinalizada ? 'ORDEN FINALIZADA' : 'FINALIZAR ORDEN DE PRODUCCIÓN' }}
                 </button>
+
                 <div *ngIf="totalBatchesActivos > 0"
                     class="mt-6 flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-amber-100">
                     <i class="bi bi-info-circle-fill"></i>
                     Debe finalizar los {{ totalBatchesActivos }} batches activos antes de cerrar la orden
                 </div>
+
                 <div *ngIf="estaFinalizada"
                     class="mt-6 flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-100">
                     <i class="bi bi-check-circle-fill"></i>
@@ -653,10 +738,14 @@
                     class="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 shadow-sm">
                     <i class="bi bi-exclamation-octagon-fill text-3xl"></i>
                 </div>
+
                 <div>
-                    <h3 class="text-2xl font-black text-slate-900">¿Finalizar Orden de Producción?</h3>
-                    <p class="text-sm text-slate-500 font-medium">Esta acción congelará todos los datos y cerrará el
-                        ciclo operativo.</p>
+                    <h3 class="text-2xl font-black text-slate-900">
+                        ¿Finalizar Orden de Producción?
+                    </h3>
+                    <p class="text-sm text-slate-500 font-medium">
+                        Esta acción congelará todos los datos y cerrará el ciclo operativo.
+                    </p>
                 </div>
             </div>
 
@@ -672,28 +761,33 @@
                         Entrada</span>
                     <span class="text-base font-black text-blue-700">{{ kgEntradaAcumulados | number:'1.1-2' }}</span>
                 </div>
+
                 <div class="p-3 bg-amber-50 rounded-2xl border border-amber-100">
                     <span class="text-[8px] font-bold text-amber-400 uppercase tracking-widest block mb-1">Salida
                         Proceso</span>
                     <span class="text-base font-black text-amber-700">{{ kgProducidosAcumulados | number:'1.1-2'
                         }}</span>
                 </div>
+
                 <div class="p-3 bg-emerald-50 rounded-2xl border border-emerald-100">
                     <span class="text-[8px] font-bold text-emerald-400 uppercase tracking-widest block mb-1">Prod.
                         Terminado</span>
                     <span class="text-base font-black text-emerald-700">{{ totalKgSkus | number:'1.1-2' }}</span>
                 </div>
+
                 <div class="p-3 bg-rose-50 rounded-2xl border border-rose-100">
                     <span class="text-[8px] font-bold text-rose-400 uppercase tracking-widest block mb-1">Reduc.
                         Evaporación</span>
                     <span class="text-base font-black text-rose-700">{{ (kgEntradaAcumulados - kgProducidosAcumulados) |
                         number:'1.1-2' }}</span>
                 </div>
+
                 <div class="p-3 bg-indigo-50 rounded-2xl border border-indigo-100">
                     <span class="text-[8px] font-bold text-indigo-400 uppercase tracking-widest block mb-1">Diferencia
                         Empaque</span>
                     <span class="text-base font-black text-indigo-700">{{ balanceEmpaque | number:'1.1-2' }}</span>
                 </div>
+
                 <div class="p-3 bg-slate-900 rounded-2xl border border-slate-800">
                     <span
                         class="text-[8px] font-bold text-slate-400 uppercase tracking-widest block mb-1 text-white/50">Rendimiento</span>
@@ -703,8 +797,10 @@
             </div>
 
             <div class="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 mb-8">
-                <h4 class="text-sm font-bold text-slate-900 mb-4 px-2 uppercase tracking-widest">Resumen Final de
-                    Producción</h4>
+                <h4 class="text-sm font-bold text-slate-900 mb-4 px-2 uppercase tracking-widest">
+                    Resumen Final de Producción
+                </h4>
+
                 <table class="w-full text-sm">
                     <tbody class="divide-y divide-slate-200">
                         <tr class="pb-3">
@@ -712,31 +808,37 @@
                             <td class="py-3 text-right font-bold text-slate-900">{{ kgEntradaAcumulados | number:'1.1-2'
                                 }} kg</td>
                         </tr>
+
                         <tr>
                             <td class="py-2 text-slate-500 font-medium">Salida Proceso (Salida Marmita)</td>
                             <td class="py-2 text-right font-bold text-amber-600">{{ kgProducidosAcumulados |
                                 number:'1.1-2' }} kg</td>
                         </tr>
+
                         <tr>
                             <td class="py-2 text-slate-500 font-medium">Producto Terminado (SKUs)</td>
                             <td class="py-2 text-right font-bold text-emerald-600">{{ totalKgSkus | number:'1.1-2' }} kg
                             </td>
                         </tr>
+
                         <tr>
                             <td class="py-2 text-slate-500 font-medium">Reducción Evaporación (Humedad Removida)</td>
                             <td class="py-2 text-right font-bold text-rose-600">{{ (kgEntradaAcumulados -
                                 kgProducidosAcumulados) | number:'1.1-2' }} kg</td>
                         </tr>
+
                         <tr>
                             <td class="py-2 text-slate-500 font-medium">Diferencia Empaque (Retención/Pérdidas)</td>
                             <td class="py-2 text-right font-bold text-indigo-600">{{ balanceEmpaque | number:'1.1-2' }}
                                 kg</td>
                         </tr>
+
                         <tr>
                             <td class="py-2 text-slate-500 font-medium">Rendimiento Proceso</td>
                             <td class="py-2 text-right font-bold text-blue-600">{{ (kgProducidosAcumulados /
                                 kgEntradaAcumulados * 100) | number:'1.1-2' }}%</td>
                         </tr>
+
                         <tr>
                             <td class="py-2 text-slate-500 font-medium">Batches Procesados</td>
                             <td class="py-2 text-right font-bold text-slate-900">{{ totalBatchesCompletados }}</td>
@@ -757,11 +859,113 @@
                     class="flex-1 py-5 bg-white text-slate-600 font-bold rounded-[1.5rem] border border-slate-200 hover:bg-slate-50 transition-all active:scale-95">
                     Regresar a revisar
                 </button>
+
                 <button (click)="confirmarCierreFinal()" [disabled]="cargando"
                     class="flex-1 py-5 bg-slate-900 text-white font-black rounded-[1.5rem] shadow-xl shadow-slate-200 hover:bg-black transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50">
                     <i *ngIf="!cargando" class="bi bi-check-all text-xl"></i>
                     <span *ngIf="cargando" class="spinner-border spinner-border-sm" role="status"></span>
                     {{ cargando ? 'PROCESANDO...' : 'CONFIRMAR Y FINALIZAR' }}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Batch Finalizado -->
+    <div *ngIf="batchEditando"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+
+        <div class="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl p-8 animate-in zoom-in-95 duration-300">
+
+            <div class="flex items-center gap-4 mb-6">
+                <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
+                    <i class="bi bi-pencil-square text-2xl"></i>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-black text-slate-900">
+                        Editar Batch #{{ batchEditando.numeroBatch }}
+                    </h3>
+                    <p class="text-xs text-slate-500 font-medium">
+                        Solo se actualizan salida, Brix, novedad y observaciones. No se modifica el movimiento de leche.
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                <div class="p-4 bg-slate-50 rounded-2xl">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">
+                        Kg producidos
+                    </label>
+                    <input type="number" [(ngModel)]="edicionBatch.kgProducidos"
+                        class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-black text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+
+                <div class="p-4 bg-amber-50 rounded-2xl">
+                    <label class="text-[10px] font-black text-amber-500 uppercase tracking-widest block mb-2">
+                        Brix final obligatorio
+                    </label>
+                    <input type="number" [(ngModel)]="edicionBatch.brixFinal"
+                        class="w-full px-4 py-3 bg-white border border-amber-200 rounded-xl text-sm font-black text-slate-800 focus:ring-2 focus:ring-amber-500 outline-none">
+                </div>
+            </div>
+
+            <div class="space-y-4 mb-6">
+                <label class="flex items-center gap-3 cursor-pointer select-none">
+                    <input type="checkbox" [(ngModel)]="edicionBatch.conNovedad"
+                        class="w-4 h-4 rounded accent-amber-500">
+                    <span class="text-sm font-bold text-slate-700">
+                        ¿Este batch tuvo novedad?
+                    </span>
+                </label>
+
+                <div *ngIf="edicionBatch.conNovedad">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">
+                        Tipo de novedad
+                    </label>
+                    <select [(ngModel)]="edicionBatch.tipoNovedad"
+                        class="w-full px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-sm font-bold text-amber-800 focus:ring-2 focus:ring-amber-500 outline-none">
+                        <option [ngValue]="null">Seleccione tipo de novedad...</option>
+                        <option *ngFor="let t of tiposNovedad" [ngValue]="t.valor">
+                            {{ t.etiqueta }}
+                        </option>
+                    </select>
+                </div>
+
+                <label class="flex items-center gap-3 cursor-pointer select-none">
+                    <input type="checkbox" [(ngModel)]="edicionBatch.huboReproceso"
+                        class="w-4 h-4 rounded accent-blue-500">
+                    <span class="text-sm font-bold text-slate-700">
+                        Hubo reproceso
+                    </span>
+                </label>
+
+                <label class="flex items-center gap-3 cursor-pointer select-none">
+                    <input type="checkbox" [(ngModel)]="edicionBatch.batchConforme"
+                        class="w-4 h-4 rounded accent-emerald-500">
+                    <span class="text-sm font-bold text-slate-700">
+                        Batch conforme
+                    </span>
+                </label>
+
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">
+                        Observaciones
+                    </label>
+                    <textarea [(ngModel)]="edicionBatch.observaciones" rows="3"
+                        class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                        placeholder="Observaciones del batch..."></textarea>
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button type="button" (click)="cancelarEdicionBatch()"
+                    class="flex-1 py-4 bg-white text-slate-600 border border-slate-200 rounded-2xl text-sm font-black hover:bg-slate-50 transition-all">
+                    Cancelar
+                </button>
+
+                <button type="button" (click)="guardarEdicionBatch()" [disabled]="cargando"
+                    class="flex-1 py-4 bg-blue-600 text-white rounded-2xl text-sm font-black hover:bg-blue-700 disabled:opacity-50 transition-all">
+                    Guardar cambios
                 </button>
             </div>
         </div>

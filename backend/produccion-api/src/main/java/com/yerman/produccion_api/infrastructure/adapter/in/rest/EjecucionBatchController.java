@@ -27,16 +27,42 @@ public class EjecucionBatchController {
                 useCase.iniciarBatch(
                         request.idOrdenProduccion(),
                         request.idMarmita(),
-                        request.kgEntrada()
-                )
-        );
+                        request.kgEntrada()));
     }
 
     @PatchMapping("/{id}/finalizar")
-    public EjecucionBatchResponse finalizar(@PathVariable Long id, @RequestBody @Valid FinalizarBatchRequest request) {
-        EjecucionBatch batch = useCase.finalizarBatch(id, request.kgProducidos(), request.observaciones(),
-                request.conNovedad(), request.huboReproceso(), request.batchConforme(), request.brixFinal(),
+    public EjecucionBatchResponse finalizar(
+            @PathVariable Long id,
+            @RequestBody @Valid FinalizarBatchRequest request) {
+
+        EjecucionBatch batch = useCase.finalizarBatch(
+                id,
+                request.kgProducidos(),
+                request.observaciones(),
+                request.conNovedad(),
+                request.huboReproceso(),
+                request.batchConforme(),
+                request.brixFinal(),
                 request.tipoNovedad());
+
+        return EjecucionBatchRestMapper.toResponse(batch);
+    }
+
+    @PatchMapping("/{id}/actualizar-finalizado")
+    public EjecucionBatchResponse actualizarFinalizado(
+            @PathVariable Long id,
+            @RequestBody @Valid FinalizarBatchRequest request) {
+
+        EjecucionBatch batch = useCase.actualizarBatchFinalizado(
+                id,
+                request.kgProducidos(),
+                request.observaciones(),
+                request.conNovedad(),
+                request.huboReproceso(),
+                request.batchConforme(),
+                request.brixFinal(),
+                request.tipoNovedad());
+
         return EjecucionBatchRestMapper.toResponse(batch);
     }
 

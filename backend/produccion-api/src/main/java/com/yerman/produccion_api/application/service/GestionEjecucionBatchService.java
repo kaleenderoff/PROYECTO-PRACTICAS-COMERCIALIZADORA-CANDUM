@@ -148,6 +148,8 @@ public class GestionEjecucionBatchService implements GestionEjecucionBatchUseCas
             throw new ReglaNegocioException("Los kg producidos deben ser mayores a cero.");
         }
 
+        validarBrixFinal(brixFinal);
+
         MovimientoLeche movimientoLeche = registrarSalidaLecheProduccion(batch, orden);
 
         batch.setKgProducidos(kgProducidos);
@@ -163,13 +165,63 @@ public class GestionEjecucionBatchService implements GestionEjecucionBatchUseCas
             batch.setTipoNovedad(tipoNovedad.trim());
         }
 
-        if (batch.getKgEntrada() != null && batch.getKgEntrada().compareTo(BigDecimal.ZERO) > 0) {
-            BigDecimal rendimiento = kgProducidos
-                    .multiply(CIEN)
-                    .divide(batch.getKgEntrada(), 3, RoundingMode.HALF_UP);
+        recalcularRendimiento(batch);
 
-            batch.setRendimientoPct(rendimiento);
+        return repository.guardar(batch);
+    }
+
+    @Override
+    @Transactional
+    public EjecucionBatch actualizarBatchFinalizado(
+            Long idBatch,
+            BigDecimal kgProducidos,
+            String observaciones,
+            Boolean conNovedad,
+            Boolean huboReproceso,
+            Boolean batchConforme,
+            BigDecimal brixFinal,
+            String tipoNovedad) {
+
+        EjecucionBatch batch = repository.obtenerPorId(idBatch)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No existe el batch con ID: " + idBatch));
+
+        OrdenProduccion orden = ordenRepository.obtenerPorId(batch.getIdOrdenProduccion())
+                .orElseThrow(() -> new RecursoNoEncontradoException("No existe la orden vinculada al batch."));
+
+        validacionGuardService.validarOrdenNoAprobada(batch.getIdOrdenProduccion());
+
+        if (orden.getEstado() == com.yerman.produccion_api.domain.model.EstadoOrdenProduccion.FINALIZADA) {
+            throw new ReglaNegocioException("No se puede editar el batch porque la orden ya está FINALIZADA.");
         }
+
+        if (batch.getEstado() != EstadoBatch.FINALIZADO && batch.getEstado() != EstadoBatch.CON_NOVEDAD) {
+            throw new ReglaNegocioException("Solo se pueden editar batches FINALIZADOS o CON_NOVEDAD.");
+        }
+
+        if (kgProducidos == null || kgProducidos.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ReglaNegocioException("Los kg producidos deben ser mayores a cero.");
+        }
+
+        validarBrixFinal(brixFinal);
+
+        batch.setKgProducidos(kgProducidos);
+        batch.setObservaciones(observaciones);
+        batch.setHuboReproceso(huboReproceso);
+        batch.setBatchConforme(batchConforme);
+        batch.setBrixFinal(brixFinal);
+
+        if (Boolean.TRUE.equals(conNovedad)) {
+            batch.setEstado(EstadoBatch.CON_NOVEDAD);
+
+            if (tipoNovedad != null && !tipoNovedad.isBlank()) {
+                batch.setTipoNovedad(tipoNovedad.trim());
+            }
+        } else {
+            batch.setEstado(EstadoBatch.FINALIZADO);
+            batch.setTipoNovedad(null);
+        }
+
+        recalcularRendimiento(batch);
 
         return repository.guardar(batch);
     }
@@ -281,6 +333,26 @@ public class GestionEjecucionBatchService implements GestionEjecucionBatchUseCas
         return sinAcentos
                 .toUpperCase()
                 .trim();
+    }
+
+    private void validarBrixFinal(BigDecimal brixFinal) {
+        if (brixFinal == null || brixFinal.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ReglaNegocioException("El Brix final es obligatorio para finalizar el batch.");
+        }
+    }
+
+    private void recalcularRendimiento(EjecucionBatch batch) {
+        if (batch.getKgEntrada() != null
+                && batch.getKgEntrada().compareTo(BigDecimal.ZERO) > 0
+                && batch.getKgProducidos() != null
+                && batch.getKgProducidos().compareTo(BigDecimal.ZERO) > 0) {
+
+            BigDecimal rendimiento = batch.getKgProducidos()
+                    .multiply(CIEN)
+                    .divide(batch.getKgEntrada(), 3, RoundingMode.HALF_UP);
+
+            batch.setRendimientoPct(rendimiento);
+        }
     }
 
     @Override

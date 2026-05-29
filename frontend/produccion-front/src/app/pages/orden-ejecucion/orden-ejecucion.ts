@@ -45,6 +45,17 @@ export class OrdenEjecucion implements OnInit {
   };
 
   batchAFinalizar: EjecucionBatch | null = null;
+  batchEditando: EjecucionBatch | null = null;
+
+  edicionBatch = {
+    kgProducidos: 0,
+    brixFinal: null as number | null,
+    observaciones: '',
+    conNovedad: false,
+    tipoNovedad: null as TipoNovedad | null,
+    huboReproceso: false,
+    batchConforme: true
+  };
 
   readonly tiposNovedad: { valor: TipoNovedad; etiqueta: string }[] = [
     { valor: 'BAJA_GRASA', etiqueta: 'Baja grasa' },
@@ -333,6 +344,11 @@ export class OrdenEjecucion implements OnInit {
       return;
     }
 
+    if (batch.brixFinal == null || Number(batch.brixFinal) <= 0) {
+      this.notification.warning('Debe ingresar el Brix final antes de finalizar el batch.');
+      return;
+    }
+
     this.cargando = true;
 
     this.batchService.finalizar(batch.id, {
@@ -342,7 +358,7 @@ export class OrdenEjecucion implements OnInit {
       tipoNovedad: batch.conNovedad ? (batch.tipoNovedad as any) : null,
       huboReproceso: false,
       batchConforme: true,
-      brixFinal: batch.brixFinal != null ? Number(batch.brixFinal) : undefined
+      brixFinal: Number(batch.brixFinal)
     }).subscribe({
       next: () => {
         this.notification.toast('Batch finalizado correctamente');
@@ -386,6 +402,72 @@ export class OrdenEjecucion implements OnInit {
           });
         }
       });
+    });
+  }
+
+  abrirEdicionBatch(batch: EjecucionBatch): void {
+    this.batchEditando = batch;
+
+    this.edicionBatch = {
+      kgProducidos: Number(batch.kgProducidos || 0),
+      brixFinal: batch.brixFinal != null ? Number(batch.brixFinal) : null,
+      observaciones: batch.observaciones || '',
+      conNovedad: batch.estado === 'CON_NOVEDAD' || Boolean(batch.conNovedad),
+      tipoNovedad: batch.tipoNovedad ? batch.tipoNovedad as TipoNovedad : null,
+      huboReproceso: Boolean(batch.huboReproceso),
+      batchConforme: batch.batchConforme !== false
+    };
+  }
+
+  cancelarEdicionBatch(): void {
+    this.batchEditando = null;
+
+    this.edicionBatch = {
+      kgProducidos: 0,
+      brixFinal: null,
+      observaciones: '',
+      conNovedad: false,
+      tipoNovedad: null,
+      huboReproceso: false,
+      batchConforme: true
+    };
+  }
+
+  guardarEdicionBatch(): void {
+    if (!this.batchEditando) {
+      return;
+    }
+
+    if (!this.edicionBatch.kgProducidos || Number(this.edicionBatch.kgProducidos) <= 0) {
+      this.notification.warning('Debe ingresar los Kg producidos.');
+      return;
+    }
+
+    if (this.edicionBatch.brixFinal == null || Number(this.edicionBatch.brixFinal) <= 0) {
+      this.notification.warning('Debe ingresar el Brix final.');
+      return;
+    }
+
+    this.cargando = true;
+
+    this.batchService.actualizarFinalizado(this.batchEditando.id, {
+      kgProducidos: Number(this.edicionBatch.kgProducidos),
+      brixFinal: Number(this.edicionBatch.brixFinal),
+      observaciones: this.edicionBatch.observaciones,
+      conNovedad: this.edicionBatch.conNovedad,
+      tipoNovedad: this.edicionBatch.conNovedad ? this.edicionBatch.tipoNovedad : null,
+      huboReproceso: this.edicionBatch.huboReproceso,
+      batchConforme: this.edicionBatch.batchConforme
+    }).subscribe({
+      next: () => {
+        this.notification.toast('Batch actualizado correctamente.');
+        this.cancelarEdicionBatch();
+        this.cargarDatos();
+      },
+      error: (err) => {
+        this.notification.error(err.error?.message || 'No se pudo actualizar el batch.');
+        this.cargando = false;
+      }
     });
   }
 
