@@ -161,7 +161,7 @@
         </p>
     </div>
 
-    <!-- VERSION CREATION -->
+    <!-- Version Creation -->
     <div *ngIf="authService.canManageCatalogosTecnicos() && idFormula && !idFormulaVersion"
         class="bg-white rounded-[2.5rem] border border-emerald-100 shadow-xl shadow-emerald-900/5 p-6 md:p-8 space-y-6">
 
@@ -522,7 +522,7 @@
             <!-- Ingredients Table -->
             <div class="border border-slate-100 rounded-3xl overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="w-full min-w-[980px] text-left">
+                    <table class="w-full min-w-[900px] text-left">
                         <thead class="bg-slate-50/80">
                             <tr>
                                 <th class="w-[80px] px-5 py-4 text-[10px] font-black text-slate-400 uppercase">
@@ -557,7 +557,7 @@
                                     Estado
                                 </th>
 
-                                <th
+                                <th *ngIf="puedeEditarFormula()"
                                     class="w-[90px] px-5 py-4 text-[10px] font-black text-slate-400 uppercase text-center">
                                     Acción
                                 </th>
@@ -615,9 +615,8 @@
                                     </span>
                                 </td>
 
-                                <td class="px-5 py-4 text-center">
-                                    <button *ngIf="puedeEditarFormula()" type="button"
-                                        (click)="eliminarDetalle(detalle)"
+                                <td *ngIf="puedeEditarFormula()" class="px-5 py-4 text-center">
+                                    <button type="button" (click)="eliminarDetalle(detalle)"
                                         class="w-9 h-9 bg-white border border-slate-100 rounded-xl inline-flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 hover:shadow-md transition-all"
                                         title="Eliminar ingrediente">
                                         <i class="bi bi-trash3-fill"></i>
@@ -626,7 +625,8 @@
                             </tr>
 
                             <tr *ngIf="!formulaSeleccionada.detalles || formulaSeleccionada.detalles.length === 0">
-                                <td colspan="8" class="px-6 py-12 text-center text-slate-400 text-sm">
+                                <td [attr.colspan]="puedeEditarFormula() ? 8 : 7"
+                                    class="px-6 py-12 text-center text-slate-400 text-sm">
                                     Esta versión todavía no tiene ingredientes registrados.
                                 </td>
                             </tr>
@@ -651,7 +651,7 @@
                                     {{ calcularTotalGramos() | number:'1.0-1' }} g
                                 </td>
 
-                                <td colspan="2"></td>
+                                <td [attr.colspan]="puedeEditarFormula() ? 2 : 1"></td>
                             </tr>
                         </tfoot>
                     </table>
