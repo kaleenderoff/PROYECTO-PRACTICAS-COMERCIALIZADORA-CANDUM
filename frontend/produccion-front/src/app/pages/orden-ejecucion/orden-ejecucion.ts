@@ -169,33 +169,41 @@ export class OrdenEjecucion implements OnInit {
     }
   }
 
-  obtenerKgSalidaSugerida(): number {
-    if (!this.orden) return 0;
-
-    const numBachesPlan = Number(this.orden.numBachesPlan || 0);
-
-    if (numBachesPlan <= 0) {
+  obtenerRendimientoTeoricoPct(): number {
+    if (!this.orden?.skus || this.orden.skus.length === 0) {
       return 0;
     }
 
-    let kgProductoTerminadoPlan = Number(this.orden.kgPTTotalPlan || 0);
+    const skuConRendimiento = this.orden.skus.find(
+      sku => Number(sku.rendimientoTeoricoPct || 0) > 0
+    );
 
-    if (kgProductoTerminadoPlan <= 0 && this.orden.skus?.length > 0) {
-      kgProductoTerminadoPlan = this.orden.skus.reduce(
-        (total, sku) => total + Number(sku.kgProductoTerminado || 0),
-        0
-      );
-    }
-
-    if (kgProductoTerminadoPlan <= 0) {
-      return 0;
-    }
-
-    return Number((kgProductoTerminadoPlan / numBachesPlan).toFixed(2));
+    return Number(skuConRendimiento?.rendimientoTeoricoPct || 0);
   }
 
-  obtenerKgSalidaSugeridaTexto(): string {
-    const sugerida = this.obtenerKgSalidaSugerida();
+  obtenerKgSalidaSugerida(batch?: EjecucionBatch): number {
+    const rendimientoTeoricoPct = this.obtenerRendimientoTeoricoPct();
+
+    if (rendimientoTeoricoPct <= 0) {
+      return 0;
+    }
+
+    const kgEntradaBase = Number(
+      batch?.kgEntrada ||
+      this.nuevoBatch.kgEntrada ||
+      this.orden?.kgBachePlan ||
+      0
+    );
+
+    if (kgEntradaBase <= 0) {
+      return 0;
+    }
+
+    return Number(((kgEntradaBase * rendimientoTeoricoPct) / 100).toFixed(2));
+  }
+
+  obtenerKgSalidaSugeridaTexto(batch?: EjecucionBatch): string {
+    const sugerida = this.obtenerKgSalidaSugerida(batch);
 
     if (sugerida <= 0) {
       return 'Ingrese kg producidos';
@@ -205,7 +213,7 @@ export class OrdenEjecucion implements OnInit {
   }
 
   usarKgSalidaSugerida(batch: EjecucionBatch): void {
-    const sugerida = this.obtenerKgSalidaSugerida();
+    const sugerida = this.obtenerKgSalidaSugerida(batch);
 
     if (sugerida > 0 && batch.estado === 'EN_PROCESO' && !this.estaFinalizada) {
       batch.kgProducidos = sugerida;
