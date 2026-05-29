@@ -242,7 +242,7 @@
         </div>
 
         <div class="overflow-x-auto">
-            <table class="w-full min-w-[1250px] text-left border-collapse">
+            <table class="w-full min-w-[1150px] text-left border-collapse">
                 <thead>
                     <tr class="bg-slate-50/50">
                         <th
@@ -268,10 +268,6 @@
                         </th>
                         <th class="px-5 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">
                             N° Bach
-                        </th>
-                        <th
-                            class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">
-                            Sugerido
                         </th>
                         <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest w-20"></th>
                     </tr>
@@ -325,12 +321,6 @@
                             {{ calcularBatchesTeoricos(sku) | number:'1.2-2' }}
                         </td>
 
-                        <td class="px-6 py-4 text-center">
-                            <span class="text-xs text-slate-400">
-                                Ref.
-                            </span>
-                        </td>
-
                         <td class="px-6 py-4 text-right">
                             <button type="button" (click)="eliminarFila(i)"
                                 class="p-2 text-slate-300 hover:text-red-600 transition-colors">
@@ -371,13 +361,6 @@
 
                         <td class="px-5 py-6 text-right text-sm text-slate-500">
                             {{ calcularTotalBatchesTeoricos() | number:'1.2-2' }}
-                        </td>
-
-                        <td class="px-6 py-6 text-center">
-                            <span
-                                class="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-indigo-50 text-indigo-700 text-xl font-black">
-                                {{ calcularBatchesSugeridos() }}
-                            </span>
                         </td>
 
                         <td class="px-6 py-6"></td>
