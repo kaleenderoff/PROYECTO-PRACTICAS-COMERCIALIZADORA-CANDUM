@@ -1,9 +1,11 @@
 <div class="space-y-8 animate-in fade-in duration-500 pb-12">
-    
+
     <!-- Page Header -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+    <div
+        class="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
         <div class="flex items-center gap-5">
-            <div class="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 shadow-inner">
+            <div
+                class="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 shadow-inner">
                 <i class="bi bi-journal-check text-2xl"></i>
             </div>
             <div>
@@ -20,72 +22,110 @@
     </div>
 
     <!-- Loading State -->
-    <div *ngIf="cargando" class="bg-white rounded-[2.5rem] border border-slate-100 p-12 flex flex-col items-center justify-center space-y-4">
+    <div *ngIf="cargando"
+        class="bg-white rounded-[2.5rem] border border-slate-100 p-12 flex flex-col items-center justify-center space-y-4">
         <div class="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
         <p class="text-slate-500 font-medium animate-pulse">Cargando registros reales...</p>
     </div>
 
     <!-- Error State -->
-    <div *ngIf="error" class="p-6 bg-red-50 text-red-700 rounded-[2.5rem] border border-red-100 flex items-center gap-4">
+    <div *ngIf="error"
+        class="p-6 bg-red-50 text-red-700 rounded-[2.5rem] border border-red-100 flex items-center gap-4">
         <i class="bi bi-exclamation-octagon text-2xl"></i>
         <span class="font-semibold">{{ error }}</span>
     </div>
 
     <!-- List View (Table) -->
-    <div *ngIf="!cargando && !error" class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+    <div *ngIf="!cargando && !error"
+        class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left">
                 <thead>
                     <tr class="bg-slate-50/50">
-                        <th class="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Orden / Fecha</th>
-                        <th class="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Producto</th>
-                        <th class="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Entrada Real</th>
-                        <th class="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Producción</th>
-                        <th class="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Rendimiento</th>
-                        <th class="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Baches</th>
-                        <th class="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Acciones</th>
+                        <th class="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                            Orden / Fecha
+                        </th>
+                        <th class="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                            Producto
+                        </th>
+                        <th class="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">
+                            Entrada Real
+                        </th>
+                        <th class="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">
+                            Producción
+                        </th>
+                        <th
+                            class="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">
+                            Rendimiento
+                        </th>
+                        <th
+                            class="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">
+                            Baches
+                        </th>
+                        <th
+                            class="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">
+                            Acciones
+                        </th>
                     </tr>
                 </thead>
+
                 <tbody class="divide-y divide-slate-50">
                     <tr *ngFor="let item of produccionesPaginadas" class="hover:bg-slate-50/50 transition-colors group">
                         <td class="px-8 py-6">
                             <div class="flex flex-col">
-                                <span class="text-xs font-black text-slate-400 tracking-tighter uppercase mb-1">{{ item.numeroOrden }}</span>
-                                <span class="text-sm font-bold text-slate-700">{{ item.fechaProduccion | date:'dd MMM, yyyy' }}</span>
+                                <span class="text-xs font-black text-slate-400 tracking-tighter uppercase mb-1">
+                                    {{ item.numeroOrden }}
+                                </span>
+                                <span class="text-sm font-bold text-slate-700">
+                                    {{ item.fechaProduccion | date:'dd MMM, yyyy' }}
+                                </span>
                             </div>
                         </td>
+
                         <td class="px-8 py-6">
                             <span class="text-sm font-bold text-slate-800">{{ item.nombreProducto }}</span>
                         </td>
+
                         <td class="px-8 py-6 text-right">
-                            <span class="text-sm font-semibold text-slate-600">{{ (item.kgEntradaReal || 0) | number:'1.0-1' }} Kg</span>
+                            <span class="text-sm font-semibold text-slate-600">
+                                {{ (item.kgEntradaReal || 0) | number:'1.0-1' }} Kg
+                            </span>
                         </td>
+
                         <td class="px-8 py-6 text-right">
-                            <span class="text-sm font-bold text-emerald-600">{{ (item.kgProducidoBatches || 0) | number:'1.0-1' }} Kg</span>
+                            <span class="text-sm font-bold text-emerald-600">
+                                {{ (item.kgProducidoBatches || 0) | number:'1.0-1' }} Kg
+                            </span>
                         </td>
+
                         <td class="px-8 py-6 text-center">
-                            <span [class]="(item.rendimientoReal || 0) > 90 ? 'bg-emerald-50 text-emerald-700' : 'bg-blue-50 text-blue-700'"
-                                  class="px-3 py-1 rounded-full text-[10px] font-black">
+                            <span
+                                [class]="(item.rendimientoReal || 0) > 90 ? 'bg-emerald-50 text-emerald-700' : 'bg-blue-50 text-blue-700'"
+                                class="px-3 py-1 rounded-full text-[10px] font-black">
                                 {{ (item.rendimientoReal || 0) | number:'1.1-1' }}%
                             </span>
                         </td>
+
                         <td class="px-8 py-6 text-center">
                             <span class="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-lg">
                                 {{ item.batches.length }}
                             </span>
                         </td>
+
                         <td class="px-8 py-6 text-center">
-                            <button (click)="verDetalle(item)" 
-                                    class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 hover:border-blue-400 hover:text-blue-600 transition-all shadow-sm active:scale-95">
+                            <button (click)="verDetalle(item)"
+                                class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 hover:border-blue-400 hover:text-blue-600 transition-all shadow-sm active:scale-95">
                                 <i class="bi bi-eye"></i>
                                 <span class="text-xs font-bold">Ver</span>
                             </button>
                         </td>
                     </tr>
+
                     <tr *ngIf="producciones.length === 0">
                         <td colspan="7" class="py-20 text-center">
                             <div class="flex flex-col items-center justify-center">
-                                <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-200 mb-4">
+                                <div
+                                    class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-200 mb-4">
                                     <i class="bi bi-clipboard-x text-3xl"></i>
                                 </div>
                                 <p class="text-slate-400 font-medium">No se encontraron registros de ejecución</p>
@@ -97,18 +137,22 @@
         </div>
 
         <!-- Paginación Simple -->
-        <div *ngIf="totalPaginas > 1" class="px-8 py-6 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
+        <div *ngIf="totalPaginas > 1"
+            class="px-8 py-6 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                 Mostrando {{ produccionesPaginadas.length }} de {{ producciones.length }} registros
             </span>
+
             <div class="flex items-center gap-2">
                 <button (click)="cambiarPagina(paginaActual - 1)" [disabled]="paginaActual === 1"
-                        class="w-8 h-8 rounded-lg flex items-center justify-center bg-white border border-slate-200 text-slate-500 hover:text-blue-600 disabled:opacity-30 transition-all">
+                    class="w-8 h-8 rounded-lg flex items-center justify-center bg-white border border-slate-200 text-slate-500 hover:text-blue-600 disabled:opacity-30 transition-all">
                     <i class="bi bi-chevron-left"></i>
                 </button>
+
                 <span class="text-xs font-bold text-slate-600 px-3">{{ paginaActual }} / {{ totalPaginas }}</span>
+
                 <button (click)="cambiarPagina(paginaActual + 1)" [disabled]="paginaActual === totalPaginas"
-                        class="w-8 h-8 rounded-lg flex items-center justify-center bg-white border border-slate-200 text-slate-500 hover:text-blue-600 disabled:opacity-30 transition-all">
+                    class="w-8 h-8 rounded-lg flex items-center justify-center bg-white border border-slate-200 text-slate-500 hover:text-blue-600 disabled:opacity-30 transition-all">
                     <i class="bi bi-chevron-right"></i>
                 </button>
             </div>
@@ -116,73 +160,106 @@
     </div>
 
     <!-- DETAIL MODAL -->
-    <div *ngIf="seleccionada" 
-         class="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-300">
-        
+    <div *ngIf="seleccionada"
+        class="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-300">
+
         <!-- Backdrop -->
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" (click)="cerrarDetalle()"></div>
-        
+
         <!-- Modal Content -->
-        <div class="relative bg-white w-full max-w-6xl max-h-[90vh] rounded-[3rem] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
-            
+        <div
+            class="relative bg-white w-full max-w-6xl max-h-[90vh] rounded-[3rem] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
+
             <!-- Modal Header -->
-            <div class="p-8 md:p-10 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-slate-50/50">
+            <div
+                class="p-8 md:p-10 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-slate-50/50">
                 <div class="flex items-start gap-5">
-                    <div class="w-14 h-14 bg-emerald-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-900/20">
+                    <div
+                        class="w-14 h-14 bg-emerald-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-900/20">
                         <i class="bi bi-clipboard-data text-2xl"></i>
                     </div>
+
                     <div>
                         <div class="flex items-center gap-3 mb-1">
-                            <span class="text-xs font-black text-slate-400 uppercase tracking-widest">{{ seleccionada.numeroOrden }}</span>
-                            <span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[9px] font-black rounded-full uppercase tracking-widest">{{ seleccionada.estado }}</span>
+                            <span class="text-xs font-black text-slate-400 uppercase tracking-widest">
+                                {{ seleccionada.numeroOrden }}
+                            </span>
+                            <span
+                                class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[9px] font-black rounded-full uppercase tracking-widest">
+                                {{ seleccionada.estado }}
+                            </span>
                         </div>
+
                         <h2 class="text-2xl font-bold text-slate-900">{{ seleccionada.nombreProducto }}</h2>
+
                         <p class="text-sm text-slate-500 mt-1 flex items-center gap-2">
                             <i class="bi bi-calendar3"></i>
                             {{ seleccionada.fechaProduccion | date:'fullDate' }}
                         </p>
                     </div>
                 </div>
-                <button (click)="cerrarDetalle()" 
-                        class="w-12 h-12 rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-200 transition-all flex items-center justify-center active:scale-95">
+
+                <button (click)="cerrarDetalle()"
+                    class="w-12 h-12 rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-200 transition-all flex items-center justify-center active:scale-95">
                     <i class="bi bi-x-lg text-xl"></i>
                 </button>
             </div>
 
             <!-- Modal Body -->
             <div class="flex-1 overflow-y-auto p-8 md:p-10 space-y-12 custom-scrollbar">
-                
+
                 <!-- Section 1: Real Metrics Summary -->
                 <div>
-                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
+                    <h3
+                        class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
                         Resumen de Producción Real
                         <div class="h-px bg-slate-100 flex-1"></div>
                     </h3>
+
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                         <div class="p-6 bg-slate-50 rounded-[2rem] border border-slate-100">
-                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Entrada Real</span>
+                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-2">
+                                Entrada Real
+                            </span>
                             <div class="flex items-baseline gap-1">
-                                <span class="text-2xl font-black text-slate-800">{{ seleccionada.kgEntradaReal || 0 | number:'1.0-1' }}</span>
+                                <span class="text-2xl font-black text-slate-800">
+                                    {{ seleccionada.kgEntradaReal || 0 | number:'1.0-1' }}
+                                </span>
                                 <span class="text-xs font-bold text-slate-400">Kg</span>
                             </div>
                         </div>
+
                         <div class="p-6 bg-emerald-50 rounded-[2rem] border border-emerald-100">
-                            <span class="text-[9px] font-bold text-emerald-600 uppercase tracking-widest block mb-2">Salida Marmita</span>
+                            <span class="text-[9px] font-bold text-emerald-600 uppercase tracking-widest block mb-2">
+                                Salida Marmita
+                            </span>
                             <div class="flex items-baseline gap-1">
-                                <span class="text-2xl font-black text-emerald-700">{{ seleccionada.kgProducidoBatches || 0 | number:'1.0-1' }}</span>
+                                <span class="text-2xl font-black text-emerald-700">
+                                    {{ seleccionada.kgProducidoBatches || 0 | number:'1.0-1' }}
+                                </span>
                                 <span class="text-xs font-bold text-emerald-400">Kg</span>
                             </div>
                         </div>
+
                         <div class="p-6 bg-blue-600 rounded-[2rem] shadow-lg shadow-blue-900/20">
-                            <span class="text-[9px] font-bold text-blue-100 uppercase tracking-widest block mb-2">Rendimiento</span>
+                            <span class="text-[9px] font-bold text-blue-100 uppercase tracking-widest block mb-2">
+                                Rendimiento
+                            </span>
                             <div class="flex items-baseline gap-1">
-                                <span class="text-2xl font-black text-white">{{ seleccionada.rendimientoReal || 0 | number:'1.1-1' }}%</span>
+                                <span class="text-2xl font-black text-white">
+                                    {{ seleccionada.rendimientoReal || 0 | number:'1.1-1' }}%
+                                </span>
                             </div>
                         </div>
-                        <div class="p-6 bg-amber-50 rounded-[2rem] border border-amber-100">
-                            <span class="text-[9px] font-bold text-amber-600 uppercase tracking-widest block mb-2">Merma Real</span>
-                            <div class="flex items-baseline gap-1 text-amber-700">
-                                <span class="text-2xl font-black">{{ seleccionada.mermaReal || 0 | number:'1.1-1' }}</span>
+
+                        <div class="p-6 bg-rose-50 rounded-[2rem] border border-rose-100">
+                            <span class="text-[9px] font-bold text-rose-600 uppercase tracking-widest block mb-2">
+                                Reducción Real
+                            </span>
+                            <div class="flex items-baseline gap-1 text-rose-700">
+                                <span class="text-2xl font-black">
+                                    {{ seleccionada.mermaReal || 0 | number:'1.1-1' }}
+                                </span>
                                 <span class="text-xs font-bold">Kg</span>
                             </div>
                         </div>
@@ -191,30 +268,50 @@
 
                 <!-- Section 2: Batches Breakdown -->
                 <div>
-                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
+                    <h3
+                        class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
                         Detalle por Baches (Carga Marmitas)
                         <div class="h-px bg-slate-100 flex-1"></div>
                     </h3>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                        <div *ngFor="let batch of seleccionada.batches" 
-                             class="p-6 rounded-[2.5rem] border border-slate-100 bg-white hover:border-blue-200 transition-all duration-300">
+                        <div *ngFor="let batch of seleccionada.batches"
+                            class="p-6 rounded-[2.5rem] border border-slate-100 bg-white hover:border-blue-200 transition-all duration-300">
+
                             <div class="flex items-center justify-between mb-5">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center font-black text-xs text-slate-500">
+                                    <div
+                                        class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center font-black text-xs text-slate-500">
                                         #{{ batch.numeroBatch }}
                                     </div>
-                                    <span class="text-sm font-bold text-slate-700">{{ batch.nombreMarmita || 'Marmita ' + batch.idMarmita }}</span>
+                                    <span class="text-sm font-bold text-slate-700">
+                                        {{ batch.nombreMarmita || 'Marmita ' + batch.idMarmita }}
+                                    </span>
                                 </div>
-                                <span class="text-[9px] font-black text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-full">{{ (batch.rendimientoPct || 0) * 100 | number:'1.0-0' }}%</span>
+
+                                <span
+                                    class="text-[9px] font-black text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-full">
+                                    {{ batch.rendimientoPct || 0 | number:'1.1-2' }}%
+                                </span>
                             </div>
+
                             <div class="grid grid-cols-2 gap-4 text-center">
                                 <div class="p-3 bg-slate-50 rounded-2xl">
-                                    <span class="text-[9px] font-bold text-slate-400 uppercase block mb-1">Entrada</span>
-                                    <span class="text-xs font-bold text-slate-600">{{ batch.kgEntrada | number:'1.1-1' }} Kg</span>
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase block mb-1">
+                                        Entrada
+                                    </span>
+                                    <span class="text-xs font-bold text-slate-600">
+                                        {{ batch.kgEntrada | number:'1.1-1' }} Kg
+                                    </span>
                                 </div>
+
                                 <div class="p-3 bg-emerald-50/50 rounded-2xl">
-                                    <span class="text-[9px] font-bold text-emerald-500 uppercase block mb-1">Salida</span>
-                                    <span class="text-xs font-bold text-emerald-700">{{ batch.kgProducidos | number:'1.1-1' }} Kg</span>
+                                    <span class="text-[9px] font-bold text-emerald-500 uppercase block mb-1">
+                                        Salida
+                                    </span>
+                                    <span class="text-xs font-bold text-emerald-700">
+                                        {{ batch.kgProducidos | number:'1.1-1' }} Kg
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -222,12 +319,16 @@
                 </div>
 
                 <!-- Section 3: Notes -->
-                <div *ngIf="seleccionada.observaciones" class="p-8 bg-blue-50/50 rounded-[2.5rem] border border-blue-100 flex gap-5">
-                    <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-blue-500 shadow-sm border border-blue-100">
+                <div *ngIf="seleccionada.observaciones"
+                    class="p-8 bg-blue-50/50 rounded-[2.5rem] border border-blue-100 flex gap-5">
+                    <div
+                        class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-blue-500 shadow-sm border border-blue-100">
                         <i class="bi bi-chat-left-text text-xl"></i>
                     </div>
                     <div>
-                        <span class="text-[10px] font-bold text-blue-600 uppercase tracking-widest block mb-2">Observaciones Generales</span>
+                        <span class="text-[10px] font-bold text-blue-600 uppercase tracking-widest block mb-2">
+                            Observaciones Generales
+                        </span>
                         <p class="text-slate-600 text-sm italic leading-relaxed">{{ seleccionada.observaciones }}</p>
                     </div>
                 </div>
@@ -235,12 +336,11 @@
 
             <!-- Modal Footer -->
             <div class="p-8 border-t border-slate-100 bg-slate-50/30 flex justify-end">
-                <button (click)="cerrarDetalle()" 
-                        class="px-8 py-3 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all active:scale-95">
+                <button (click)="cerrarDetalle()"
+                    class="px-8 py-3 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all active:scale-95">
                     Cerrar Trazabilidad
                 </button>
             </div>
         </div>
     </div>
-
 </div>
