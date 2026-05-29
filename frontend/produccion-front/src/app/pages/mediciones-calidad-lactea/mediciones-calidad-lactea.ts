@@ -252,7 +252,6 @@ export class MedicionesCalidadLactea implements OnInit {
             this.notification.toast('Medición de calidad actualizada.');
           } else {
             this.mediciones = [...this.mediciones, medicionGuardada];
-
             this.notification.toast('Medición de calidad registrada.');
           }
 
@@ -398,6 +397,8 @@ export class MedicionesCalidadLactea implements OnInit {
     const idRealizadoPor = this.authService.getIdUsuario();
     if (!this.validarBase(idRealizadoPor)) return;
 
+    if (!this.validarFormularioPeso()) return;
+
     const muestras = this.pesoForm.muestras
       .filter(m => m.pesoNeto !== null && m.pesoNeto !== undefined && Number(m.pesoNeto) > 0)
       .map(m => ({
@@ -406,11 +407,6 @@ export class MedicionesCalidadLactea implements OnInit {
         tara: m.tara,
         pesoNeto: Number(m.pesoNeto)
       }));
-
-    if (!muestras.length) {
-      this.notification.warning('Debe registrar al menos una muestra de peso neto.');
-      return;
-    }
 
     this.guardando = true;
 
@@ -801,6 +797,89 @@ export class MedicionesCalidadLactea implements OnInit {
 
     if (this.procesoForm.liberado && this.procesoForm.retenido) {
       this.notification.warning('No puede marcar Liberado y Retenido al mismo tiempo.');
+      return false;
+    }
+
+    return true;
+  }
+
+  private validarFormularioPeso(): boolean {
+    if (!this.pesoForm.fechaControl) {
+      this.notification.warning('Debe registrar la fecha del control de peso.');
+      return false;
+    }
+
+    if (!this.pesoForm.producto?.trim()) {
+      this.notification.warning('Debe registrar el producto.');
+      return false;
+    }
+
+    if (!this.pesoForm.marca?.trim()) {
+      this.notification.warning('Debe registrar la marca.');
+      return false;
+    }
+
+    if (!this.pesoForm.lote?.trim()) {
+      this.notification.warning('Debe registrar el lote.');
+      return false;
+    }
+
+    if (!this.pesoForm.fechaVencimiento) {
+      this.notification.warning('Debe registrar la fecha de vencimiento.');
+      return false;
+    }
+
+    if (!this.pesoForm.presentacion?.trim()) {
+      this.notification.warning('Debe registrar la presentación.');
+      return false;
+    }
+
+    if (!this.pesoForm.numeroTanda?.trim()) {
+      this.notification.warning('Debe registrar el número de tanda.');
+      return false;
+    }
+
+    if (!this.pesoForm.rangoBatches?.trim()) {
+      this.notification.warning('Debe registrar el rango de batches.');
+      return false;
+    }
+
+    const muestrasValidas = this.pesoForm.muestras.filter(m =>
+      m.pesoNeto !== null &&
+      m.pesoNeto !== undefined &&
+      Number(m.pesoNeto) > 0
+    );
+
+    if (muestrasValidas.length < 10) {
+      this.notification.warning('Debe registrar el peso neto de las 10 muestras.');
+      return false;
+    }
+
+    if (this.pesoForm.pesoNetoPromedio === null || this.pesoForm.pesoNetoPromedio === undefined || Number(this.pesoForm.pesoNetoPromedio) <= 0) {
+      this.notification.warning('Debe registrar el promedio de peso neto.');
+      return false;
+    }
+
+    if (this.pesoForm.cantidadPorCaja === null || this.pesoForm.cantidadPorCaja === undefined || Number(this.pesoForm.cantidadPorCaja) <= 0) {
+      this.notification.warning('Debe registrar la cantidad por caja.');
+      return false;
+    }
+
+    if (!this.pesoForm.liberado && !this.pesoForm.retenido) {
+      this.notification.warning('Debe marcar si el producto terminado queda liberado o retenido.');
+      return false;
+    }
+
+    if (this.pesoForm.liberado && this.pesoForm.retenido) {
+      this.notification.warning('No puede marcar Liberado y Retenido al mismo tiempo.');
+      return false;
+    }
+
+    if (
+      (!this.pesoForm.aparienciaOk || !this.pesoForm.etiquetadoOk || !this.pesoForm.tapadoOk) &&
+      this.pesoForm.liberado
+    ) {
+      this.notification.warning('No puede liberar producto terminado si apariencia, etiquetado o tapado no están conformes.');
       return false;
     }
 

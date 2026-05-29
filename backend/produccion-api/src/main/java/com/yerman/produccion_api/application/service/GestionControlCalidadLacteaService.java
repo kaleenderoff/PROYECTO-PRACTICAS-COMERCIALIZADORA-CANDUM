@@ -1,7 +1,8 @@
 package com.yerman.produccion_api.application.service;
 
-import com.yerman.produccion_api.application.dto.request.ControlCalidadProcesoRequest;
 import com.yerman.produccion_api.application.dto.request.CalidadRecepcionLecheRequest;
+import com.yerman.produccion_api.application.dto.request.ControlCalidadProcesoRequest;
+import com.yerman.produccion_api.application.dto.request.ControlPesoMuestraRequest;
 import com.yerman.produccion_api.application.dto.request.ControlPesoProductoRequest;
 import com.yerman.produccion_api.application.dto.response.CalidadRecepcionLecheResponse;
 import com.yerman.produccion_api.application.dto.response.ControlCalidadProcesoResponse;
@@ -10,7 +11,15 @@ import com.yerman.produccion_api.application.dto.response.ControlPesoProductoRes
 import com.yerman.produccion_api.application.dto.response.EstadoCalidadRecepcionResponse;
 import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
 import com.yerman.produccion_api.application.exception.ReglaNegocioException;
-import com.yerman.produccion_api.infrastructure.entity.*;
+import com.yerman.produccion_api.infrastructure.entity.CalidadRecepcionLecheEntity;
+import com.yerman.produccion_api.infrastructure.entity.CatalogoSkuEntity;
+import com.yerman.produccion_api.infrastructure.entity.ControlCalidadProcesoEntity;
+import com.yerman.produccion_api.infrastructure.entity.ControlPesoMuestraEntity;
+import com.yerman.produccion_api.infrastructure.entity.ControlPesoProductoEntity;
+import com.yerman.produccion_api.infrastructure.entity.EjecucionBatchEntity;
+import com.yerman.produccion_api.infrastructure.entity.OrdenProduccionEntity;
+import com.yerman.produccion_api.infrastructure.entity.RecepcionLecheEntity;
+import com.yerman.produccion_api.infrastructure.entity.UsuarioEntity;
 import com.yerman.produccion_api.infrastructure.repository.CalidadRecepcionLecheJpaRepository;
 import com.yerman.produccion_api.infrastructure.repository.ControlCalidadProcesoJpaRepository;
 import com.yerman.produccion_api.infrastructure.repository.ControlPesoProductoJpaRepository;
@@ -126,47 +135,10 @@ public class GestionControlCalidadLacteaService {
     @Transactional
     public ControlCalidadProcesoResponse registrarProceso(ControlCalidadProcesoRequest request) {
         validarOrdenYBatch(request.idOrdenProduccion(), request.idEjecucionBatch());
+        validarControlProceso(request);
 
         ControlCalidadProcesoEntity entity = new ControlCalidadProcesoEntity();
-        entity.setOrdenProduccion(ref(OrdenProduccionEntity.class, request.idOrdenProduccion()));
-        if (request.idEjecucionBatch() != null) {
-            entity.setEjecucionBatch(ref(EjecucionBatchEntity.class, request.idEjecucionBatch()));
-        }
-        entity.setFechaProduccion(request.fechaProduccion());
-        entity.setTipoProducto(request.tipoProducto());
-        entity.setProducto(request.producto());
-        entity.setLote(request.lote());
-        entity.setNumeroMarmita(request.numeroMarmita());
-        entity.setProductoEnProceso(request.productoEnProceso());
-        entity.setPhLeche(request.phLeche());
-        entity.setAcidezLeche(request.acidezLeche());
-        entity.setDensidadLeche(request.densidadLeche());
-        entity.setGrasaLeche(request.grasaLeche());
-        entity.setHoraInicioHidrolisis(request.horaInicioHidrolisis());
-        entity.setPhInicial(request.phInicial());
-        entity.setHoraFinHidrolisis(request.horaFinHidrolisis());
-        entity.setTemperaturaInicial(request.temperaturaInicial());
-        entity.setTemperaturaFinal(request.temperaturaFinal());
-        entity.setAcidezInicial(request.acidezInicial());
-        entity.setAcidezFinal(request.acidezFinal());
-        entity.setPhFinal(request.phFinal());
-        entity.setBrixInicial(request.brixInicial());
-        entity.setBrixFinal(request.brixFinal());
-        entity.setPresion(request.presion());
-        entity.setTemperaturaCoccion(request.temperaturaCoccion());
-        entity.setTemperaturaEnvasado(request.temperaturaEnvasado());
-        entity.setColorVisual(request.colorVisual());
-        entity.setSaborVisual(request.saborVisual());
-        entity.setTexturaVisual(request.texturaVisual());
-        entity.setPresentacionEnvasado(request.presentacionEnvasado());
-        entity.setFechaVencimiento(request.fechaVencimiento());
-        entity.setLiberado(Boolean.TRUE.equals(request.liberado()));
-        entity.setRetenido(Boolean.TRUE.equals(request.retenido()));
-        entity.setRealizadoPor(ref(UsuarioEntity.class, request.idRealizadoPor()));
-        if (request.idVerificadoPor() != null) {
-            entity.setVerificadoPor(ref(UsuarioEntity.class, request.idVerificadoPor()));
-        }
-        entity.setObservaciones(request.observaciones());
+        aplicarProceso(entity, request);
 
         return toResponse(procesoRepository.save(entity));
     }
@@ -178,6 +150,7 @@ public class GestionControlCalidadLacteaService {
                         "No existe un control de proceso con ID: " + id));
 
         validarOrdenYBatch(request.idOrdenProduccion(), request.idEjecucionBatch());
+        validarControlProceso(request);
         aplicarProceso(entity, request);
 
         return toResponse(procesoRepository.save(entity));
@@ -205,49 +178,10 @@ public class GestionControlCalidadLacteaService {
     @Transactional
     public ControlPesoProductoResponse registrarPeso(ControlPesoProductoRequest request) {
         validarOrdenYBatch(request.idOrdenProduccion(), request.idEjecucionBatch());
+        validarControlPeso(request);
 
         ControlPesoProductoEntity entity = new ControlPesoProductoEntity();
-        entity.setOrdenProduccion(ref(OrdenProduccionEntity.class, request.idOrdenProduccion()));
-        if (request.idEjecucionBatch() != null) {
-            entity.setEjecucionBatch(ref(EjecucionBatchEntity.class, request.idEjecucionBatch()));
-        }
-        if (request.idSku() != null) {
-            entity.setSku(ref(CatalogoSkuEntity.class, request.idSku()));
-        }
-        entity.setFechaControl(request.fechaControl());
-        entity.setProducto(request.producto());
-        entity.setMarca(request.marca());
-        entity.setLote(request.lote());
-        entity.setFechaVencimiento(request.fechaVencimiento());
-        entity.setPresentacion(request.presentacion());
-        entity.setNumeroTanda(request.numeroTanda());
-        entity.setRangoBatches(request.rangoBatches());
-        entity.setPesoBrutoPromedio(request.pesoBrutoPromedio());
-        entity.setTaraPromedio(request.taraPromedio());
-        entity.setPesoNetoPromedio(resolvePesoNetoPromedio(request));
-        entity.setAparienciaOk(request.aparienciaOk());
-        entity.setEtiquetadoOk(request.etiquetadoOk());
-        entity.setTapadoOk(request.tapadoOk());
-        entity.setCantidadPorCaja(request.cantidadPorCaja());
-        entity.setLiberado(Boolean.TRUE.equals(request.liberado()));
-        entity.setRetenido(Boolean.TRUE.equals(request.retenido()));
-        entity.setRealizadoPor(ref(UsuarioEntity.class, request.idRealizadoPor()));
-        if (request.idVerificadoPor() != null) {
-            entity.setVerificadoPor(ref(UsuarioEntity.class, request.idVerificadoPor()));
-        }
-        entity.setObservaciones(request.observaciones());
-
-        if (request.muestras() != null) {
-            request.muestras().forEach(muestraRequest -> {
-                ControlPesoMuestraEntity muestra = new ControlPesoMuestraEntity();
-                muestra.setControlPesoProducto(entity);
-                muestra.setNumeroMuestra(muestraRequest.numeroMuestra());
-                muestra.setPesoBruto(muestraRequest.pesoBruto());
-                muestra.setTara(muestraRequest.tara());
-                muestra.setPesoNeto(muestraRequest.pesoNeto());
-                entity.getMuestras().add(muestra);
-            });
-        }
+        aplicarPeso(entity, request);
 
         return toResponse(pesoRepository.save(entity));
     }
@@ -259,6 +193,7 @@ public class GestionControlCalidadLacteaService {
                         "No existe un control de peso con ID: " + id));
 
         validarOrdenYBatch(request.idOrdenProduccion(), request.idEjecucionBatch());
+        validarControlPeso(request);
         aplicarPeso(entity, request);
 
         return toResponse(pesoRepository.save(entity));
@@ -377,6 +312,7 @@ public class GestionControlCalidadLacteaService {
         if (orden == null) {
             throw new RecursoNoEncontradoException("No existe una orden de produccion con ID: " + idOrdenProduccion);
         }
+
         validacionGuardService.validarOrdenNoAprobada(idOrdenProduccion);
 
         if (idEjecucionBatch != null) {
@@ -390,16 +326,136 @@ public class GestionControlCalidadLacteaService {
         }
     }
 
+    private void validarControlProceso(ControlCalidadProcesoRequest request) {
+        if (request.fechaProduccion() == null) {
+            throw new ReglaNegocioException("La fecha de produccion es obligatoria.");
+        }
+
+        if (request.idEjecucionBatch() == null) {
+            throw new ReglaNegocioException("Debe seleccionar el batch / marmita.");
+        }
+
+        validarTexto(request.producto(), "Debe registrar el producto.");
+        validarTexto(request.lote(), "Debe registrar el lote.");
+
+        validarNumero(request.phLeche(), "Debe registrar el pH de la leche.");
+        validarNumero(request.acidezLeche(), "Debe registrar la acidez de la leche.");
+        validarNumero(request.densidadLeche(), "Debe registrar la densidad de la leche.");
+        validarNumero(request.grasaLeche(), "Debe registrar la grasa de la leche.");
+
+        if (request.horaInicioHidrolisis() == null) {
+            throw new ReglaNegocioException("Debe registrar la hora de inicio de hidrolisis.");
+        }
+
+        validarNumero(request.phInicial(), "Debe registrar el pH inicial.");
+
+        if (request.horaFinHidrolisis() == null) {
+            throw new ReglaNegocioException("Debe registrar la hora de fin de hidrolisis.");
+        }
+
+        validarNumero(request.phFinal(), "Debe registrar el pH final.");
+        validarNumero(request.brixInicial(), "Debe registrar el Brix inicial.");
+        validarNumero(request.brixFinal(), "Debe registrar el Brix final.");
+        validarNumero(request.temperaturaCoccion(), "Debe registrar la temperatura de coccion.");
+        validarNumero(request.temperaturaEnvasado(), "Debe registrar la temperatura de envasado.");
+
+        validarTexto(request.colorVisual(), "Debe registrar el color visual.");
+        validarTexto(request.saborVisual(), "Debe registrar el sabor.");
+        validarTexto(request.texturaVisual(), "Debe registrar la textura.");
+
+        if (request.fechaVencimiento() == null) {
+            throw new ReglaNegocioException("Debe registrar la fecha de vencimiento.");
+        }
+
+        validarTexto(request.presentacionEnvasado(), "Debe registrar la presentacion de envasado.");
+        validarLiberadoRetenido(request.liberado(), request.retenido(), "producto en proceso");
+    }
+
+    private void validarControlPeso(ControlPesoProductoRequest request) {
+        if (request.fechaControl() == null) {
+            throw new ReglaNegocioException("La fecha de control es obligatoria.");
+        }
+
+        validarTexto(request.producto(), "Debe registrar el producto.");
+        validarTexto(request.marca(), "Debe registrar la marca.");
+        validarTexto(request.lote(), "Debe registrar el lote.");
+
+        if (request.fechaVencimiento() == null) {
+            throw new ReglaNegocioException("Debe registrar la fecha de vencimiento.");
+        }
+
+        validarTexto(request.presentacion(), "Debe registrar la presentacion.");
+        validarTexto(request.numeroTanda(), "Debe registrar el numero de tanda.");
+        validarTexto(request.rangoBatches(), "Debe registrar el rango de batches.");
+
+        if (request.muestras() == null || request.muestras().size() < 10) {
+            throw new ReglaNegocioException("Debe registrar el peso neto de las 10 muestras.");
+        }
+
+        for (ControlPesoMuestraRequest muestra : request.muestras()) {
+            if (muestra.numeroMuestra() == null) {
+                throw new ReglaNegocioException("Cada muestra debe tener numero de muestra.");
+            }
+
+            validarNumero(muestra.pesoNeto(), "Debe registrar el peso neto de todas las muestras.");
+        }
+
+        BigDecimal promedio = resolvePesoNetoPromedio(request);
+        validarNumero(promedio, "Debe registrar el promedio de peso neto.");
+
+        if (request.cantidadPorCaja() == null || request.cantidadPorCaja() <= 0) {
+            throw new ReglaNegocioException("Debe registrar la cantidad por caja.");
+        }
+
+        validarLiberadoRetenido(request.liberado(), request.retenido(), "producto terminado");
+
+        if (Boolean.TRUE.equals(request.liberado())
+                && (Boolean.FALSE.equals(request.aparienciaOk())
+                        || Boolean.FALSE.equals(request.etiquetadoOk())
+                        || Boolean.FALSE.equals(request.tapadoOk()))) {
+            throw new ReglaNegocioException(
+                    "No puede liberar producto terminado si apariencia, etiquetado o tapado no estan conformes.");
+        }
+    }
+
+    private void validarLiberadoRetenido(Boolean liberado, Boolean retenido, String contexto) {
+        boolean estaLiberado = Boolean.TRUE.equals(liberado);
+        boolean estaRetenido = Boolean.TRUE.equals(retenido);
+
+        if (!estaLiberado && !estaRetenido) {
+            throw new ReglaNegocioException("Debe marcar si el " + contexto + " queda liberado o retenido.");
+        }
+
+        if (estaLiberado && estaRetenido) {
+            throw new ReglaNegocioException("No puede marcar Liberado y Retenido al mismo tiempo.");
+        }
+    }
+
+    private void validarTexto(String valor, String mensaje) {
+        if (valor == null || valor.isBlank()) {
+            throw new ReglaNegocioException(mensaje);
+        }
+    }
+
+    private void validarNumero(BigDecimal valor, String mensaje) {
+        if (valor == null || valor.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ReglaNegocioException(mensaje);
+        }
+    }
+
     private BigDecimal resolvePesoNetoPromedio(ControlPesoProductoRequest request) {
         if (request.pesoNetoPromedio() != null) {
             return request.pesoNetoPromedio();
         }
+
         if (request.muestras() == null || request.muestras().isEmpty()) {
             return null;
         }
+
         BigDecimal total = request.muestras().stream()
                 .map(muestra -> muestra.pesoNeto() == null ? BigDecimal.ZERO : muestra.pesoNeto())
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+
         return total.divide(BigDecimal.valueOf(request.muestras().size()), 3, java.math.RoundingMode.HALF_UP);
     }
 
