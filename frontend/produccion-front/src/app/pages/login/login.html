@@ -1,48 +1,73 @@
-<div class="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat relative px-4"
+<div class="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat relative px-4 py-6 sm:py-8"
     style="background-image: url('assets/img/login-bg.png');">
 
     <!-- Overlay -->
-    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-[2px]"></div>
+    <div class="absolute inset-0 bg-slate-900/65 backdrop-blur-[2px]"></div>
 
     <!-- Login Card -->
     <div
-        class="relative w-full max-w-md bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-white/20 p-8 md:p-12 overflow-hidden">
+        class="relative w-full max-w-md bg-white/85 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-white/20 px-6 py-8 sm:p-8 md:p-10 overflow-hidden">
 
         <!-- Decoration -->
         <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl"></div>
         <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-slate-500/10 rounded-full blur-3xl"></div>
 
         <div class="relative">
-            <div class="text-center mb-10">
-                <h1 class="text-3xl font-bold text-slate-900 tracking-tight mb-2">Producción Yerman</h1>
-                <p class="text-slate-600 text-sm">Ingrese sus credenciales para continuar</p>
+
+            <!-- Logo / Header -->
+            <div class="text-center mb-8 sm:mb-10">
+
+                <div class="flex justify-center mb-5">
+                    <div
+                        class="bg-white/90 border border-slate-200 rounded-3xl shadow-lg shadow-slate-900/10 px-5 py-4">
+                        <img src="logo-productos-yerman-full-1024.png" alt="Productos Yerman SAS"
+                            class="h-20 sm:h-24 w-auto object-contain mx-auto">
+                    </div>
+                </div>
+
+                <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight mb-2">
+                    Producción Yerman
+                </h1>
+
+                <p class="text-slate-600 text-sm">
+                    Ingrese sus credenciales para continuar
+                </p>
             </div>
 
             <form (ngSubmit)="iniciarSesion()" class="space-y-6">
+
                 <!-- Cédula -->
                 <div class="space-y-2">
-                    <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider ml-1">Cédula de
-                        Ciudadanía</label>
+                    <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider ml-1">
+                        Cédula de Ciudadanía
+                    </label>
+
                     <div class="relative group">
                         <span
                             class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 group-focus-within:text-blue-500 transition-colors">
                             <i class="bi bi-person-badge text-lg"></i>
                         </span>
+
                         <input type="text" name="cc" [(ngModel)]="cc" (input)="error = ''" placeholder="123456789"
+                            autocomplete="username" inputmode="numeric"
                             class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all placeholder:text-slate-400 text-slate-900">
                     </div>
                 </div>
 
                 <!-- Password -->
                 <div class="space-y-2">
-                    <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider ml-1">Contraseña</label>
+                    <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider ml-1">
+                        Contraseña
+                    </label>
+
                     <div class="relative group">
                         <span
                             class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 group-focus-within:text-blue-500 transition-colors">
                             <i class="bi bi-lock text-lg"></i>
                         </span>
+
                         <input type="password" name="password" [(ngModel)]="password" (input)="error = ''"
-                            placeholder="••••••••"
+                            placeholder="••••••••" autocomplete="current-password"
                             class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all placeholder:text-slate-400 text-slate-900">
                     </div>
                 </div>
@@ -57,7 +82,11 @@
                 <!-- Submit Button -->
                 <button type="submit" [disabled]="cargando"
                     class="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-2xl shadow-lg shadow-slate-900/20 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed">
-                    <span *ngIf="!cargando">Iniciar Sesión</span>
+
+                    <span *ngIf="!cargando">
+                        Iniciar Sesión
+                    </span>
+
                     <span *ngIf="cargando" class="flex items-center gap-2">
                         <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2001/XMLSchema-instance"
                             fill="none" viewBox="0 0 24 24">
@@ -73,7 +102,7 @@
             </form>
 
             <!-- Footer -->
-            <div class="mt-10 text-center">
+            <div class="mt-8 sm:mt-10 text-center">
                 <p class="text-xs text-slate-500">
                     © 2026 Yerman S.A.S. - Sistema de Gestión de Producción
                 </p>
