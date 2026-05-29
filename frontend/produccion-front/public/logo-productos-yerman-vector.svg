@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1600" height="900" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .navy { fill: #071B5C; }
+      .yellow { fill: #FFC400; }
+      .brand { font-family: Arial, Helvetica, sans-serif; font-weight: 900; }
+      .medium { font-family: Arial, Helvetica, sans-serif; font-weight: 700; letter-spacing: 18px; }
+      .tagline { font-family: Arial, Helvetica, sans-serif; font-weight: 700; letter-spacing: 2px; }
+    </style>
+  </defs>
+
+  <!-- Simbolo -->
+  <g transform="translate(800 220)">
+    <path class="navy" d="M -185 25 C -210 150 -130 255 5 260 C 25 155 -65 55 -185 25 Z"/>
+    <path class="navy" d="M 120 -60 C 205 25 205 170 55 245 C 55 140 70 35 120 -60 Z"/>
+    <path class="yellow" d="M -75 -50 C 5 -115 88 -108 110 -98 C 112 -5 80 66 35 118 C 10 45 -45 -15 -75 -50 Z"/>
+  </g>
+
+  <!-- Texto -->
+  <text x="800" y="555" text-anchor="middle" class="yellow medium" font-size="62">PRODUCTOS</text>
+  <text x="160" y="700" class="navy brand" font-size="190">Yerman</text>
+  <text x="1215" y="700" class="navy brand" font-size="125">SAS</text>
+  <text x="800" y="780" text-anchor="middle" class="navy tagline" font-size="34">TU MEJOR ELECCIÓN PARA TU ALIMENTACIÓN Y LA DE TU FAMILIA</text>
+</svg>

@@ -16,17 +16,20 @@
         class="px-5 py-5 sm:px-6 sm:py-6 flex items-center justify-between gap-3 border-b border-slate-900 lg:border-b-0">
 
         <div class="flex items-center gap-3 min-w-0">
+
+            <!-- Logo Yerman -->
             <div
-                class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-900/20 shrink-0">
-                <i class="bi bi-droplet-fill text-white text-xl"></i>
+                class="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-lg shadow-blue-900/20 shrink-0 overflow-hidden border border-slate-800">
+                <img src="logo-productos-yerman-symbol-2048.png" alt="Productos Yerman"
+                    class="w-10 h-10 object-contain">
             </div>
 
             <div class="min-w-0">
                 <span class="block text-xl font-bold text-white tracking-tight truncate">
-                    Yerman
+                    Producción
                 </span>
                 <span class="block text-[10px] text-slate-500 uppercase font-bold tracking-wider">
-                    Producción
+                    Yerman S.A.S
                 </span>
             </div>
         </div>
@@ -123,7 +126,7 @@
                 Producción MES
             </p>
 
-            <!-- Modulo 1: Programación -->
+            <!-- Módulo 1: Programación -->
             <a *ngIf="authService.canManageProgramacion()" routerLink="/programacion-produccion/nueva"
                 routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" (click)="cerrarMenuMovil()"
                 class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-900 hover:text-white transition-all group mb-1">
@@ -138,7 +141,7 @@
                 </div>
             </a>
 
-            <!-- Modulo 2: Órdenes -->
+            <!-- Módulo 2: Órdenes -->
             <a *ngIf="authService.canReadOperaciones()" routerLink="/ordenes-produccion"
                 routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" (click)="cerrarMenuMovil()"
                 class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-900 hover:text-white transition-all group mb-1">
@@ -153,7 +156,7 @@
                 </div>
             </a>
 
-            <!-- Modulo 3: Ejecución -->
+            <!-- Módulo 3: Ejecución -->
             <a *ngIf="authService.canReadOperaciones()" routerLink="/ejecucion-produccion"
                 routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" (click)="cerrarMenuMovil()"
                 class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-900 hover:text-white transition-all group mb-1">
@@ -168,7 +171,7 @@
                 </div>
             </a>
 
-            <!-- Modulo 4: Calidad -->
+            <!-- Módulo 4: Calidad -->
             <a *ngIf="authService.canReadCalidad()" routerLink="/mediciones-calidad-lactea"
                 routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" (click)="cerrarMenuMovil()"
                 class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-900 hover:text-white transition-all group mb-1">
@@ -183,7 +186,7 @@
                 </div>
             </a>
 
-            <!-- Modulo 5: Reportes -->
+            <!-- Módulo 5: Reportes -->
             <a *ngIf="authService.canViewReportes()" routerLink="/reportes"
                 routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" (click)="cerrarMenuMovil()"
                 class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-900 hover:text-white transition-all group">
