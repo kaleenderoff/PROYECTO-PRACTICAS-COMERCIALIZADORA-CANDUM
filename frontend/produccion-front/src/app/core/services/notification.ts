@@ -21,7 +21,7 @@ export class NotificationService {
       text: message,
       icon: 'success',
       confirmButtonColor: '#2563eb',
-      timer: 3000,
+      timer: 1800,
       timerProgressBar: true
     });
   }
@@ -75,12 +75,8 @@ export class NotificationService {
       toast: true,
       position: 'top-end',
       showConfirmButton: false,
-      timer: 3000,
-      timerProgressBar: true,
-      didOpen: (element) => {
-        element.addEventListener('mouseenter', Swal.stopTimer);
-        element.addEventListener('mouseleave', Swal.resumeTimer);
-      }
+      timer: 1600,
+      timerProgressBar: true
     });
 
     toast.fire({

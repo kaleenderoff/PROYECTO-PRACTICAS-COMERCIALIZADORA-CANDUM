@@ -237,14 +237,20 @@ export class MedicionesCalidadLactea implements OnInit {
       : this.medicionService.registrar(request);
 
     operacion.subscribe({
-      next: () => {
-        this.notification.toast(
-          this.idMedicionEditando
-            ? 'Medición de calidad actualizada.'
-            : 'Medición de calidad registrada.'
-        );
+      next: (medicionGuardada) => {
+        if (this.idMedicionEditando) {
+          this.mediciones = this.mediciones.map(m =>
+            Number(m.id) === Number(medicionGuardada.id) ? medicionGuardada : m
+          );
+
+          this.notification.toast('Medición de calidad actualizada.');
+        } else {
+          this.mediciones = [...this.mediciones, medicionGuardada];
+
+          this.notification.toast('Medición de calidad registrada.');
+        }
+
         this.limpiarFormulario();
-        this.cargarDatosOrden();
       },
       error: (err) => {
         this.notification.error(err.error?.message || 'No se pudo registrar la medición.');
@@ -313,14 +319,15 @@ export class MedicionesCalidadLactea implements OnInit {
 
     this.medicionService.eliminar(medicion.id).subscribe({
       next: () => {
-        this.mediciones = this.mediciones.filter(m => Number(m.id) !== Number(medicion.id));
+        this.mediciones = this.mediciones.filter(m =>
+          Number(m.id) !== Number(medicion.id)
+        );
 
         if (this.idMedicionEditando === medicion.id) {
           this.limpiarFormulario();
         }
 
         this.notification.toast('Medición eliminada.');
-        this.cargarDatosOrden();
       },
       error: err => {
         this.notification.error(err.error?.message || 'No se pudo eliminar la medición.');
