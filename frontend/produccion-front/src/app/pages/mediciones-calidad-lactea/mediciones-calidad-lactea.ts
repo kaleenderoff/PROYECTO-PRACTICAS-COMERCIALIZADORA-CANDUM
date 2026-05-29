@@ -354,6 +354,8 @@ export class MedicionesCalidadLactea implements OnInit {
     const idRealizadoPor = this.authService.getIdUsuario();
     if (!this.validarBase(idRealizadoPor)) return;
 
+    if (!this.validarFormularioProceso()) return;
+
     this.guardando = true;
 
     const request = {
@@ -685,6 +687,120 @@ export class MedicionesCalidadLactea implements OnInit {
 
     if (!idUsuario) {
       this.notification.warning('No se pudo identificar el usuario autenticado.');
+      return false;
+    }
+
+    return true;
+  }
+
+  private validarFormularioProceso(): boolean {
+    if (!this.procesoForm.idEjecucionBatch) {
+      this.notification.warning('Debe seleccionar el batch / marmita.');
+      return false;
+    }
+
+    if (!this.procesoForm.producto?.trim()) {
+      this.notification.warning('Debe registrar el producto.');
+      return false;
+    }
+
+    if (!this.procesoForm.lote?.trim()) {
+      this.notification.warning('Debe registrar el lote.');
+      return false;
+    }
+
+    if (this.procesoForm.phLeche === null || this.procesoForm.phLeche === undefined) {
+      this.notification.warning('Debe registrar el pH de la leche.');
+      return false;
+    }
+
+    if (this.procesoForm.acidezLeche === null || this.procesoForm.acidezLeche === undefined) {
+      this.notification.warning('Debe registrar la acidez de la leche.');
+      return false;
+    }
+
+    if (this.procesoForm.densidadLeche === null || this.procesoForm.densidadLeche === undefined) {
+      this.notification.warning('Debe registrar la densidad de la leche.');
+      return false;
+    }
+
+    if (this.procesoForm.grasaLeche === null || this.procesoForm.grasaLeche === undefined) {
+      this.notification.warning('Debe registrar la grasa de la leche.');
+      return false;
+    }
+
+    if (!this.procesoForm.horaInicioHidrolisis) {
+      this.notification.warning('Debe registrar la hora de inicio de hidrólisis.');
+      return false;
+    }
+
+    if (this.procesoForm.phInicial === null || this.procesoForm.phInicial === undefined) {
+      this.notification.warning('Debe registrar el pH inicial.');
+      return false;
+    }
+
+    if (!this.procesoForm.horaFinHidrolisis) {
+      this.notification.warning('Debe registrar la hora de fin de hidrólisis.');
+      return false;
+    }
+
+    if (this.procesoForm.phFinal === null || this.procesoForm.phFinal === undefined) {
+      this.notification.warning('Debe registrar el pH final.');
+      return false;
+    }
+
+    if (this.procesoForm.brixInicial === null || this.procesoForm.brixInicial === undefined) {
+      this.notification.warning('Debe registrar el Brix inicial.');
+      return false;
+    }
+
+    if (this.procesoForm.brixFinal === null || this.procesoForm.brixFinal === undefined) {
+      this.notification.warning('Debe registrar el Brix final.');
+      return false;
+    }
+
+    if (this.procesoForm.temperaturaCoccion === null || this.procesoForm.temperaturaCoccion === undefined) {
+      this.notification.warning('Debe registrar la temperatura de cocción.');
+      return false;
+    }
+
+    if (this.procesoForm.temperaturaEnvasado === null || this.procesoForm.temperaturaEnvasado === undefined) {
+      this.notification.warning('Debe registrar la temperatura de envasado.');
+      return false;
+    }
+
+    if (!this.procesoForm.colorVisual?.trim()) {
+      this.notification.warning('Debe registrar el color visual.');
+      return false;
+    }
+
+    if (!this.procesoForm.saborVisual?.trim()) {
+      this.notification.warning('Debe registrar el sabor.');
+      return false;
+    }
+
+    if (!this.procesoForm.texturaVisual?.trim()) {
+      this.notification.warning('Debe registrar la textura.');
+      return false;
+    }
+
+    if (!this.procesoForm.fechaVencimiento) {
+      this.notification.warning('Debe registrar la fecha de vencimiento.');
+      return false;
+    }
+
+    if (!this.procesoForm.presentacionEnvasado?.trim()) {
+      this.notification.warning('Debe registrar la presentación de envasado.');
+      return false;
+    }
+
+    if (!this.procesoForm.liberado && !this.procesoForm.retenido) {
+      this.notification.warning('Debe marcar si el producto queda liberado o retenido.');
+      return false;
+    }
+
+    if (this.procesoForm.liberado && this.procesoForm.retenido) {
+      this.notification.warning('No puede marcar Liberado y Retenido al mismo tiempo.');
       return false;
     }
 
