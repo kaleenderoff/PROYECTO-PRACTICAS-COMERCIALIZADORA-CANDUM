@@ -14,10 +14,10 @@ export class Sidebar {
   @Input() mobileOpen = false;
   @Output() closeMobile = new EventEmitter<void>();
 
-  administracionAbierto = true;
-  controlAbierto = true;
-  operacionesAbierto = true;
-  produccionAbierto = true;
+  administracionAbierto = false;
+  controlAbierto = false;
+  operacionesAbierto = false;
+  produccionAbierto = false;
 
   constructor(public authService: AuthService, private router: Router) { }
 
