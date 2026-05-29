@@ -179,6 +179,11 @@ export class MedicionesCalidadLactea implements OnInit {
       return;
     }
 
+    if (this.formulario.tipoMedicion === 'BACHE' && !this.formulario.idEjecucionBatch) {
+      this.notification.warning('Debe seleccionar un batch.');
+      return;
+    }
+
     if (!this.formulario.referencia.trim()) {
       this.notification.warning('La referencia de la medicion es obligatoria.');
       return;
@@ -186,6 +191,16 @@ export class MedicionesCalidadLactea implements OnInit {
 
     if (this.formulario.brix === null && this.formulario.ph === null) {
       this.notification.warning('Debe registrar Brix, pH o ambos.');
+      return;
+    }
+
+    if (
+      !this.idMedicionEditando &&
+      this.formulario.tipoMedicion === 'BACHE' &&
+      this.formulario.idEjecucionBatch &&
+      this.batchYaMedido(this.formulario.idEjecucionBatch)
+    ) {
+      this.notification.warning('Este batch ya tiene medicion registrada. Use editar si necesita corregirla.');
       return;
     }
 
@@ -485,6 +500,26 @@ export class MedicionesCalidadLactea implements OnInit {
 
   obtenerBatch(idBatch?: number | null): EjecucionBatch | undefined {
     return this.batches.find(b => b.id === idBatch);
+  }
+
+  get medicionesRapidasBatch(): MedicionCalidadLacteaResponse[] {
+    return this.mediciones.filter(m =>
+      m.tipoMedicion === 'BACHE' &&
+      m.idEjecucionBatch !== null &&
+      m.idEjecucionBatch !== undefined
+    );
+  }
+
+  batchYaMedido(idBatch: number): boolean {
+    return this.medicionesRapidasBatch.some(m => Number(m.idEjecucionBatch) === Number(idBatch));
+  }
+
+  get batchesDisponiblesParaMedicion(): EjecucionBatch[] {
+    if (this.idMedicionEditando) {
+      return this.batches;
+    }
+
+    return this.batches.filter(batch => !this.batchYaMedido(batch.id));
   }
 
   promedioBrix(): number {

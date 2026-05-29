@@ -1,20 +1,24 @@
 <div class="space-y-8 animate-in fade-in duration-500 pb-20">
 
-    <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+    <div
+        class="flex flex-col xl:flex-row xl:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
         <div class="flex items-center gap-5">
-            <div class="w-14 h-14 bg-violet-50 rounded-2xl flex items-center justify-center text-violet-600 shadow-inner">
+            <div
+                class="w-14 h-14 bg-violet-50 rounded-2xl flex items-center justify-center text-violet-600 shadow-inner">
                 <i class="bi bi-clipboard-pulse text-2xl"></i>
             </div>
             <div>
                 <h1 class="text-2xl font-black text-slate-900 tracking-tight">Calidad Lactea</h1>
-                <p class="text-slate-500 text-sm font-medium">Brix, pH, variables de proceso y control de peso de producto terminado</p>
+                <p class="text-slate-500 text-sm font-medium">Brix, pH, variables de proceso y control de peso de
+                    producto terminado</p>
             </div>
         </div>
 
         <div class="min-w-[280px]">
-            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">Orden de produccion</label>
+            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">Orden de
+                produccion</label>
             <select [(ngModel)]="idOrdenSeleccionada" (ngModelChange)="onCambioOrden()"
-                    class="w-full px-4 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-violet-500 font-bold text-slate-700">
+                class="w-full px-4 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-violet-500 font-bold text-slate-700">
                 <option [ngValue]="0">Seleccionar orden</option>
                 <option *ngFor="let orden of ordenes" [ngValue]="orden.id">
                     {{ orden.numeroOrden }} - {{ orden.nombreProducto }}
@@ -23,7 +27,8 @@
         </div>
     </div>
 
-    <div *ngIf="error" class="flex items-center gap-4 p-5 bg-red-50 text-red-700 rounded-3xl border border-red-100 shadow-sm">
+    <div *ngIf="error"
+        class="flex items-center gap-4 p-5 bg-red-50 text-red-700 rounded-3xl border border-red-100 shadow-sm">
         <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
             <i class="bi bi-exclamation-triangle-fill"></i>
         </div>
@@ -34,7 +39,8 @@
         <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
             <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Orden</span>
             <p class="text-lg font-black text-slate-900 mt-2">{{ obtenerOrdenSeleccionada()?.numeroOrden || '-' }}</p>
-            <p class="text-xs text-slate-400 font-medium">{{ obtenerOrdenSeleccionada()?.nombreProducto || 'Sin seleccionar' }}</p>
+            <p class="text-xs text-slate-400 font-medium">{{ obtenerOrdenSeleccionada()?.nombreProducto || 'Sin
+                seleccionar' }}</p>
         </div>
         <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
             <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Batches</span>
@@ -52,24 +58,25 @@
 
     <div class="bg-white p-2 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col md:flex-row gap-2">
         <button type="button" (click)="pestanaActiva = 'rapida'"
-                [ngClass]="pestanaActiva === 'rapida' ? 'bg-violet-600 text-white shadow-lg shadow-violet-100' : 'text-slate-500 hover:bg-slate-50'"
-                class="flex-1 py-4 rounded-[1.5rem] font-black text-sm transition-all">
+            [ngClass]="pestanaActiva === 'rapida' ? 'bg-violet-600 text-white shadow-lg shadow-violet-100' : 'text-slate-500 hover:bg-slate-50'"
+            class="flex-1 py-4 rounded-[1.5rem] font-black text-sm transition-all">
             1. Brix / pH rapido
         </button>
         <button type="button" (click)="pestanaActiva = 'proceso'"
-                [ngClass]="pestanaActiva === 'proceso' ? 'bg-violet-600 text-white shadow-lg shadow-violet-100' : 'text-slate-500 hover:bg-slate-50'"
-                class="flex-1 py-4 rounded-[1.5rem] font-black text-sm transition-all">
+            [ngClass]="pestanaActiva === 'proceso' ? 'bg-violet-600 text-white shadow-lg shadow-violet-100' : 'text-slate-500 hover:bg-slate-50'"
+            class="flex-1 py-4 rounded-[1.5rem] font-black text-sm transition-all">
             2. Control de proceso
         </button>
         <button type="button" (click)="pestanaActiva = 'peso'"
-                [ngClass]="pestanaActiva === 'peso' ? 'bg-violet-600 text-white shadow-lg shadow-violet-100' : 'text-slate-500 hover:bg-slate-50'"
-                class="flex-1 py-4 rounded-[1.5rem] font-black text-sm transition-all">
+            [ngClass]="pestanaActiva === 'peso' ? 'bg-violet-600 text-white shadow-lg shadow-violet-100' : 'text-slate-500 hover:bg-slate-50'"
+            class="flex-1 py-4 rounded-[1.5rem] font-black text-sm transition-all">
             3. Peso producto terminado
         </button>
     </div>
 
     <div *ngIf="pestanaActiva === 'rapida'" class="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        <div *ngIf="authService.canWriteCalidad()" class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+        <div *ngIf="authService.canWriteCalidad()"
+            class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
             <h3 class="text-lg font-black text-slate-900 mb-2">
                 {{ idMedicionEditando ? 'Editar medicion rapida' : 'Registro de medicion rapida' }}
             </h3>
@@ -79,30 +86,55 @@
 
             <div class="space-y-5">
                 <div class="grid grid-cols-3 gap-2">
-                    <button type="button" (click)="formulario.tipoMedicion = 'BACHE'; onCambioTipo()" [ngClass]="formulario.tipoMedicion === 'BACHE' ? 'bg-violet-600 text-white' : 'bg-slate-50 text-slate-500'" class="py-3 rounded-2xl text-xs font-black">BACHE</button>
-                    <button type="button" (click)="formulario.tipoMedicion = 'MEZCLA'; onCambioTipo()" [ngClass]="formulario.tipoMedicion === 'MEZCLA' ? 'bg-violet-600 text-white' : 'bg-slate-50 text-slate-500'" class="py-3 rounded-2xl text-xs font-black">MEZCLA</button>
-                    <button type="button" (click)="formulario.tipoMedicion = 'TANDA'; onCambioTipo()" [ngClass]="formulario.tipoMedicion === 'TANDA' ? 'bg-violet-600 text-white' : 'bg-slate-50 text-slate-500'" class="py-3 rounded-2xl text-xs font-black">TANDA</button>
+                    <button type="button" (click)="formulario.tipoMedicion = 'BACHE'; onCambioTipo()"
+                        [ngClass]="formulario.tipoMedicion === 'BACHE' ? 'bg-violet-600 text-white' : 'bg-slate-50 text-slate-500'"
+                        class="py-3 rounded-2xl text-xs font-black">BACHE</button>
+                    <button type="button" (click)="formulario.tipoMedicion = 'MEZCLA'; onCambioTipo()"
+                        [ngClass]="formulario.tipoMedicion === 'MEZCLA' ? 'bg-violet-600 text-white' : 'bg-slate-50 text-slate-500'"
+                        class="py-3 rounded-2xl text-xs font-black">MEZCLA</button>
+                    <button type="button" (click)="formulario.tipoMedicion = 'TANDA'; onCambioTipo()"
+                        [ngClass]="formulario.tipoMedicion === 'TANDA' ? 'bg-violet-600 text-white' : 'bg-slate-50 text-slate-500'"
+                        class="py-3 rounded-2xl text-xs font-black">TANDA</button>
                 </div>
 
                 <div *ngIf="formulario.tipoMedicion === 'BACHE'">
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">Batch</label>
-                    <select [(ngModel)]="formulario.idEjecucionBatch" (ngModelChange)="onCambioBatch()" class="w-full px-4 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-violet-500 font-bold text-slate-700">
+                    <label
+                        class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">Batch</label>
+                    <select [(ngModel)]="formulario.idEjecucionBatch" (ngModelChange)="onCambioBatch()"
+                        class="w-full px-4 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-violet-500 font-bold text-slate-700">
                         <option [ngValue]="0">Seleccionar batch</option>
-                        <option *ngFor="let batch of batches" [ngValue]="batch.id">B.{{ batch.numeroBatch }} - {{ batch.nombreMarmita || 'Marmita' }}</option>
+                        <option *ngFor="let batch of batchesDisponiblesParaMedicion" [ngValue]="batch.id">
+                            B.{{ batch.numeroBatch }} - {{ batch.nombreMarmita || 'Marmita' }}
+                        </option>
                     </select>
+
+                    <p *ngIf="batchesDisponiblesParaMedicion.length === 0 && !idMedicionEditando"
+                        class="mt-2 text-[10px] font-bold text-emerald-600 uppercase tracking-widest">
+                        Todos los batches ya tienen medición rápida registrada.
+                    </p>
                 </div>
 
-                <input type="text" [(ngModel)]="formulario.referencia" class="w-full px-4 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-violet-500 font-bold text-slate-700" placeholder="Referencia: B.1, Mezcla, Tanda 1">
+                <input type="text" [(ngModel)]="formulario.referencia"
+                    class="w-full px-4 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-violet-500 font-bold text-slate-700"
+                    placeholder="Referencia: B.1, Mezcla, Tanda 1">
                 <div class="grid grid-cols-2 gap-4">
-                    <input type="number" step="0.01" [(ngModel)]="formulario.brix" class="w-full px-4 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-violet-500 font-black text-slate-700" placeholder="Brix">
-                    <input type="number" step="0.01" [(ngModel)]="formulario.ph" class="w-full px-4 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-violet-500 font-black text-slate-700" placeholder="pH">
+                    <input type="number" step="0.01" [(ngModel)]="formulario.brix"
+                        class="w-full px-4 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-violet-500 font-black text-slate-700"
+                        placeholder="Brix">
+                    <input type="number" step="0.01" [(ngModel)]="formulario.ph"
+                        class="w-full px-4 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-violet-500 font-black text-slate-700"
+                        placeholder="pH">
                 </div>
-                <textarea [(ngModel)]="formulario.observaciones" rows="3" class="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-violet-500 font-medium text-slate-700 text-sm" placeholder="Observaciones..."></textarea>
+                <textarea [(ngModel)]="formulario.observaciones" rows="3"
+                    class="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-violet-500 font-medium text-slate-700 text-sm"
+                    placeholder="Observaciones..."></textarea>
                 <div class="flex flex-col sm:flex-row gap-3">
-                    <button type="button" (click)="registrar()" [disabled]="guardando || cargando" class="flex-1 py-4 bg-violet-600 hover:bg-violet-700 disabled:bg-slate-200 text-white rounded-2xl font-black transition-all">
+                    <button type="button" (click)="registrar()" [disabled]="guardando || cargando"
+                        class="flex-1 py-4 bg-violet-600 hover:bg-violet-700 disabled:bg-slate-200 text-white rounded-2xl font-black transition-all">
                         {{ idMedicionEditando ? 'ACTUALIZAR MEDICION' : 'REGISTRAR MEDICION' }}
                     </button>
-                    <button *ngIf="idMedicionEditando" type="button" (click)="limpiarFormulario()" class="px-5 py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl font-black transition-all">
+                    <button *ngIf="idMedicionEditando" type="button" (click)="limpiarFormulario()"
+                        class="px-5 py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl font-black transition-all">
                         CANCELAR
                     </button>
                 </div>
@@ -121,31 +153,37 @@
                         <th class="px-6 py-3 text-[10px] uppercase text-slate-400">Ref.</th>
                         <th class="px-6 py-3 text-[10px] uppercase text-slate-400 text-right">Brix</th>
                         <th class="px-6 py-3 text-[10px] uppercase text-slate-400 text-right">pH</th>
-                        <th *ngIf="authService.canWriteCalidad()" class="px-6 py-3 text-[10px] uppercase text-slate-400 text-right">Acciones</th>
+                        <th *ngIf="authService.canWriteCalidad()"
+                            class="px-6 py-3 text-[10px] uppercase text-slate-400 text-right">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50">
                     <tr *ngFor="let medicion of mediciones">
-                        <td class="px-6 py-4 text-sm text-slate-500">{{ medicion.fechaHoraMedicion | date:'dd/MM/yyyy hh:mm a' }}</td>
+                        <td class="px-6 py-4 text-sm text-slate-500">{{ medicion.fechaHoraMedicion | date:'dd/MM/yyyy
+                            hh:mm a' }}</td>
                         <td class="px-6 py-4 text-xs font-black text-violet-700">{{ medicion.tipoMedicion }}</td>
                         <td class="px-6 py-4 font-black text-slate-800">{{ medicion.referencia }}</td>
                         <td class="px-6 py-4 text-right font-black">{{ medicion.brix ?? '-' }}</td>
                         <td class="px-6 py-4 text-right font-black">{{ medicion.ph ?? '-' }}</td>
                         <td *ngIf="authService.canWriteCalidad()" class="px-6 py-4">
                             <div class="flex justify-end gap-2">
-                                <button type="button" (click)="editarMedicion(medicion)" class="px-3 py-2 rounded-xl bg-blue-50 text-blue-700 text-xs font-black hover:bg-blue-100">Editar</button>
-                                <button type="button" (click)="eliminarMedicion(medicion)" class="px-3 py-2 rounded-xl bg-red-50 text-red-700 text-xs font-black hover:bg-red-100">Eliminar</button>
+                                <button type="button" (click)="editarMedicion(medicion)"
+                                    class="px-3 py-2 rounded-xl bg-blue-50 text-blue-700 text-xs font-black hover:bg-blue-100">Editar</button>
+                                <button type="button" (click)="eliminarMedicion(medicion)"
+                                    class="px-3 py-2 rounded-xl bg-red-50 text-red-700 text-xs font-black hover:bg-red-100">Eliminar</button>
                             </div>
                         </td>
                     </tr>
                 </tbody>
             </table>
-            <div *ngIf="mediciones.length === 0" class="p-12 text-center text-slate-400 font-bold">Sin mediciones registradas.</div>
+            <div *ngIf="mediciones.length === 0" class="p-12 text-center text-slate-400 font-bold">Sin mediciones
+                registradas.</div>
         </div>
     </div>
 
     <div *ngIf="pestanaActiva === 'proceso'" class="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        <div *ngIf="authService.canWriteCalidad()" class="xl:col-span-2 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+        <div *ngIf="authService.canWriteCalidad()"
+            class="xl:col-span-2 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
             <h3 class="text-lg font-black text-slate-900 mb-2">
                 {{ idProcesoEditando ? 'Editar control de proceso' : 'Formato de variables de calidad en proceso' }}
             </h3>
@@ -153,45 +191,72 @@
                 Estas corrigiendo un control de proceso existente.
             </p>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <input type="date" [(ngModel)]="procesoForm.fechaProduccion" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
-                <select [(ngModel)]="procesoForm.idEjecucionBatch" (ngModelChange)="onCambioBatchProceso()" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
+                <input type="date" [(ngModel)]="procesoForm.fechaProduccion"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
+                <select [(ngModel)]="procesoForm.idEjecucionBatch" (ngModelChange)="onCambioBatchProceso()"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
                     <option [ngValue]="0">Batch / marmita</option>
-                    <option *ngFor="let batch of batches" [ngValue]="batch.id">B.{{ batch.numeroBatch }} - {{ batch.nombreMarmita }}</option>
+                    <option *ngFor="let batch of batches" [ngValue]="batch.id">B.{{ batch.numeroBatch }} - {{
+                        batch.nombreMarmita }}</option>
                 </select>
-                <input type="text" [(ngModel)]="procesoForm.producto" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Producto">
-                <input type="text" [(ngModel)]="procesoForm.lote" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Lote">
+                <input type="text" [(ngModel)]="procesoForm.producto"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Producto">
+                <input type="text" [(ngModel)]="procesoForm.lote" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold"
+                    placeholder="Lote">
 
-                <input type="number" step="0.01" [(ngModel)]="procesoForm.phLeche" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="pH leche">
-                <input type="number" step="0.0001" [(ngModel)]="procesoForm.acidezLeche" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Acidez leche">
-                <input type="number" step="0.0001" [(ngModel)]="procesoForm.densidadLeche" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Densidad">
-                <input type="number" step="0.0001" [(ngModel)]="procesoForm.grasaLeche" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Grasa">
+                <input type="number" step="0.01" [(ngModel)]="procesoForm.phLeche"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="pH leche">
+                <input type="number" step="0.0001" [(ngModel)]="procesoForm.acidezLeche"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Acidez leche">
+                <input type="number" step="0.0001" [(ngModel)]="procesoForm.densidadLeche"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Densidad">
+                <input type="number" step="0.0001" [(ngModel)]="procesoForm.grasaLeche"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Grasa">
 
-                <input type="time" [(ngModel)]="procesoForm.horaInicioHidrolisis" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
-                <input type="number" step="0.01" [(ngModel)]="procesoForm.phInicial" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="pH inicial">
-                <input type="time" [(ngModel)]="procesoForm.horaFinHidrolisis" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
-                <input type="number" step="0.01" [(ngModel)]="procesoForm.phFinal" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="pH final">
+                <input type="time" [(ngModel)]="procesoForm.horaInicioHidrolisis"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
+                <input type="number" step="0.01" [(ngModel)]="procesoForm.phInicial"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="pH inicial">
+                <input type="time" [(ngModel)]="procesoForm.horaFinHidrolisis"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
+                <input type="number" step="0.01" [(ngModel)]="procesoForm.phFinal"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="pH final">
 
-                <input type="number" step="0.01" [(ngModel)]="procesoForm.brixInicial" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Brix inicial">
-                <input type="number" step="0.01" [(ngModel)]="procesoForm.brixFinal" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Brix final">
-                <input type="number" step="0.01" [(ngModel)]="procesoForm.temperaturaCoccion" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Temp. coccion">
-                <input type="number" step="0.01" [(ngModel)]="procesoForm.temperaturaEnvasado" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Temp. envasado">
+                <input type="number" step="0.01" [(ngModel)]="procesoForm.brixInicial"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Brix inicial">
+                <input type="number" step="0.01" [(ngModel)]="procesoForm.brixFinal"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Brix final">
+                <input type="number" step="0.01" [(ngModel)]="procesoForm.temperaturaCoccion"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Temp. coccion">
+                <input type="number" step="0.01" [(ngModel)]="procesoForm.temperaturaEnvasado"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Temp. envasado">
 
-                <input type="text" [(ngModel)]="procesoForm.colorVisual" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Color visual">
-                <input type="text" [(ngModel)]="procesoForm.saborVisual" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Sabor">
-                <input type="text" [(ngModel)]="procesoForm.texturaVisual" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Textura">
-                <input type="date" [(ngModel)]="procesoForm.fechaVencimiento" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
+                <input type="text" [(ngModel)]="procesoForm.colorVisual"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Color visual">
+                <input type="text" [(ngModel)]="procesoForm.saborVisual"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Sabor">
+                <input type="text" [(ngModel)]="procesoForm.texturaVisual"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Textura">
+                <input type="date" [(ngModel)]="procesoForm.fechaVencimiento"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                <label class="p-4 bg-slate-50 rounded-2xl font-bold flex gap-3"><input type="checkbox" [(ngModel)]="procesoForm.liberado"> Liberado</label>
-                <label class="p-4 bg-slate-50 rounded-2xl font-bold flex gap-3"><input type="checkbox" [(ngModel)]="procesoForm.retenido"> Retenido</label>
-                <input type="text" [(ngModel)]="procesoForm.presentacionEnvasado" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Presentacion envasado">
+                <label class="p-4 bg-slate-50 rounded-2xl font-bold flex gap-3"><input type="checkbox"
+                        [(ngModel)]="procesoForm.liberado"> Liberado</label>
+                <label class="p-4 bg-slate-50 rounded-2xl font-bold flex gap-3"><input type="checkbox"
+                        [(ngModel)]="procesoForm.retenido"> Retenido</label>
+                <input type="text" [(ngModel)]="procesoForm.presentacionEnvasado"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Presentacion envasado">
             </div>
-            <textarea [(ngModel)]="procesoForm.observaciones" rows="3" class="mt-4 w-full p-4 bg-slate-50 rounded-2xl font-medium" placeholder="Observaciones"></textarea>
+            <textarea [(ngModel)]="procesoForm.observaciones" rows="3"
+                class="mt-4 w-full p-4 bg-slate-50 rounded-2xl font-medium" placeholder="Observaciones"></textarea>
             <div class="mt-6 flex flex-col sm:flex-row gap-3">
-                <button type="button" (click)="registrarProceso()" [disabled]="guardando" class="px-8 py-4 bg-violet-600 text-white rounded-2xl font-black">
+                <button type="button" (click)="registrarProceso()" [disabled]="guardando"
+                    class="px-8 py-4 bg-violet-600 text-white rounded-2xl font-black">
                     {{ idProcesoEditando ? 'ACTUALIZAR CONTROL DE PROCESO' : 'GUARDAR CONTROL DE PROCESO' }}
                 </button>
-                <button *ngIf="idProcesoEditando" type="button" (click)="cancelarEdicionProceso()" class="px-5 py-4 bg-slate-100 text-slate-600 rounded-2xl font-black">
+                <button *ngIf="idProcesoEditando" type="button" (click)="cancelarEdicionProceso()"
+                    class="px-5 py-4 bg-slate-100 text-slate-600 rounded-2xl font-black">
                     CANCELAR
                 </button>
             </div>
@@ -201,20 +266,26 @@
             <h3 class="font-black text-slate-900 mb-4">Registros de proceso</h3>
             <div class="space-y-3">
                 <div *ngFor="let control of controlesProceso" class="p-4 bg-slate-50 rounded-2xl">
-                    <p class="font-black text-slate-900">{{ control.producto || 'Producto' }} - {{ control.lote || 'Sin lote' }}</p>
-                    <p class="text-xs text-slate-500">Brix final {{ control.brixFinal || '-' }} - pH final {{ control.phFinal || '-' }}</p>
+                    <p class="font-black text-slate-900">{{ control.producto || 'Producto' }} - {{ control.lote || 'Sin
+                        lote' }}</p>
+                    <p class="text-xs text-slate-500">Brix final {{ control.brixFinal || '-' }} - pH final {{
+                        control.phFinal || '-' }}</p>
                     <div *ngIf="authService.canWriteCalidad()" class="flex gap-2 mt-3">
-                        <button type="button" (click)="editarProceso(control)" class="px-3 py-2 rounded-xl bg-blue-50 text-blue-700 text-xs font-black hover:bg-blue-100">Editar</button>
-                        <button type="button" (click)="eliminarProceso(control)" class="px-3 py-2 rounded-xl bg-red-50 text-red-700 text-xs font-black hover:bg-red-100">Eliminar</button>
+                        <button type="button" (click)="editarProceso(control)"
+                            class="px-3 py-2 rounded-xl bg-blue-50 text-blue-700 text-xs font-black hover:bg-blue-100">Editar</button>
+                        <button type="button" (click)="eliminarProceso(control)"
+                            class="px-3 py-2 rounded-xl bg-red-50 text-red-700 text-xs font-black hover:bg-red-100">Eliminar</button>
                     </div>
                 </div>
-                <p *ngIf="controlesProceso.length === 0" class="text-sm text-slate-400 font-bold">Sin controles registrados.</p>
+                <p *ngIf="controlesProceso.length === 0" class="text-sm text-slate-400 font-bold">Sin controles
+                    registrados.</p>
             </div>
         </div>
     </div>
 
     <div *ngIf="pestanaActiva === 'peso'" class="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        <div *ngIf="authService.canWriteCalidad()" class="xl:col-span-2 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+        <div *ngIf="authService.canWriteCalidad()"
+            class="xl:col-span-2 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
             <h3 class="text-lg font-black text-slate-900 mb-2">
                 {{ idPesoEditando ? 'Editar control de peso' : 'Control de peso y producto terminado' }}
             </h3>
@@ -222,47 +293,76 @@
                 Estas corrigiendo un control de peso existente.
             </p>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <input type="date" [(ngModel)]="pesoForm.fechaControl" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
-                <input type="text" [(ngModel)]="pesoForm.producto" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Producto">
-                <input type="text" [(ngModel)]="pesoForm.marca" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Marca">
-                <input type="text" [(ngModel)]="pesoForm.lote" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Lote">
-                <input type="date" [(ngModel)]="pesoForm.fechaVencimiento" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
-                <input type="text" [(ngModel)]="pesoForm.presentacion" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Presentacion">
-                <input type="text" [(ngModel)]="pesoForm.numeroTanda" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Tanda">
-                <input type="text" [(ngModel)]="pesoForm.rangoBatches" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Batches: B4-8">
+                <input type="date" [(ngModel)]="pesoForm.fechaControl"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
+                <input type="text" [(ngModel)]="pesoForm.producto" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold"
+                    placeholder="Producto">
+                <input type="text" [(ngModel)]="pesoForm.marca" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold"
+                    placeholder="Marca">
+                <input type="text" [(ngModel)]="pesoForm.lote" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold"
+                    placeholder="Lote">
+                <input type="date" [(ngModel)]="pesoForm.fechaVencimiento"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
+                <input type="text" [(ngModel)]="pesoForm.presentacion"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Presentacion">
+                <input type="text" [(ngModel)]="pesoForm.numeroTanda"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Tanda">
+                <input type="text" [(ngModel)]="pesoForm.rangoBatches"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Batches: B4-8">
             </div>
 
             <div class="mt-6 overflow-x-auto">
                 <table class="w-full text-left">
-                    <thead><tr><th class="py-3 text-xs text-slate-400 uppercase">Muestra</th><th class="py-3 text-xs text-slate-400 uppercase">Peso bruto</th><th class="py-3 text-xs text-slate-400 uppercase">Tara</th><th class="py-3 text-xs text-slate-400 uppercase">Peso neto</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th class="py-3 text-xs text-slate-400 uppercase">Muestra</th>
+                            <th class="py-3 text-xs text-slate-400 uppercase">Peso bruto</th>
+                            <th class="py-3 text-xs text-slate-400 uppercase">Tara</th>
+                            <th class="py-3 text-xs text-slate-400 uppercase">Peso neto</th>
+                        </tr>
+                    </thead>
                     <tbody class="divide-y divide-slate-50">
                         <tr *ngFor="let muestra of pesoForm.muestras">
                             <td class="py-2 font-black text-slate-600">#{{ muestra.numeroMuestra }}</td>
-                            <td class="py-2"><input type="number" step="0.001" [(ngModel)]="muestra.pesoBruto" class="w-28 px-3 py-2 bg-slate-50 rounded-xl font-bold"></td>
-                            <td class="py-2"><input type="number" step="0.001" [(ngModel)]="muestra.tara" class="w-28 px-3 py-2 bg-slate-50 rounded-xl font-bold"></td>
-                            <td class="py-2"><input type="number" step="0.001" [(ngModel)]="muestra.pesoNeto" (ngModelChange)="recalcularPromediosPeso()" class="w-28 px-3 py-2 bg-slate-50 rounded-xl font-bold"></td>
+                            <td class="py-2"><input type="number" step="0.001" [(ngModel)]="muestra.pesoBruto"
+                                    class="w-28 px-3 py-2 bg-slate-50 rounded-xl font-bold"></td>
+                            <td class="py-2"><input type="number" step="0.001" [(ngModel)]="muestra.tara"
+                                    class="w-28 px-3 py-2 bg-slate-50 rounded-xl font-bold"></td>
+                            <td class="py-2"><input type="number" step="0.001" [(ngModel)]="muestra.pesoNeto"
+                                    (ngModelChange)="recalcularPromediosPeso()"
+                                    class="w-28 px-3 py-2 bg-slate-50 rounded-xl font-bold"></td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-                <input type="number" step="0.001" [(ngModel)]="pesoForm.pesoNetoPromedio" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Prom. neto">
-                <input type="number" [(ngModel)]="pesoForm.cantidadPorCaja" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Cantidad caja">
-                <label class="p-4 bg-slate-50 rounded-2xl font-bold flex gap-3"><input type="checkbox" [(ngModel)]="pesoForm.liberado"> Liberado</label>
-                <label class="p-4 bg-slate-50 rounded-2xl font-bold flex gap-3"><input type="checkbox" [(ngModel)]="pesoForm.retenido"> Retenido</label>
+                <input type="number" step="0.001" [(ngModel)]="pesoForm.pesoNetoPromedio"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Prom. neto">
+                <input type="number" [(ngModel)]="pesoForm.cantidadPorCaja"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Cantidad caja">
+                <label class="p-4 bg-slate-50 rounded-2xl font-bold flex gap-3"><input type="checkbox"
+                        [(ngModel)]="pesoForm.liberado"> Liberado</label>
+                <label class="p-4 bg-slate-50 rounded-2xl font-bold flex gap-3"><input type="checkbox"
+                        [(ngModel)]="pesoForm.retenido"> Retenido</label>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                <label class="p-4 bg-slate-50 rounded-2xl font-bold flex gap-3"><input type="checkbox" [(ngModel)]="pesoForm.aparienciaOk"> Apariencia</label>
-                <label class="p-4 bg-slate-50 rounded-2xl font-bold flex gap-3"><input type="checkbox" [(ngModel)]="pesoForm.etiquetadoOk"> Etiquetado</label>
-                <label class="p-4 bg-slate-50 rounded-2xl font-bold flex gap-3"><input type="checkbox" [(ngModel)]="pesoForm.tapadoOk"> Tapado</label>
+                <label class="p-4 bg-slate-50 rounded-2xl font-bold flex gap-3"><input type="checkbox"
+                        [(ngModel)]="pesoForm.aparienciaOk"> Apariencia</label>
+                <label class="p-4 bg-slate-50 rounded-2xl font-bold flex gap-3"><input type="checkbox"
+                        [(ngModel)]="pesoForm.etiquetadoOk"> Etiquetado</label>
+                <label class="p-4 bg-slate-50 rounded-2xl font-bold flex gap-3"><input type="checkbox"
+                        [(ngModel)]="pesoForm.tapadoOk"> Tapado</label>
             </div>
-            <textarea [(ngModel)]="pesoForm.observaciones" rows="3" class="mt-4 w-full p-4 bg-slate-50 rounded-2xl font-medium" placeholder="Observaciones"></textarea>
+            <textarea [(ngModel)]="pesoForm.observaciones" rows="3"
+                class="mt-4 w-full p-4 bg-slate-50 rounded-2xl font-medium" placeholder="Observaciones"></textarea>
             <div class="mt-6 flex flex-col sm:flex-row gap-3">
-                <button type="button" (click)="registrarPeso()" [disabled]="guardando" class="px-8 py-4 bg-violet-600 text-white rounded-2xl font-black">
+                <button type="button" (click)="registrarPeso()" [disabled]="guardando"
+                    class="px-8 py-4 bg-violet-600 text-white rounded-2xl font-black">
                     {{ idPesoEditando ? 'ACTUALIZAR CONTROL DE PESO' : 'GUARDAR CONTROL DE PESO' }}
                 </button>
-                <button *ngIf="idPesoEditando" type="button" (click)="cancelarEdicionPeso()" class="px-5 py-4 bg-slate-100 text-slate-600 rounded-2xl font-black">
+                <button *ngIf="idPesoEditando" type="button" (click)="cancelarEdicionPeso()"
+                    class="px-5 py-4 bg-slate-100 text-slate-600 rounded-2xl font-black">
                     CANCELAR
                 </button>
             </div>
@@ -272,14 +372,19 @@
             <h3 class="font-black text-slate-900 mb-4">Registros de peso</h3>
             <div class="space-y-3">
                 <div *ngFor="let control of controlesPeso" class="p-4 bg-slate-50 rounded-2xl">
-                    <p class="font-black text-slate-900">{{ control.producto || 'Producto' }} - {{ control.lote || 'Sin lote' }}</p>
-                    <p class="text-xs text-slate-500">Promedio neto {{ control.pesoNetoPromedio || '-' }} - {{ control.rangoBatches || 'Sin batches' }}</p>
+                    <p class="font-black text-slate-900">{{ control.producto || 'Producto' }} - {{ control.lote || 'Sin
+                        lote' }}</p>
+                    <p class="text-xs text-slate-500">Promedio neto {{ control.pesoNetoPromedio || '-' }} - {{
+                        control.rangoBatches || 'Sin batches' }}</p>
                     <div *ngIf="authService.canWriteCalidad()" class="flex gap-2 mt-3">
-                        <button type="button" (click)="editarPeso(control)" class="px-3 py-2 rounded-xl bg-blue-50 text-blue-700 text-xs font-black hover:bg-blue-100">Editar</button>
-                        <button type="button" (click)="eliminarPeso(control)" class="px-3 py-2 rounded-xl bg-red-50 text-red-700 text-xs font-black hover:bg-red-100">Eliminar</button>
+                        <button type="button" (click)="editarPeso(control)"
+                            class="px-3 py-2 rounded-xl bg-blue-50 text-blue-700 text-xs font-black hover:bg-blue-100">Editar</button>
+                        <button type="button" (click)="eliminarPeso(control)"
+                            class="px-3 py-2 rounded-xl bg-red-50 text-red-700 text-xs font-black hover:bg-red-100">Eliminar</button>
                     </div>
                 </div>
-                <p *ngIf="controlesPeso.length === 0" class="text-sm text-slate-400 font-bold">Sin controles registrados.</p>
+                <p *ngIf="controlesPeso.length === 0" class="text-sm text-slate-400 font-bold">Sin controles
+                    registrados.</p>
             </div>
         </div>
     </div>
