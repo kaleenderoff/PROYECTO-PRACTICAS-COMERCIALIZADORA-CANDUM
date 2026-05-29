@@ -1,21 +1,51 @@
 <div *ngIf="authService.canViewCatalogosTecnicos()"
-    class="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
+    class="max-w-[1500px] mx-auto space-y-6 animate-in fade-in duration-500 pb-20">
 
     <!-- Page Header -->
     <div
-        class="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+        class="flex flex-col xl:flex-row xl:items-center justify-between gap-6 bg-white p-6 md:p-8 rounded-[2rem] border border-slate-100 shadow-sm">
+
         <div class="flex items-center gap-5">
             <div
                 class="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 shadow-inner">
                 <i class="bi bi-recipe text-2xl"></i>
             </div>
+
             <div>
-                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Gestión de Fórmulas</h1>
-                <p class="text-slate-500 text-sm">Maestro de recetas, versiones y concentraciones técnicas</p>
+                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
+                    Gestión de Fórmulas
+                </h1>
+                <p class="text-slate-500 text-sm">
+                    Maestro de recetas, versiones, batch base e ingredientes técnicos
+                </p>
             </div>
+        </div>
+
+        <div *ngIf="formulaSeleccionada" class="flex flex-wrap items-center gap-3">
+            <span
+                class="px-4 py-2 bg-slate-50 text-slate-600 border border-slate-100 rounded-full text-[11px] font-black uppercase tracking-wider">
+                Batch base: {{ obtenerKgBatchBase() | number:'1.0-3' }} kg
+            </span>
+
+            <span *ngIf="formulaSeleccionada.estado === 'VIGENTE'"
+                class="px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full text-[11px] font-black uppercase tracking-wider">
+                VIGENTE
+            </span>
+
+            <span *ngIf="formulaSeleccionada.estado !== 'VIGENTE'"
+                class="px-4 py-2 bg-amber-50 text-amber-700 border border-amber-100 rounded-full text-[11px] font-black uppercase tracking-wider">
+                {{ formulaSeleccionada.estado }}
+            </span>
+
+            <button *ngIf="authService.canManageCatalogosTecnicos() && formulaSeleccionada.estado !== 'VIGENTE'"
+                type="button" (click)="marcarVigente()"
+                class="px-5 py-2 bg-emerald-600 text-white rounded-full text-[11px] font-black uppercase tracking-wider hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-900/10">
+                Publicar como Vigente
+            </button>
         </div>
     </div>
 
+    <!-- Alerts -->
     <div *ngIf="mensajeError"
         class="p-4 bg-red-50 text-red-700 rounded-2xl border border-red-100 flex items-center gap-3 text-sm font-bold">
         <i class="bi bi-exclamation-circle-fill"></i>
@@ -28,20 +58,16 @@
         {{ mensajeOk }}
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Selection Bar -->
+    <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-5 md:p-6 space-y-5">
 
-        <!-- Left Column: Selection Flow -->
-        <div class="lg:col-span-1 space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-            <!-- STEP 1: PRODUCTO -->
-            <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-4">
-                <div class="flex items-center gap-3 mb-2">
-                    <span
-                        class="w-6 h-6 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold flex items-center justify-center">
-                        1
-                    </span>
-                    <h2 class="font-bold text-slate-800 text-sm uppercase tracking-wider">Producto Base</h2>
-                </div>
+            <!-- Producto -->
+            <div class="space-y-2">
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    1. Producto base
+                </label>
 
                 <div class="relative">
                     <select [(ngModel)]="idProducto" (ngModelChange)="onProductoChange()"
@@ -51,510 +77,585 @@
                             {{ producto.nombre }}
                         </option>
                     </select>
+
                     <i
                         class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                 </div>
             </div>
 
-            <!-- STEP 2: FORMULA -->
-            <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-4"
-                [class.opacity-50]="!idProducto">
-                <div class="flex items-center gap-3 mb-2">
-                    <span
-                        class="w-6 h-6 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold flex items-center justify-center">
-                        2
-                    </span>
-                    <h2 class="font-bold text-slate-800 text-sm uppercase tracking-wider">Fórmula</h2>
-                </div>
+            <!-- Fórmula -->
+            <div class="space-y-2" [class.opacity-50]="!idProducto">
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    2. Fórmula
+                </label>
 
-                <div *ngIf="idProducto" class="space-y-4">
-                    <div class="relative">
-                        <select [(ngModel)]="idFormula" (ngModelChange)="onFormulaChange()"
-                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all text-slate-700 appearance-none text-sm">
-                            <option [ngValue]="null">Seleccione fórmula...</option>
-                            <option *ngFor="let formula of formulas" [ngValue]="formula.idFormula">
-                                {{ formula.nombreFormula }}
-                            </option>
-                        </select>
-                        <i
-                            class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
-                    </div>
+                <div class="relative">
+                    <select [(ngModel)]="idFormula" (ngModelChange)="onFormulaChange()" [disabled]="!idProducto"
+                        class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all text-slate-700 appearance-none text-sm disabled:cursor-not-allowed">
+                        <option [ngValue]="null">Seleccione fórmula...</option>
+                        <option *ngFor="let formula of formulas" [ngValue]="formula.idFormula">
+                            {{ formula.nombreFormula }}
+                        </option>
+                    </select>
 
-                    <div *ngIf="authService.canManageCatalogosTecnicos()" class="pt-4 border-t border-slate-50">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">
-                            O Crear Nueva
-                        </label>
-                        <div class="flex gap-2">
-                            <input [(ngModel)]="nuevaFormula.nombre" placeholder="Nombre..."
-                                class="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-emerald-500">
-
-                            <button type="button" (click)="crearFormula()"
-                                class="p-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors">
-                                <i class="bi bi-plus-lg"></i>
-                            </button>
-                        </div>
-                    </div>
+                    <i
+                        class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                 </div>
             </div>
 
-            <!-- STEP 3: VERSION -->
-            <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-4"
-                [class.opacity-50]="!idFormula">
-                <div class="flex items-center gap-3 mb-2">
-                    <span
-                        class="w-6 h-6 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold flex items-center justify-center">
-                        3
-                    </span>
-                    <h2 class="font-bold text-slate-800 text-sm uppercase tracking-wider">Versión</h2>
-                </div>
+            <!-- Versión -->
+            <div class="space-y-2" [class.opacity-50]="!idFormula">
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    3. Versión
+                </label>
 
-                <div *ngIf="idFormula" class="space-y-4">
-                    <div class="relative">
-                        <select [(ngModel)]="idFormulaVersion" (ngModelChange)="onVersionChange()"
-                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all text-slate-700 appearance-none text-sm font-bold">
-                            <option [ngValue]="null">Seleccione versión...</option>
-                            <option *ngFor="let version of versiones" [ngValue]="version.idFormulaVersion">
-                                v{{ version.version }} - {{ version.estado }}
-                            </option>
-                        </select>
-                        <i
-                            class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
-                    </div>
+                <div class="relative">
+                    <select [(ngModel)]="idFormulaVersion" (ngModelChange)="onVersionChange()" [disabled]="!idFormula"
+                        class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all text-slate-700 appearance-none text-sm font-bold disabled:cursor-not-allowed">
+                        <option [ngValue]="null">Seleccione versión...</option>
+                        <option *ngFor="let version of versiones" [ngValue]="version.idFormulaVersion">
+                            v{{ version.version }} - {{ version.estado }}
+                        </option>
+                    </select>
+
+                    <i
+                        class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                 </div>
             </div>
         </div>
 
-        <!-- Right Column: Details & Configuration -->
-        <div class="lg:col-span-2 space-y-8">
+        <!-- Crear nueva fórmula -->
+        <div *ngIf="authService.canManageCatalogosTecnicos() && idProducto"
+            class="pt-5 border-t border-slate-100 flex flex-col md:flex-row md:items-end gap-3">
 
-            <!-- VERSION CREATION -->
-            <div *ngIf="authService.canManageCatalogosTecnicos() && idFormula && !idFormulaVersion"
-                class="bg-white rounded-[2.5rem] border border-emerald-100 shadow-xl shadow-emerald-900/5 p-8 space-y-6">
-                <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600">
-                        <i class="bi bi-plus-circle-fill"></i>
-                    </div>
-                    <h2 class="text-xl font-bold text-slate-800">Nueva Versión Técnica</h2>
+            <div class="flex-1 space-y-2">
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    Crear nueva fórmula para este producto
+                </label>
+
+                <input [(ngModel)]="nuevaFormula.nombre" placeholder="Nombre de la nueva fórmula..."
+                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none focus:border-emerald-500">
+            </div>
+
+            <button type="button" (click)="crearFormula()"
+                class="px-5 py-3 bg-emerald-600 text-white rounded-2xl hover:bg-emerald-700 transition-colors text-sm font-black">
+                <i class="bi bi-plus-lg mr-1"></i>
+                Crear fórmula
+            </button>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!idProducto"
+        class="min-h-[420px] bg-slate-50/50 rounded-[2.5rem] border border-dashed border-slate-200 flex flex-col items-center justify-center p-10 text-center">
+        <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center text-slate-200 mb-6 shadow-sm">
+            <i class="bi bi-arrow-up-circle text-4xl"></i>
+        </div>
+
+        <h3 class="text-xl font-bold text-slate-800 mb-2">
+            Selecciona un producto
+        </h3>
+
+        <p class="text-slate-400 max-w-sm text-sm leading-relaxed">
+            Elige un producto base para consultar sus fórmulas, versiones técnicas e ingredientes.
+        </p>
+    </div>
+
+    <!-- VERSION CREATION -->
+    <div *ngIf="authService.canManageCatalogosTecnicos() && idFormula && !idFormulaVersion"
+        class="bg-white rounded-[2.5rem] border border-emerald-100 shadow-xl shadow-emerald-900/5 p-6 md:p-8 space-y-6">
+
+        <div class="flex items-center gap-4">
+            <div class="w-10 h-10 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600">
+                <i class="bi bi-plus-circle-fill"></i>
+            </div>
+
+            <div>
+                <h2 class="text-xl font-bold text-slate-800">
+                    Nueva Versión Técnica
+                </h2>
+                <p class="text-xs text-slate-500 mt-1">
+                    Crea una versión en borrador para configurar batch base, rendimiento e ingredientes.
+                </p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-5">
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                    Versión
+                </label>
+                <input [(ngModel)]="nuevaVersion.version"
+                    class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-emerald-500 text-sm font-bold">
+            </div>
+
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                    Fecha inicio
+                </label>
+                <input type="date" [(ngModel)]="nuevaVersion.fechaInicioVigencia"
+                    class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-emerald-500 text-sm">
+            </div>
+
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest ml-1">
+                    Kg Batch
+                </label>
+                <input type="number" [(ngModel)]="nuevaVersion.kgBatchTotal"
+                    class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-emerald-500 text-sm font-bold text-emerald-700">
+            </div>
+
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                    Rendimiento %
+                </label>
+                <input type="number" [(ngModel)]="nuevaVersion.rendimientoTeoricoPct"
+                    class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-emerald-500 text-sm">
+            </div>
+
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                    Reducción %
+                </label>
+                <input type="number" [(ngModel)]="nuevaVersion.reduccionEvaporacionPct"
+                    class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-emerald-500 text-sm">
+            </div>
+
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                    Brix objetivo
+                </label>
+
+                <div class="flex items-center gap-2">
+                    <input type="number" [(ngModel)]="nuevaVersion.brixObjetivoMin" placeholder="Min"
+                        class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                    <input type="number" [(ngModel)]="nuevaVersion.brixObjetivoMax" placeholder="Max"
+                        class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-1.5">
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                Observaciones técnicas
+            </label>
+
+            <textarea [(ngModel)]="nuevaVersion.observacionesTecnicas" rows="2"
+                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-emerald-500 text-sm resize-none"
+                placeholder="Observaciones técnicas de la versión..."></textarea>
+        </div>
+
+        <button type="button" (click)="crearVersion()"
+            class="w-full py-4 bg-emerald-600 text-white font-black rounded-2xl shadow-xl shadow-emerald-900/10 hover:bg-emerald-700 transition-all active:scale-[0.98]">
+            CREAR VERSIÓN Y EMPEZAR CONFIGURACIÓN
+        </button>
+    </div>
+
+    <!-- Formula Details -->
+    <div *ngIf="formulaSeleccionada"
+        class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+
+        <!-- Summary -->
+        <div class="p-6 md:p-8 border-b border-slate-100 bg-slate-50/40 space-y-6">
+
+            <div class="flex flex-col xl:flex-row xl:items-start justify-between gap-6">
+                <div>
+                    <h2 class="text-xl md:text-2xl font-black text-slate-900 tracking-tight">
+                        Ingredientes de la fórmula
+                    </h2>
+
+                    <p class="text-sm text-slate-500 mt-1">
+                        Revisión técnica de insumos, porcentajes y cantidades calculadas según batch base.
+                    </p>
                 </div>
 
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
+                <div *ngIf="!puedeEditarFormula()"
+                    class="p-4 bg-amber-50 text-amber-700 rounded-2xl border border-amber-100 flex items-center gap-3 text-xs font-medium max-w-xl">
+                    <i class="bi bi-lock-fill"></i>
+                    Esta versión está {{ formulaSeleccionada.estado }}. Crea una nueva versión para realizar cambios.
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
+                <div class="bg-white rounded-2xl border border-slate-100 p-4">
+                    <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        Batch base
+                    </span>
+                    <p class="mt-1 text-lg font-black text-slate-900">
+                        {{ obtenerKgBatchBase() | number:'1.0-3' }} kg
+                    </p>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-100 p-4">
+                    <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        Total %
+                    </span>
+                    <p class="mt-1 text-lg font-black"
+                        [ngClass]="calcularTotalPorcentaje() === 100 ? 'text-emerald-700' : 'text-amber-700'">
+                        {{ calcularTotalPorcentaje() | number:'1.0-4' }}%
+                    </p>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-100 p-4">
+                    <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        Total kg
+                    </span>
+                    <p class="mt-1 text-lg font-black text-slate-900">
+                        {{ calcularTotalKg() | number:'1.0-3' }} kg
+                    </p>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-100 p-4">
+                    <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        Total g
+                    </span>
+                    <p class="mt-1 text-lg font-black text-slate-900">
+                        {{ calcularTotalGramos() | number:'1.0-1' }} g
+                    </p>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-100 p-4">
+                    <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        Ingredientes
+                    </span>
+                    <p class="mt-1 text-lg font-black text-slate-900">
+                        {{ formulaSeleccionada.detalles?.length || 0 }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-6 md:p-8 space-y-8">
+
+            <!-- Editar Versión Técnica -->
+            <div *ngIf="puedeEditarFormula()"
+                class="p-6 bg-emerald-50/50 rounded-3xl border border-emerald-100 space-y-6">
+
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-wider">
+                            Editar Versión Técnica
+                        </h3>
+
+                        <p class="text-xs text-slate-500 mt-1">
+                            Disponible solo mientras la versión esté en BORRADOR. Si cambias el Kg Batch, se recalculan
+                            los ingredientes dinámicos.
+                        </p>
+                    </div>
+
+                    <button type="button" (click)="guardarCambiosVersion()"
+                        class="px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-black hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-900/10">
+                        Guardar cambios
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-5">
                     <div class="space-y-1.5">
                         <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-                            v. Versión
+                            Fecha inicio
                         </label>
-                        <input [(ngModel)]="nuevaVersion.version"
-                            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-emerald-500 text-sm font-bold">
+                        <input type="date" [(ngModel)]="versionEdit.fechaInicioVigencia"
+                            class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-2xl outline-none focus:border-emerald-500 text-sm">
                     </div>
 
                     <div class="space-y-1.5">
                         <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-                            Fecha Inicio
+                            Fecha fin
                         </label>
-                        <input type="date" [(ngModel)]="nuevaVersion.fechaInicioVigencia"
-                            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-emerald-500 text-sm">
+                        <input type="date" [(ngModel)]="versionEdit.fechaFinVigencia"
+                            class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-2xl outline-none focus:border-emerald-500 text-sm">
                     </div>
 
                     <div class="space-y-1.5">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                        <label class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest ml-1">
                             Kg Batch
                         </label>
-                        <input type="number" [(ngModel)]="nuevaVersion.kgBatchTotal"
-                            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-emerald-500 text-sm font-bold text-emerald-700">
+                        <input type="number" [(ngModel)]="versionEdit.kgBatchTotal"
+                            class="w-full px-4 py-2.5 bg-white border border-emerald-200 rounded-2xl outline-none focus:border-emerald-500 text-sm font-black text-emerald-700">
                     </div>
 
                     <div class="space-y-1.5">
                         <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-                            Rendimiento (%)
+                            Rendimiento %
                         </label>
-                        <input type="number" [(ngModel)]="nuevaVersion.rendimientoTeoricoPct"
-                            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-emerald-500 text-sm">
+                        <input type="number" [(ngModel)]="versionEdit.rendimientoTeoricoPct"
+                            class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-2xl outline-none focus:border-emerald-500 text-sm">
                     </div>
 
                     <div class="space-y-1.5">
                         <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-                            Reducción (%)
+                            Reducción %
                         </label>
-                        <input type="number" [(ngModel)]="nuevaVersion.reduccionEvaporacionPct"
-                            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-emerald-500 text-sm">
+                        <input type="number" [(ngModel)]="versionEdit.reduccionEvaporacionPct"
+                            class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-2xl outline-none focus:border-emerald-500 text-sm">
                     </div>
 
                     <div class="space-y-1.5">
                         <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-                            Brix Objetivo
+                            Brix objetivo
                         </label>
+
                         <div class="flex items-center gap-2">
-                            <input type="number" [(ngModel)]="nuevaVersion.brixObjetivoMin" placeholder="Min"
-                                class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs">
-                            <span class="text-slate-300">-</span>
-                            <input type="number" [(ngModel)]="nuevaVersion.brixObjetivoMax" placeholder="Max"
-                                class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                            <input type="number" [(ngModel)]="versionEdit.brixObjetivoMin" placeholder="Min"
+                                class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs">
+                            <input type="number" [(ngModel)]="versionEdit.brixObjetivoMax" placeholder="Max"
+                                class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs">
                         </div>
                     </div>
                 </div>
 
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-                        Aprobación y Notas
+                        Observaciones técnicas
                     </label>
-                    <textarea [(ngModel)]="nuevaVersion.observacionesTecnicas" rows="2"
-                        class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-emerald-500 text-sm resize-none"
+
+                    <textarea [(ngModel)]="versionEdit.observacionesTecnicas" rows="2"
+                        class="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:border-emerald-500 text-sm resize-none"
                         placeholder="Observaciones técnicas de la versión..."></textarea>
                 </div>
-
-                <button type="button" (click)="crearVersion()"
-                    class="w-full py-4 bg-emerald-600 text-white font-black rounded-2xl shadow-xl shadow-emerald-900/10 hover:bg-emerald-700 transition-all active:scale-[0.98]">
-                    CREAR VERSIÓN Y EMPEZAR CONFIGURACIÓN
-                </button>
             </div>
 
-            <!-- INGREDIENTES LIST & CONFIG -->
-            <div *ngIf="formulaSeleccionada"
-                class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden flex flex-col h-full">
-                <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
+            <!-- Add Ingrediente Form -->
+            <div *ngIf="puedeEditarFormula()" class="p-6 bg-slate-50 rounded-3xl border border-slate-100 space-y-6">
+
+                <div class="flex items-center justify-between gap-4">
                     <div>
-                        <h2 class="text-xl font-bold text-slate-800 tracking-tight">Ingredientes de la Receta</h2>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
-                            Batch Base: {{ obtenerKgBatchBase() | number:'1.0-3' }} kg
+                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-wider">
+                            Agregar ingrediente
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-1">
+                            Define si el ingrediente depende del porcentaje del batch o si es una cantidad fija.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                            Insumo
+                        </label>
+
+                        <select [(ngModel)]="nuevoDetalle.idInsumo"
+                            class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm">
+                            <option [ngValue]="0">Seleccione...</option>
+                            <option *ngFor="let insumo of insumos" [ngValue]="insumo.id">
+                                {{ insumo.nombre }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                            Tipo cálculo
+                        </label>
+
+                        <select [(ngModel)]="nuevoDetalle.tipoCalculo" (ngModelChange)="onTipoCalculoChange()"
+                            class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm">
+                            <option value="PORCENTAJE_BATCH">Dinámico (% Batch)</option>
+                            <option value="FIJO">Fijo (Kg constante)</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                            {{ nuevoDetalle.tipoCalculo === 'PORCENTAJE_BATCH' ? 'Porcentaje (%)' : 'Cantidad (Kg)' }}
+                        </label>
+
+                        <input *ngIf="nuevoDetalle.tipoCalculo === 'PORCENTAJE_BATCH'" type="number"
+                            [(ngModel)]="nuevoDetalle.porcentaje" (ngModelChange)="calcularPorcentaje()"
+                            class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-emerald-600">
+
+                        <input *ngIf="nuevoDetalle.tipoCalculo === 'FIJO'" type="number"
+                            [(ngModel)]="nuevoDetalle.cantidadKg" (ngModelChange)="calcularPorcentaje()"
+                            class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-emerald-600">
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                            Orden
+                        </label>
+
+                        <input type="number" [(ngModel)]="nuevoDetalle.ordenAdicion"
+                            class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="p-4 bg-white rounded-2xl border border-slate-100">
+                        <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            Cantidad calculada kg
+                        </span>
+                        <p class="mt-1 text-xl font-black text-slate-900">
+                            {{ nuevoDetalle.cantidadKg | number:'1.0-3' }} kg
                         </p>
                     </div>
 
-                    <div class="flex items-center gap-3">
-                        <span *ngIf="formulaSeleccionada.estado === 'VIGENTE'"
-                            class="px-4 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full text-[10px] font-black uppercase tracking-wider">
-                            VIGENTE
+                    <div class="p-4 bg-white rounded-2xl border border-slate-100">
+                        <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            Cantidad calculada g
                         </span>
-
-                        <span *ngIf="formulaSeleccionada.estado !== 'VIGENTE'"
-                            class="px-4 py-1.5 bg-amber-50 text-amber-700 border border-amber-100 rounded-full text-[10px] font-black uppercase tracking-wider">
-                            {{ formulaSeleccionada.estado }}
-                        </span>
-
-                        <button
-                            *ngIf="authService.canManageCatalogosTecnicos() && formulaSeleccionada.estado !== 'VIGENTE'"
-                            type="button" (click)="marcarVigente()"
-                            class="px-4 py-1.5 bg-emerald-600 text-white rounded-full text-[10px] font-black uppercase tracking-wider hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-900/10">
-                            Publicar como Vigente
-                        </button>
-                    </div>
-                </div>
-
-                <div class="p-8 space-y-8">
-
-                    <!-- Version blocked notification -->
-                    <div *ngIf="!puedeEditarFormula()"
-                        class="p-4 bg-amber-50 text-amber-700 rounded-2xl border border-amber-100 flex items-center gap-3 text-xs font-medium">
-                        <i class="bi bi-lock-fill"></i>
-                        Esta versión está {{ formulaSeleccionada.estado }}. Crea una nueva versión para realizar
-                        cambios.
+                        <p class="mt-1 text-xl font-black text-slate-900">
+                            {{ calcularCantidadGramos() | number:'1.0-1' }} g
+                        </p>
                     </div>
 
-                    <!-- Editar Versión Técnica -->
-                    <div *ngIf="puedeEditarFormula()"
-                        class="p-6 bg-emerald-50/50 rounded-3xl border border-emerald-100 space-y-6">
-                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div>
-                                <h3 class="text-sm font-black text-slate-800 uppercase tracking-wider">
-                                    Editar Versión Técnica
-                                </h3>
-                                <p class="text-xs text-slate-500 mt-1">
-                                    Disponible solo mientras la versión esté en BORRADOR. Si cambias el Kg Batch, se
-                                    recalculan los ingredientes dinámicos.
-                                </p>
-                            </div>
+                    <div
+                        class="p-4 bg-white rounded-2xl border border-slate-100 flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" [(ngModel)]="nuevoDetalle.esCritico" id="chkCritico"
+                                class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300">
 
-                            <button type="button" (click)="guardarCambiosVersion()"
-                                class="px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-black hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-900/10">
-                                Guardar cambios
-                            </button>
-                        </div>
-
-                        <div class="grid grid-cols-2 md:grid-cols-3 gap-5">
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-                                    Fecha inicio
-                                </label>
-                                <input type="date" [(ngModel)]="versionEdit.fechaInicioVigencia"
-                                    class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-2xl outline-none focus:border-emerald-500 text-sm">
-                            </div>
-
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-                                    Fecha fin
-                                </label>
-                                <input type="date" [(ngModel)]="versionEdit.fechaFinVigencia"
-                                    class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-2xl outline-none focus:border-emerald-500 text-sm">
-                            </div>
-
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest ml-1">
-                                    Kg Batch
-                                </label>
-                                <input type="number" [(ngModel)]="versionEdit.kgBatchTotal"
-                                    class="w-full px-4 py-2.5 bg-white border border-emerald-200 rounded-2xl outline-none focus:border-emerald-500 text-sm font-black text-emerald-700">
-                            </div>
-
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-                                    Rendimiento (%)
-                                </label>
-                                <input type="number" [(ngModel)]="versionEdit.rendimientoTeoricoPct"
-                                    class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-2xl outline-none focus:border-emerald-500 text-sm">
-                            </div>
-
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-                                    Reducción (%)
-                                </label>
-                                <input type="number" [(ngModel)]="versionEdit.reduccionEvaporacionPct"
-                                    class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-2xl outline-none focus:border-emerald-500 text-sm">
-                            </div>
-
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-                                    Brix objetivo
-                                </label>
-                                <div class="flex items-center gap-2">
-                                    <input type="number" [(ngModel)]="versionEdit.brixObjetivoMin" placeholder="Min"
-                                        class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs">
-                                    <span class="text-slate-300">-</span>
-                                    <input type="number" [(ngModel)]="versionEdit.brixObjetivoMax" placeholder="Max"
-                                        class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-                                Observaciones técnicas
+                            <label for="chkCritico"
+                                class="text-xs font-bold text-slate-500 uppercase tracking-wide cursor-pointer">
+                                Ingrediente crítico
                             </label>
-                            <textarea [(ngModel)]="versionEdit.observacionesTecnicas" rows="2"
-                                class="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:border-emerald-500 text-sm resize-none"
-                                placeholder="Observaciones técnicas de la versión..."></textarea>
                         </div>
 
-                        <div class="p-3 bg-white rounded-2xl border border-emerald-100 text-xs text-slate-500">
-                            Si modificas el <strong>Kg Batch</strong>, el backend recalcula automáticamente las
-                            cantidades de los ingredientes dinámicos según su porcentaje.
-                        </div>
-                    </div>
-
-                    <!-- Add Ingrediente Form -->
-                    <div *ngIf="puedeEditarFormula()"
-                        class="p-6 bg-slate-50 rounded-3xl border border-slate-100 space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div class="md:col-span-1 space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-                                    Insumo
-                                </label>
-                                <select [(ngModel)]="nuevoDetalle.idInsumo"
-                                    class="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm">
-                                    <option [ngValue]="0">Seleccione...</option>
-                                    <option *ngFor="let insumo of insumos" [ngValue]="insumo.id">
-                                        {{ insumo.nombre }}
-                                    </option>
-                                </select>
-                            </div>
-
-                            <div class="md:col-span-1 space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-                                    Tipo de Cálculo
-                                </label>
-                                <select [(ngModel)]="nuevoDetalle.tipoCalculo" (ngModelChange)="onTipoCalculoChange()"
-                                    class="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm">
-                                    <option value="PORCENTAJE_BATCH">Dinámico (% Batch)</option>
-                                    <option value="FIJO">Fijo (Kg constante)</option>
-                                </select>
-                            </div>
-
-                            <div class="md:col-span-1 space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-                                    {{ nuevoDetalle.tipoCalculo === 'PORCENTAJE_BATCH' ? 'Porcentaje (%)' : 'Cantidad
-                                    (Kg)' }}
-                                </label>
-
-                                <input *ngIf="nuevoDetalle.tipoCalculo === 'PORCENTAJE_BATCH'" type="number"
-                                    [(ngModel)]="nuevoDetalle.porcentaje" (ngModelChange)="calcularPorcentaje()"
-                                    class="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-emerald-600">
-
-                                <input *ngIf="nuevoDetalle.tipoCalculo === 'FIJO'" type="number"
-                                    [(ngModel)]="nuevoDetalle.cantidadKg" (ngModelChange)="calcularPorcentaje()"
-                                    class="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-emerald-600">
-                            </div>
-
-                            <div class="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="p-4 bg-white rounded-2xl border border-slate-100">
-                                    <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                        Cantidad calculada kg
-                                    </span>
-                                    <p class="mt-1 text-xl font-black text-slate-900">
-                                        {{ nuevoDetalle.cantidadKg | number:'1.0-3' }} kg
-                                    </p>
-                                </div>
-
-                                <div class="p-4 bg-white rounded-2xl border border-slate-100">
-                                    <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                        Cantidad calculada g
-                                    </span>
-                                    <p class="mt-1 text-xl font-black text-slate-900">
-                                        {{ calcularCantidadGramos() | number:'1.0-1' }} g
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div
-                            class="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-4 border-t border-slate-100">
-                            <div class="flex items-center gap-6">
-                                <div class="flex items-center gap-2">
-                                    <input type="checkbox" [(ngModel)]="nuevoDetalle.esCritico" id="chkCritico"
-                                        class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300">
-                                    <label for="chkCritico"
-                                        class="text-xs font-bold text-slate-500 uppercase tracking-wide cursor-pointer">
-                                        Ingrediente Crítico
-                                    </label>
-                                </div>
-
-                                <div class="flex flex-col">
-                                    <span class="text-[10px] font-bold text-slate-300 uppercase">Orden Adición</span>
-                                    <input type="number" [(ngModel)]="nuevoDetalle.ordenAdicion"
-                                        class="w-16 bg-transparent border-b border-slate-200 text-sm font-bold outline-none">
-                                </div>
-                            </div>
-
-                            <button type="button" (click)="agregarDetalle()"
-                                class="px-6 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition-all active:scale-95">
-                                Agregar Ingrediente
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Ingredients Table -->
-                    <div class="overflow-x-auto border border-slate-100 rounded-3xl">
-                        <table class="w-full min-w-[900px] text-left">
-                            <thead class="bg-slate-50/50">
-                                <tr>
-                                    <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase">
-                                        Orden
-                                    </th>
-                                    <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase">
-                                        Insumo
-                                    </th>
-                                    <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase">
-                                        Tipo
-                                    </th>
-                                    <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase text-right">
-                                        %
-                                    </th>
-                                    <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase text-right">
-                                        Cantidad Kg
-                                    </th>
-                                    <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase text-right">
-                                        Cantidad g
-                                    </th>
-                                    <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase text-center">
-                                        Status
-                                    </th>
-                                    <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase"></th>
-                                </tr>
-                            </thead>
-
-                            <tbody class="divide-y divide-slate-50 text-sm">
-                                <tr *ngFor="let detalle of formulaSeleccionada.detalles"
-                                    class="hover:bg-slate-50/30 transition-colors">
-                                    <td class="px-6 py-4 font-mono font-bold text-slate-400">
-                                        {{ detalle.ordenAdicion }}
-                                    </td>
-
-                                    <td class="px-6 py-4">
-                                        <span class="font-bold text-slate-700">
-                                            {{ detalle.nombreInsumo }}
-                                        </span>
-                                    </td>
-
-                                    <td class="px-6 py-4">
-                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded"
-                                            [ngClass]="detalle.tipoCalculo === 'PORCENTAJE_BATCH' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-500'">
-                                            {{ detalle.tipoCalculo === 'FIJO' ? 'FIJO' : 'DINÁMICO' }}
-                                        </span>
-                                    </td>
-
-                                    <td class="px-6 py-4 text-right font-medium text-slate-600">
-                                        {{ detalle.porcentaje | number:'1.0-4' }}%
-                                    </td>
-
-                                    <td class="px-6 py-4 text-right">
-                                        <span class="font-bold text-slate-800">
-                                            {{ detalle.cantidadKg | number:'1.0-3' }}
-                                        </span>
-                                        <span class="text-[10px] text-slate-400 ml-1">kg</span>
-                                    </td>
-
-                                    <td class="px-6 py-4 text-right">
-                                        <span class="font-bold text-slate-800">
-                                            {{ calcularGramosDetalle(detalle) | number:'1.0-1' }}
-                                        </span>
-                                        <span class="text-[10px] text-slate-400 ml-1">g</span>
-                                    </td>
-
-                                    <td class="px-6 py-4 text-center">
-                                        <span *ngIf="detalle.esCritico"
-                                            class="px-2 py-1 bg-red-50 text-red-600 rounded text-[10px] font-black uppercase tracking-tighter">
-                                            CRÍTICO
-                                        </span>
-                                    </td>
-
-                                    <td class="px-6 py-4 text-right">
-                                        <div class="flex justify-center gap-2">
-                                            <button *ngIf="puedeEditarFormula()" type="button"
-                                                (click)="eliminarDetalle(detalle)"
-                                                class="w-10 h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 hover:shadow-md transition-all"
-                                                title="Eliminar ingrediente">
-                                                <i class="bi bi-trash3-fill"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-
-                            <tfoot class="bg-slate-50/80 font-black text-slate-700">
-                                <tr>
-                                    <td colspan="3"
-                                        class="px-6 py-4 text-[10px] uppercase tracking-widest text-slate-400">
-                                        Totales de Concentración
-                                    </td>
-
-                                    <td class="px-6 py-4 text-right">
-                                        {{ calcularTotalPorcentaje() | number:'1.0-4' }}%
-                                    </td>
-
-                                    <td class="px-6 py-4 text-right">
-                                        {{ calcularTotalKg() | number:'1.0-3' }} kg
-                                    </td>
-
-                                    <td class="px-6 py-4 text-right">
-                                        {{ calcularTotalGramos() | number:'1.0-1' }} g
-                                    </td>
-
-                                    <td colspan="2"></td>
-                                </tr>
-                            </tfoot>
-                        </table>
+                        <button type="button" (click)="agregarDetalle()"
+                            class="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition-all active:scale-95">
+                            Agregar
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Empty State -->
-            <div *ngIf="!idProducto"
-                class="h-full min-h-[400px] bg-slate-50/50 rounded-[2.5rem] border border-dashed border-slate-200 flex flex-col items-center justify-center p-10 text-center">
-                <div
-                    class="w-20 h-20 bg-white rounded-full flex items-center justify-center text-slate-200 mb-6 shadow-sm">
-                    <i class="bi bi-arrow-left-circle text-4xl"></i>
+            <!-- Ingredients Table -->
+            <div class="border border-slate-100 rounded-3xl overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-[980px] text-left">
+                        <thead class="bg-slate-50/80">
+                            <tr>
+                                <th class="w-[80px] px-5 py-4 text-[10px] font-black text-slate-400 uppercase">
+                                    Orden
+                                </th>
+
+                                <th class="px-5 py-4 text-[10px] font-black text-slate-400 uppercase">
+                                    Insumo
+                                </th>
+
+                                <th class="w-[130px] px-5 py-4 text-[10px] font-black text-slate-400 uppercase">
+                                    Tipo
+                                </th>
+
+                                <th
+                                    class="w-[110px] px-5 py-4 text-[10px] font-black text-slate-400 uppercase text-right">
+                                    %
+                                </th>
+
+                                <th
+                                    class="w-[150px] px-5 py-4 text-[10px] font-black text-slate-400 uppercase text-right">
+                                    Cantidad kg
+                                </th>
+
+                                <th
+                                    class="w-[150px] px-5 py-4 text-[10px] font-black text-slate-400 uppercase text-right">
+                                    Cantidad g
+                                </th>
+
+                                <th
+                                    class="w-[120px] px-5 py-4 text-[10px] font-black text-slate-400 uppercase text-center">
+                                    Estado
+                                </th>
+
+                                <th
+                                    class="w-[90px] px-5 py-4 text-[10px] font-black text-slate-400 uppercase text-center">
+                                    Acción
+                                </th>
+                            </tr>
+                        </thead>
+
+                        <tbody class="divide-y divide-slate-50 text-sm">
+                            <tr *ngFor="let detalle of formulaSeleccionada.detalles"
+                                class="hover:bg-slate-50/60 transition-colors">
+
+                                <td class="px-5 py-4 font-mono font-black text-slate-400">
+                                    {{ detalle.ordenAdicion }}
+                                </td>
+
+                                <td class="px-5 py-4">
+                                    <div class="font-black text-slate-800 leading-snug whitespace-normal break-words">
+                                        {{ detalle.nombreInsumo }}
+                                    </div>
+                                </td>
+
+                                <td class="px-5 py-4">
+                                    <span class="text-[10px] font-black px-2.5 py-1 rounded-lg"
+                                        [ngClass]="detalle.tipoCalculo === 'PORCENTAJE_BATCH' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-500'">
+                                        {{ detalle.tipoCalculo === 'FIJO' ? 'FIJO' : 'DINÁMICO' }}
+                                    </span>
+                                </td>
+
+                                <td class="px-5 py-4 text-right font-bold text-slate-600">
+                                    {{ detalle.porcentaje | number:'1.0-4' }}%
+                                </td>
+
+                                <td class="px-5 py-4 text-right">
+                                    <span class="font-black text-slate-900">
+                                        {{ detalle.cantidadKg | number:'1.0-3' }}
+                                    </span>
+                                    <span class="text-[10px] text-slate-400 ml-1">kg</span>
+                                </td>
+
+                                <td class="px-5 py-4 text-right">
+                                    <span class="font-black text-slate-900">
+                                        {{ calcularGramosDetalle(detalle) | number:'1.0-1' }}
+                                    </span>
+                                    <span class="text-[10px] text-slate-400 ml-1">g</span>
+                                </td>
+
+                                <td class="px-5 py-4 text-center">
+                                    <span *ngIf="detalle.esCritico"
+                                        class="px-2.5 py-1 bg-red-50 text-red-600 rounded-lg text-[10px] font-black uppercase tracking-tight">
+                                        CRÍTICO
+                                    </span>
+
+                                    <span *ngIf="!detalle.esCritico"
+                                        class="px-2.5 py-1 bg-slate-50 text-slate-400 rounded-lg text-[10px] font-black uppercase tracking-tight">
+                                        NORMAL
+                                    </span>
+                                </td>
+
+                                <td class="px-5 py-4 text-center">
+                                    <button *ngIf="puedeEditarFormula()" type="button"
+                                        (click)="eliminarDetalle(detalle)"
+                                        class="w-9 h-9 bg-white border border-slate-100 rounded-xl inline-flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 hover:shadow-md transition-all"
+                                        title="Eliminar ingrediente">
+                                        <i class="bi bi-trash3-fill"></i>
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <tr *ngIf="!formulaSeleccionada.detalles || formulaSeleccionada.detalles.length === 0">
+                                <td colspan="8" class="px-6 py-12 text-center text-slate-400 text-sm">
+                                    Esta versión todavía no tiene ingredientes registrados.
+                                </td>
+                            </tr>
+                        </tbody>
+
+                        <tfoot class="bg-slate-50/90 font-black text-slate-800 border-t border-slate-100">
+                            <tr>
+                                <td colspan="3" class="px-5 py-4 text-[10px] uppercase tracking-widest text-slate-400">
+                                    Totales de concentración
+                                </td>
+
+                                <td class="px-5 py-4 text-right"
+                                    [ngClass]="calcularTotalPorcentaje() === 100 ? 'text-emerald-700' : 'text-amber-700'">
+                                    {{ calcularTotalPorcentaje() | number:'1.0-4' }}%
+                                </td>
+
+                                <td class="px-5 py-4 text-right">
+                                    {{ calcularTotalKg() | number:'1.0-3' }} kg
+                                </td>
+
+                                <td class="px-5 py-4 text-right">
+                                    {{ calcularTotalGramos() | number:'1.0-1' }} g
+                                </td>
+
+                                <td colspan="2"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
-                <h3 class="text-xl font-bold text-slate-800 mb-2">Comienza la Configuración</h3>
-                <p class="text-slate-400 max-w-xs text-sm leading-relaxed">
-                    Selecciona un producto del panel izquierdo para empezar a gestionar sus fórmulas y versiones
-                    técnicas.
-                </p>
             </div>
 
         </div>
