@@ -3,6 +3,7 @@ package com.yerman.produccion_api.application.service;
 import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
 import com.yerman.produccion_api.application.exception.ReglaNegocioException;
 import com.yerman.produccion_api.domain.model.MedicionCalidadLactea;
+import com.yerman.produccion_api.domain.model.TipoMedicionCalidadLactea;
 import com.yerman.produccion_api.domain.port.in.GestionMedicionCalidadLacteaUseCase;
 import com.yerman.produccion_api.domain.port.in.GestionProduccionLacteaUseCase;
 import com.yerman.produccion_api.domain.port.out.EjecucionBatchRepositoryPort;
@@ -45,6 +46,7 @@ public class GestionMedicionCalidadLacteaService implements GestionMedicionCalid
     @Transactional
     public MedicionCalidadLactea registrar(MedicionCalidadLactea medicion) {
         validarMedicion(medicion);
+        validarDuplicadoBatch(medicion);
         return repository.guardar(medicion);
     }
 
@@ -52,10 +54,13 @@ public class GestionMedicionCalidadLacteaService implements GestionMedicionCalid
     @Transactional
     public MedicionCalidadLactea actualizar(Long id, MedicionCalidadLactea medicion) {
         MedicionCalidadLactea actual = obtenerPorId(id);
+
         medicion.setId(id);
+
         if (medicion.getFechaHoraMedicion() == null) {
             medicion.setFechaHoraMedicion(actual.getFechaHoraMedicion());
         }
+
         validarMedicion(medicion);
         return repository.guardar(medicion);
     }
@@ -64,9 +69,11 @@ public class GestionMedicionCalidadLacteaService implements GestionMedicionCalid
     @Transactional
     public void eliminar(Long id) {
         MedicionCalidadLactea actual = obtenerPorId(id);
+
         if (actual.getIdOrdenProduccion() != null) {
             validacionGuardService.validarOrdenNoAprobada(actual.getIdOrdenProduccion());
         }
+
         repository.eliminar(id);
     }
 
@@ -109,7 +116,8 @@ public class GestionMedicionCalidadLacteaService implements GestionMedicionCalid
         boolean tieneOrdenProduccion = medicion.getIdOrdenProduccion() != null;
 
         if (!tieneProduccionLactea && !tieneOrdenProduccion) {
-            throw new ReglaNegocioException("Debe asociar la medicion a una produccion lactea o a una orden de produccion.");
+            throw new ReglaNegocioException(
+                    "Debe asociar la medicion a una produccion lactea o a una orden de produccion.");
         }
 
         if (tieneProduccionLactea) {
@@ -127,6 +135,7 @@ public class GestionMedicionCalidadLacteaService implements GestionMedicionCalid
             ordenRepositoryPort.obtenerPorId(medicion.getIdOrdenProduccion())
                     .orElseThrow(() -> new RecursoNoEncontradoException(
                             "No existe una orden de produccion con ID: " + medicion.getIdOrdenProduccion()));
+
             validacionGuardService.validarOrdenNoAprobada(medicion.getIdOrdenProduccion());
         }
 
@@ -161,6 +170,26 @@ public class GestionMedicionCalidadLacteaService implements GestionMedicionCalid
 
         if (medicion.getFechaHoraMedicion() == null) {
             medicion.setFechaHoraMedicion(LocalDateTime.now());
+        }
+    }
+
+    private void validarDuplicadoBatch(MedicionCalidadLactea medicion) {
+        if (medicion.getTipoMedicion() != TipoMedicionCalidadLactea.BACHE) {
+            return;
+        }
+
+        if (medicion.getIdOrdenProduccion() == null || medicion.getIdEjecucionBatch() == null) {
+            return;
+        }
+
+        boolean existe = repository.existeMedicionPorOrdenBatchYTipo(
+                medicion.getIdOrdenProduccion(),
+                medicion.getIdEjecucionBatch(),
+                TipoMedicionCalidadLactea.BACHE);
+
+        if (existe) {
+            throw new ReglaNegocioException(
+                    "Este batch ya tiene medicion de calidad registrada. Use editar si necesita corregirla.");
         }
     }
 

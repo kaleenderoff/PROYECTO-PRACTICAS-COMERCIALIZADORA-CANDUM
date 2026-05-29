@@ -2,9 +2,10 @@ package com.yerman.produccion_api.infrastructure.adapter.out.persistence;
 
 import com.yerman.produccion_api.application.mapper.MedicionCalidadLacteaMapper;
 import com.yerman.produccion_api.domain.model.MedicionCalidadLactea;
+import com.yerman.produccion_api.domain.model.TipoMedicionCalidadLactea;
 import com.yerman.produccion_api.domain.port.out.MedicionCalidadLacteaRepositoryPort;
-import com.yerman.produccion_api.infrastructure.entity.MedicionCalidadLacteaEntity;
 import com.yerman.produccion_api.infrastructure.entity.EjecucionBatchEntity;
+import com.yerman.produccion_api.infrastructure.entity.MedicionCalidadLacteaEntity;
 import com.yerman.produccion_api.infrastructure.entity.OrdenProduccionEntity;
 import com.yerman.produccion_api.infrastructure.entity.ProduccionLacteaBatchEntity;
 import com.yerman.produccion_api.infrastructure.entity.ProduccionLacteaEntity;
@@ -61,6 +62,22 @@ public class MedicionCalidadLacteaJpaAdapter implements MedicionCalidadLacteaRep
                 .stream()
                 .map(MedicionCalidadLacteaMapper::toDomain)
                 .toList();
+    }
+
+    @Override
+    public boolean existeMedicionPorOrdenBatchYTipo(
+            Long idOrdenProduccion,
+            Long idEjecucionBatch,
+            TipoMedicionCalidadLactea tipoMedicion) {
+
+        if (idOrdenProduccion == null || idEjecucionBatch == null || tipoMedicion == null) {
+            return false;
+        }
+
+        return repository.existsByOrdenProduccionIdAndEjecucionBatchIdAndTipoMedicion(
+                idOrdenProduccion,
+                idEjecucionBatch,
+                tipoMedicion);
     }
 
     private MedicionCalidadLacteaEntity toEntity(MedicionCalidadLactea medicion) {
