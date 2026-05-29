@@ -270,7 +270,7 @@
                 <div>
                     <h3
                         class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
-                        Detalle por Baches (Carga Marmitas)
+                        Detalle por baches / marmitas
                         <div class="h-px bg-slate-100 flex-1"></div>
                     </h3>
 
@@ -313,6 +313,15 @@
                                         {{ batch.kgProducidos | number:'1.1-1' }} Kg
                                     </span>
                                 </div>
+                            </div>
+
+                            <div class="mt-4 p-3 bg-amber-50/50 rounded-2xl border border-amber-100 text-center">
+                                <span class="text-[9px] font-bold text-amber-500 uppercase block mb-1">
+                                    Brix final
+                                </span>
+                                <span class="text-xs font-bold text-amber-700">
+                                    {{ batch.brixFinal || '--' }} °Bx
+                                </span>
                             </div>
                         </div>
                     </div>
