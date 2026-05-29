@@ -192,9 +192,21 @@ export class MedicionesCalidadLactea implements OnInit {
       return;
     }
 
-    if (this.formulario.brix === null && this.formulario.ph === null) {
-      this.notification.warning('Debe registrar Brix, pH o ambos.');
-      return;
+    if (this.formulario.tipoMedicion === 'BACHE') {
+      if (this.formulario.brix === null || this.formulario.brix === undefined) {
+        this.notification.warning('Debe registrar el Brix del batch.');
+        return;
+      }
+
+      if (this.formulario.ph === null || this.formulario.ph === undefined) {
+        this.notification.warning('Debe registrar el pH del batch.');
+        return;
+      }
+    } else {
+      if (this.formulario.brix === null && this.formulario.ph === null) {
+        this.notification.warning('Debe registrar Brix, pH o ambos.');
+        return;
+      }
     }
 
     if (

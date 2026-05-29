@@ -160,7 +160,15 @@ public class GestionMedicionCalidadLacteaService implements GestionMedicionCalid
             throw new ReglaNegocioException("La referencia de la medicion es obligatoria.");
         }
 
-        if (medicion.getBrix() == null && medicion.getPh() == null) {
+        if (medicion.getTipoMedicion() == TipoMedicionCalidadLactea.BACHE) {
+            if (medicion.getBrix() == null) {
+                throw new ReglaNegocioException("Debe registrar el Brix del batch.");
+            }
+
+            if (medicion.getPh() == null) {
+                throw new ReglaNegocioException("Debe registrar el pH del batch.");
+            }
+        } else if (medicion.getBrix() == null && medicion.getPh() == null) {
             throw new ReglaNegocioException("Debe registrar Brix, pH o ambos.");
         }
 
