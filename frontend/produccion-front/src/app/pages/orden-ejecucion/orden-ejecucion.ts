@@ -169,6 +169,49 @@ export class OrdenEjecucion implements OnInit {
     }
   }
 
+  obtenerKgSalidaSugerida(): number {
+    if (!this.orden) return 0;
+
+    const numBachesPlan = Number(this.orden.numBachesPlan || 0);
+
+    if (numBachesPlan <= 0) {
+      return 0;
+    }
+
+    let kgProductoTerminadoPlan = Number(this.orden.kgPTTotalPlan || 0);
+
+    if (kgProductoTerminadoPlan <= 0 && this.orden.skus?.length > 0) {
+      kgProductoTerminadoPlan = this.orden.skus.reduce(
+        (total, sku) => total + Number(sku.kgProductoTerminado || 0),
+        0
+      );
+    }
+
+    if (kgProductoTerminadoPlan <= 0) {
+      return 0;
+    }
+
+    return Number((kgProductoTerminadoPlan / numBachesPlan).toFixed(2));
+  }
+
+  obtenerKgSalidaSugeridaTexto(): string {
+    const sugerida = this.obtenerKgSalidaSugerida();
+
+    if (sugerida <= 0) {
+      return 'Ingrese kg producidos';
+    }
+
+    return sugerida.toFixed(2);
+  }
+
+  usarKgSalidaSugerida(batch: EjecucionBatch): void {
+    const sugerida = this.obtenerKgSalidaSugerida();
+
+    if (sugerida > 0 && batch.estado === 'EN_PROCESO' && !this.estaFinalizada) {
+      batch.kgProducidos = sugerida;
+    }
+  }
+
   iniciarBatch(): void {
     const idMarmita = Number(this.nuevoBatch.idMarmita);
     const kgEntrada = Number(this.nuevoBatch.kgEntrada);
