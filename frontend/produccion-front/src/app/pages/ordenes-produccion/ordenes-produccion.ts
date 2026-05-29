@@ -7,13 +7,14 @@ import {
   OrdenProduccionResponse,
   OrdenProduccionService
 } from '../../core/services/orden-produccion';
+
 import { AuthService } from '../../core/services/auth';
+import { NotificationService } from '../../core/services/notification';
 
 @Component({
   selector: 'app-ordenes-produccion',
   imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './ordenes-produccion.html',
-  
 })
 export class OrdenesProduccion implements OnInit {
 
@@ -24,7 +25,8 @@ export class OrdenesProduccion implements OnInit {
 
   constructor(
     private ordenService: OrdenProduccionService,
-    public authService: AuthService
+    public authService: AuthService,
+    private notification: NotificationService
   ) { }
 
   ngOnInit(): void {
@@ -43,17 +45,27 @@ export class OrdenesProduccion implements OnInit {
       error: (err) => {
         console.error(err);
         this.error = 'No se pudieron cargar las órdenes de producción.';
+        this.notification.error('No se pudieron cargar las órdenes de producción.');
         this.cargando = false;
       }
     });
   }
 
-  finalizarOrden(orden: OrdenProduccionResponse): void {
+  async finalizarOrden(orden: OrdenProduccionResponse): Promise<void> {
     if (!this.authService.canWriteOperaciones()) {
       return;
     }
 
-    if (!confirm(`¿Desea finalizar la orden ${orden.numeroOrden}?`)) {
+    const confirmado = await this.notification.confirm({
+      title: 'Finalizar orden',
+      text: `¿Desea finalizar la orden ${orden.numeroOrden}?`,
+      confirmText: 'Sí, finalizar',
+      cancelText: 'Cancelar',
+      icon: 'question',
+      confirmButtonColor: '#2563eb'
+    });
+
+    if (!confirmado) {
       return;
     }
 
@@ -62,11 +74,14 @@ export class OrdenesProduccion implements OnInit {
 
     this.ordenService.finalizar(orden.id).subscribe({
       next: () => {
+        this.notification.toast('Orden finalizada correctamente.');
         this.cargarOrdenes();
       },
       error: (err) => {
         console.error(err);
-        this.error = 'No se pudo finalizar la orden de producción.';
+        const mensaje = err.error?.message || 'No se pudo finalizar la orden de producción.';
+        this.error = mensaje;
+        this.notification.error(mensaje);
         this.cargando = false;
       }
     });
@@ -101,7 +116,11 @@ export class OrdenesProduccion implements OnInit {
 
   get ordenesFiltradas(): OrdenProduccionResponse[] {
     const termino = this.filtro.toLowerCase().trim();
-    if (!termino) return this.ordenes;
+
+    if (!termino) {
+      return this.ordenes;
+    }
+
     return this.ordenes.filter(o =>
       o.numeroOrden.toLowerCase().includes(termino) ||
       (o.nombreProducto && o.nombreProducto.toLowerCase().includes(termino)) ||

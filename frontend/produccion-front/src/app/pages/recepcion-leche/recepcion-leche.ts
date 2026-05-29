@@ -7,6 +7,7 @@ import {
   RecepcionLecheService,
   SaldoTanqueLeche
 } from '../../core/services/recepcion-leche';
+
 import {
   CalidadRecepcionLecheResponse,
   ControlCalidadLacteaService,
@@ -21,7 +22,6 @@ import { NotificationService } from '../../core/services/notification';
   selector: 'app-recepcion-leche',
   imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './recepcion-leche.html',
-  
 })
 export class RecepcionLeche implements OnInit {
 
@@ -71,6 +71,7 @@ export class RecepcionLeche implements OnInit {
     if (this.authService.isAuxiliarCalidad()) {
       this.filtroEstadoCalidad = 'SIN_CALIDAD';
     }
+
     this.cargarDatos();
   }
 
@@ -90,10 +91,12 @@ export class RecepcionLeche implements OnInit {
             const mapaEstados = new Map<number, string>(
               estados.map(e => [e.idRecepcionLeche, e.estadoCalidad])
             );
+
             this.recepciones = sorted.map(r => ({
               ...r,
               estadoCalidad: (mapaEstados.get(r.id) ?? 'SIN_CALIDAD') as any
             }));
+
             this.paginaActual = 1;
             this.calcularMetricas(this.recepciones);
           },
@@ -260,15 +263,18 @@ export class RecepcionLeche implements OnInit {
     operacion.subscribe({
       next: (control) => {
         const estabaEditando = !!this.idControlCalidadEditando;
+
         this.controlesRecepcion = estabaEditando
           ? this.controlesRecepcion.map(item => item.id === control.id ? control : item)
           : [control, ...this.controlesRecepcion];
+
         this.actualizarEstadoSeleccionado();
         this.guardandoCalidad = false;
         this.resetCalidadForm();
+
         this.notification.success(estabaEditando
           ? 'Control de calidad actualizado correctamente.'
-          : 'Control de calidad de recepcion registrado correctamente.');
+          : 'Control de calidad de recepción registrado correctamente.');
       },
       error: (err) => {
         const mensaje = err.error?.message || 'No se pudo registrar el control de calidad.';
@@ -280,6 +286,7 @@ export class RecepcionLeche implements OnInit {
 
   resetCalidadForm(): void {
     this.idControlCalidadEditando = null;
+
     this.calidadForm = {
       pruebaAlcoholOk: true,
       lactoscanOk: true,
@@ -311,6 +318,7 @@ export class RecepcionLeche implements OnInit {
     if (!this.authService.canWriteCalidad()) return;
 
     this.idControlCalidadEditando = control.id;
+
     this.calidadForm = {
       pruebaAlcoholOk: !!control.pruebaAlcoholOk,
       lactoscanOk: !!control.lactoscanOk,
@@ -326,17 +334,28 @@ export class RecepcionLeche implements OnInit {
     };
   }
 
-  eliminarControlRecepcion(control: CalidadRecepcionLecheResponse): void {
+  async eliminarControlRecepcion(control: CalidadRecepcionLecheResponse): Promise<void> {
     if (!this.authService.canWriteCalidad()) return;
-    if (!confirm('¿Eliminar este control de calidad?')) return;
+
+    const confirmado = await this.notification.confirm({
+      title: 'Eliminar control de calidad',
+      text: '¿Desea eliminar este control de calidad? Esta acción no se puede deshacer.',
+      confirmText: 'Sí, eliminar',
+      cancelText: 'Cancelar',
+      icon: 'warning'
+    });
+
+    if (!confirmado) return;
 
     this.controlCalidadService.eliminarRecepcion(control.id).subscribe({
       next: () => {
         this.controlesRecepcion = this.controlesRecepcion.filter(item => item.id !== control.id);
         this.actualizarEstadoSeleccionado();
+
         if (this.idControlCalidadEditando === control.id) {
           this.resetCalidadForm();
         }
+
         this.notification.success('Control de calidad eliminado correctamente.');
       },
       error: err => this.notification.error(err.error?.message || 'No se pudo eliminar el control de calidad.')
@@ -385,7 +404,9 @@ export class RecepcionLeche implements OnInit {
       'bg-rose-100 text-rose-700',
       'bg-cyan-100 text-cyan-700'
     ];
+
     const total = (proveedor || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+
     return colores[total % colores.length];
   }
 
@@ -399,6 +420,7 @@ export class RecepcionLeche implements OnInit {
     }
 
     const ultimo = this.ultimoControlCalidad;
+
     const estado = ultimo
       ? (ultimo.retenido ? 'RETENIDA' : (ultimo.aprobado ? 'APROBADA' : 'NO_APROBADA'))
       : 'SIN_CALIDAD';

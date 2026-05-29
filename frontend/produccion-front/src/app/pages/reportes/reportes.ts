@@ -1,11 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+
 import {
   ReporteLacteoService,
   ResumenConsumoInsumos,
   ResumenRecepcionDescremado
 } from '../../core/services/reporte-lacteo';
+
+import { NotificationService } from '../../core/services/notification';
 
 type ReporteView = 'consumo' | 'recepcion' | 'produccion';
 
@@ -32,7 +35,10 @@ export class Reportes implements OnInit {
   errorRecepcion = '';
   errorProduccion = '';
 
-  constructor(private reporteService: ReporteLacteoService) {}
+  constructor(
+    private reporteService: ReporteLacteoService,
+    private notification: NotificationService
+  ) { }
 
   ngOnInit(): void {
     this.cargarConsumo();
@@ -52,6 +58,7 @@ export class Reportes implements OnInit {
   cargarConsumo(): void {
     this.cargandoConsumo = true;
     this.errorConsumo = '';
+
     this.reporteService.obtenerConsumoInsumos(this.fechaConsumo).subscribe({
       next: (data) => {
         this.resumenConsumo = data;
@@ -67,6 +74,7 @@ export class Reportes implements OnInit {
 
   descargarConsumoExcel(): void {
     this.descargando = true;
+
     this.reporteService.descargarExcelConsumoInsumos(this.fechaConsumo).subscribe({
       next: (blob) => {
         ReporteLacteoService.triggerDownload(blob, `consumo-insumos-${this.fechaConsumo}.xlsx`);
@@ -74,7 +82,7 @@ export class Reportes implements OnInit {
       },
       error: () => {
         this.descargando = false;
-        alert('Error al generar el Excel. Verifique que haya datos para la fecha.');
+        this.notification.error('Error al generar el Excel. Verifique que haya datos para la fecha.');
       }
     });
   }
@@ -84,6 +92,7 @@ export class Reportes implements OnInit {
   cargarRecepcion(): void {
     this.cargandoRecepcion = true;
     this.errorRecepcion = '';
+
     this.reporteService.obtenerRecepcionDescremado(this.fechaRecepcion).subscribe({
       next: (data) => {
         this.resumenRecepcion = data;
@@ -99,6 +108,7 @@ export class Reportes implements OnInit {
 
   descargarRecepcionExcel(): void {
     this.descargando = true;
+
     this.reporteService.descargarExcelRecepcionDescremado(this.fechaRecepcion).subscribe({
       next: (blob) => {
         ReporteLacteoService.triggerDownload(blob, `recepcion-descremado-${this.fechaRecepcion}.xlsx`);
@@ -106,7 +116,7 @@ export class Reportes implements OnInit {
       },
       error: () => {
         this.descargando = false;
-        alert('Error al generar el Excel. Verifique que haya datos para la fecha.');
+        this.notification.error('Error al generar el Excel. Verifique que haya datos para la fecha.');
       }
     });
   }
@@ -116,6 +126,7 @@ export class Reportes implements OnInit {
   descargarProduccionExcel(): void {
     this.descargando = true;
     this.errorProduccion = '';
+
     this.reporteService.descargarExcelProduccionVsEmpaque().subscribe({
       next: (blob) => {
         const hoy = new Date().toISOString().slice(0, 10);
@@ -125,6 +136,7 @@ export class Reportes implements OnInit {
       error: () => {
         this.descargando = false;
         this.errorProduccion = 'Error al generar el Excel.';
+        this.notification.error('Error al generar el Excel de producción vs empaque.');
       }
     });
   }

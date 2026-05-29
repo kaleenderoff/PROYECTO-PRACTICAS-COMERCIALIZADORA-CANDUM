@@ -1,12 +1,21 @@
 import { Injectable } from '@angular/core';
 import Swal from 'sweetalert2';
 
+export interface ConfirmOptions {
+  title: string;
+  text: string;
+  confirmText?: string;
+  cancelText?: string;
+  icon?: 'warning' | 'error' | 'success' | 'info' | 'question';
+  confirmButtonColor?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class NotificationService {
 
-  success(message: string, title: string = 'Exito'): void {
+  success(message: string, title: string = 'Éxito'): void {
     Swal.fire({
       title,
       text: message,
@@ -26,7 +35,7 @@ export class NotificationService {
     });
   }
 
-  warning(message: string, title: string = 'Atencion'): void {
+  warning(message: string, title: string = 'Atención'): void {
     Swal.fire({
       title,
       text: message,
@@ -35,13 +44,30 @@ export class NotificationService {
     });
   }
 
-  info(message: string, title: string = 'Informacion'): void {
+  info(message: string, title: string = 'Información'): void {
     Swal.fire({
       title,
       text: message,
       icon: 'info',
       confirmButtonColor: '#2563eb'
     });
+  }
+
+  async confirm(options: ConfirmOptions): Promise<boolean> {
+    const result = await Swal.fire({
+      title: options.title,
+      text: options.text,
+      icon: options.icon || 'warning',
+      showCancelButton: true,
+      confirmButtonText: options.confirmText || 'Sí, continuar',
+      cancelButtonText: options.cancelText || 'Cancelar',
+      confirmButtonColor: options.confirmButtonColor || '#dc2626',
+      cancelButtonColor: '#64748b',
+      reverseButtons: true,
+      focusCancel: true
+    });
+
+    return result.isConfirmed;
   }
 
   toast(message: string, icon: 'success' | 'error' | 'warning' | 'info' = 'success'): void {

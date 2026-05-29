@@ -282,9 +282,18 @@ export class MedicionesCalidadLactea implements OnInit {
     this.pestanaActiva = 'rapida';
   }
 
-  eliminarMedicion(medicion: MedicionCalidadLacteaResponse): void {
+  async eliminarMedicion(medicion: MedicionCalidadLacteaResponse): Promise<void> {
     if (!this.authService.canWriteCalidad()) return;
-    if (!confirm('¿Eliminar esta medicion de calidad?')) return;
+
+    const confirmado = await this.notification.confirm({
+      title: 'Eliminar medición',
+      text: `¿Desea eliminar la medición ${medicion.referencia}? Esta acción no se puede deshacer.`,
+      confirmText: 'Sí, eliminar',
+      cancelText: 'Cancelar',
+      icon: 'warning'
+    });
+
+    if (!confirmado) return;
 
     this.medicionService.eliminar(medicion.id).subscribe({
       next: () => {
@@ -435,9 +444,18 @@ export class MedicionesCalidadLactea implements OnInit {
     this.pestanaActiva = 'proceso';
   }
 
-  eliminarProceso(control: ControlCalidadProcesoResponse): void {
+  async eliminarProceso(control: ControlCalidadProcesoResponse): Promise<void> {
     if (!this.authService.canWriteCalidad()) return;
-    if (!confirm('¿Eliminar este control de proceso?')) return;
+
+    const confirmado = await this.notification.confirm({
+      title: 'Eliminar control de proceso',
+      text: '¿Desea eliminar este control de proceso? Esta acción no se puede deshacer.',
+      confirmText: 'Sí, eliminar',
+      cancelText: 'Cancelar',
+      icon: 'warning'
+    });
+
+    if (!confirmado) return;
 
     this.controlCalidadService.eliminarProceso(control.id).subscribe({
       next: () => {
@@ -490,9 +508,18 @@ export class MedicionesCalidadLactea implements OnInit {
     this.pestanaActiva = 'peso';
   }
 
-  eliminarPeso(control: ControlPesoProductoResponse): void {
+  async eliminarPeso(control: ControlPesoProductoResponse): Promise<void> {
     if (!this.authService.canWriteCalidad()) return;
-    if (!confirm('¿Eliminar este control de peso?')) return;
+
+    const confirmado = await this.notification.confirm({
+      title: 'Eliminar control de peso',
+      text: '¿Desea eliminar este control de peso? Esta acción no se puede deshacer.',
+      confirmText: 'Sí, eliminar',
+      cancelText: 'Cancelar',
+      icon: 'warning'
+    });
+
+    if (!confirmado) return;
 
     this.controlCalidadService.eliminarPeso(control.id).subscribe({
       next: () => {
