@@ -178,7 +178,8 @@ export class Dashboard implements OnInit {
     ]
   };
 
-  totalProducido = 0;
+  totalProducidoOperativo = 0;
+  totalProducidoSku = 0;
   totalEmpacado = 0;
   totalDiferencia = 0;
   totalLecheDisponible = 0;
@@ -234,7 +235,7 @@ export class Dashboard implements OnInit {
       next: (response: ProduccionVsEmpaque[]) => {
         this.datos = response;
 
-        this.totalProducido = response.reduce(
+        this.totalProducidoOperativo = response.reduce(
           (acc, item) => acc + Number(item.totalProducido || 0),
           0
         );
@@ -324,7 +325,7 @@ export class Dashboard implements OnInit {
         this.skus = dataConTotales;
 
         const allSkus = dataConTotales.flatMap(cat => cat.items);
-        this.totalProducido = allSkus.reduce(
+        this.totalProducidoSku = allSkus.reduce(
           (acc, sku) => acc + Number(sku.kilosMes || 0),
           0
         );

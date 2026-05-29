@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { forkJoin, of, throwError } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 import { AuthService } from '../../core/services/auth';
@@ -115,7 +115,7 @@ export class MedicionesCalidadLactea implements OnInit {
         catchError(err => {
           console.error('Error cargando mediciones de calidad:', err);
           this.notification.error(err.error?.message || 'No se pudieron cargar las mediciones de calidad.');
-          return throwError(() => err);
+          return of([]);
         })
       ),
       controlesProceso: this.controlCalidadService.listarProcesosPorOrden(this.idOrdenSeleccionada).pipe(
@@ -137,6 +137,8 @@ export class MedicionesCalidadLactea implements OnInit {
           this.mediciones = [...mediciones];
           this.controlesProceso = [...controlesProceso];
           this.controlesPeso = [...controlesPeso];
+          this.procesoForm = this.crearProcesoForm();
+          this.pesoForm = this.crearPesoForm();
           this.autocompletarReferencia();
           this.cargando = false;
           this.cdr.detectChanges();
@@ -165,6 +167,7 @@ export class MedicionesCalidadLactea implements OnInit {
       this.formulario.idEjecucionBatch = 0;
     }
 
+    this.formulario.referencia = '';
     this.autocompletarReferencia();
   }
 
