@@ -83,7 +83,7 @@ export class MedicionesCalidadLactea implements OnInit {
         }
       },
       error: () => {
-        this.error = 'No se pudieron cargar las ordenes de produccion.';
+        this.error = 'No se pudieron cargar las órdenes de producción.';
         this.cargando = false;
       }
     });
@@ -130,10 +130,10 @@ export class MedicionesCalidadLactea implements OnInit {
       )
     }).subscribe({
       next: ({ batches, mediciones, controlesProceso, controlesPeso }) => {
-        this.batches = batches;
-        this.mediciones = mediciones;
-        this.controlesProceso = controlesProceso;
-        this.controlesPeso = controlesPeso;
+        this.batches = [...batches];
+        this.mediciones = [...mediciones];
+        this.controlesProceso = [...controlesProceso];
+        this.controlesPeso = [...controlesPeso];
         this.autocompletarReferencia();
         this.cargando = false;
       },
@@ -173,7 +173,7 @@ export class MedicionesCalidadLactea implements OnInit {
     const idUsuarioCalidad = this.authService.getIdUsuario();
 
     if (!this.idOrdenSeleccionada) {
-      this.notification.warning('Debe seleccionar una orden de produccion.');
+      this.notification.warning('Debe seleccionar una orden de producción.');
       return;
     }
 
@@ -188,7 +188,7 @@ export class MedicionesCalidadLactea implements OnInit {
     }
 
     if (!this.formulario.referencia.trim()) {
-      this.notification.warning('La referencia de la medicion es obligatoria.');
+      this.notification.warning('La referencia de la medición es obligatoria.');
       return;
     }
 
@@ -215,7 +215,7 @@ export class MedicionesCalidadLactea implements OnInit {
       this.formulario.idEjecucionBatch &&
       this.batchYaMedido(this.formulario.idEjecucionBatch)
     ) {
-      this.notification.warning('Este batch ya tiene medicion registrada. Use editar si necesita corregirla.');
+      this.notification.warning('Este batch ya tiene medición registrada. Use editar si necesita corregirla.');
       return;
     }
 
@@ -238,12 +238,16 @@ export class MedicionesCalidadLactea implements OnInit {
 
     operacion.subscribe({
       next: () => {
-        this.notification.toast(this.idMedicionEditando ? 'Medicion de calidad actualizada.' : 'Medicion de calidad registrada.');
+        this.notification.toast(
+          this.idMedicionEditando
+            ? 'Medición de calidad actualizada.'
+            : 'Medición de calidad registrada.'
+        );
         this.limpiarFormulario();
         this.cargarDatosOrden();
       },
       error: (err) => {
-        this.notification.error(err.error?.message || 'No se pudo registrar la medicion.');
+        this.notification.error(err.error?.message || 'No se pudo registrar la medición.');
         this.guardando = false;
       },
       complete: () => {
@@ -309,10 +313,18 @@ export class MedicionesCalidadLactea implements OnInit {
 
     this.medicionService.eliminar(medicion.id).subscribe({
       next: () => {
-        this.notification.toast('Medicion eliminada.');
+        this.mediciones = this.mediciones.filter(m => Number(m.id) !== Number(medicion.id));
+
+        if (this.idMedicionEditando === medicion.id) {
+          this.limpiarFormulario();
+        }
+
+        this.notification.toast('Medición eliminada.');
         this.cargarDatosOrden();
       },
-      error: err => this.notification.error(err.error?.message || 'No se pudo eliminar la medicion.')
+      error: err => {
+        this.notification.error(err.error?.message || 'No se pudo eliminar la medición.');
+      }
     });
   }
 
@@ -341,7 +353,11 @@ export class MedicionesCalidadLactea implements OnInit {
 
     operacion.subscribe({
       next: () => {
-        this.notification.toast(this.idProcesoEditando ? 'Control de proceso actualizado.' : 'Control de proceso registrado.');
+        this.notification.toast(
+          this.idProcesoEditando
+            ? 'Control de proceso actualizado.'
+            : 'Control de proceso registrado.'
+        );
         this.idProcesoEditando = null;
         this.procesoForm = this.crearProcesoForm();
         this.cargarDatosOrden();
@@ -393,7 +409,11 @@ export class MedicionesCalidadLactea implements OnInit {
 
     operacion.subscribe({
       next: () => {
-        this.notification.toast(this.idPesoEditando ? 'Control de peso actualizado.' : 'Control de peso registrado.');
+        this.notification.toast(
+          this.idPesoEditando
+            ? 'Control de peso actualizado.'
+            : 'Control de peso registrado.'
+        );
         this.idPesoEditando = null;
         this.pesoForm = this.crearPesoForm();
         this.cargarDatosOrden();
@@ -421,7 +441,7 @@ export class MedicionesCalidadLactea implements OnInit {
       fechaProduccion: control.fechaProduccion,
       tipoProducto: control.tipoProducto || '',
       producto: control.producto || '',
-      lote: control.lote || '',
+      lote: '',
       numeroMarmita: control.numeroMarmita || null,
       productoEnProceso: control.productoEnProceso || '',
       phLeche: control.phLeche || null,
@@ -471,6 +491,7 @@ export class MedicionesCalidadLactea implements OnInit {
 
     this.controlCalidadService.eliminarProceso(control.id).subscribe({
       next: () => {
+        this.controlesProceso = this.controlesProceso.filter(c => Number(c.id) !== Number(control.id));
         this.notification.toast('Control de proceso eliminado.');
         this.cargarDatosOrden();
       },
@@ -488,12 +509,12 @@ export class MedicionesCalidadLactea implements OnInit {
       idSku: control.idSku || null,
       fechaControl: control.fechaControl,
       producto: control.producto || '',
-      marca: control.marca || '',
-      lote: control.lote || '',
+      marca: '',
+      lote: '',
       fechaVencimiento: control.fechaVencimiento || null,
-      presentacion: control.presentacion || '',
-      numeroTanda: control.numeroTanda || '',
-      rangoBatches: control.rangoBatches || '',
+      presentacion: '',
+      numeroTanda: '',
+      rangoBatches: '',
       pesoBrutoPromedio: control.pesoBrutoPromedio || null,
       taraPromedio: control.taraPromedio || null,
       pesoNetoPromedio: control.pesoNetoPromedio || null,
@@ -535,6 +556,7 @@ export class MedicionesCalidadLactea implements OnInit {
 
     this.controlCalidadService.eliminarPeso(control.id).subscribe({
       next: () => {
+        this.controlesPeso = this.controlesPeso.filter(c => Number(c.id) !== Number(control.id));
         this.notification.toast('Control de peso eliminado.');
         this.cargarDatosOrden();
       },
@@ -559,11 +581,11 @@ export class MedicionesCalidadLactea implements OnInit {
   }
 
   obtenerOrdenSeleccionada(): OrdenProduccionResponse | undefined {
-    return this.ordenes.find(o => o.id === this.idOrdenSeleccionada);
+    return this.ordenes.find(o => Number(o.id) === Number(this.idOrdenSeleccionada));
   }
 
   obtenerBatch(idBatch?: number | null): EjecucionBatch | undefined {
-    return this.batches.find(b => b.id === idBatch);
+    return this.batches.find(b => Number(b.id) === Number(idBatch));
   }
 
   get medicionesRapidasBatch(): MedicionCalidadLacteaResponse[] {
@@ -575,7 +597,10 @@ export class MedicionesCalidadLactea implements OnInit {
   }
 
   batchYaMedido(idBatch: number): boolean {
-    return this.medicionesRapidasBatch.some(m => Number(m.idEjecucionBatch) === Number(idBatch));
+    return this.medicionesRapidasBatch.some(m =>
+      Number(m.idEjecucionBatch) === Number(idBatch) &&
+      Number(m.id) !== Number(this.idMedicionEditando)
+    );
   }
 
   get batchesDisponiblesParaMedicion(): EjecucionBatch[] {
@@ -583,7 +608,13 @@ export class MedicionesCalidadLactea implements OnInit {
       return this.batches;
     }
 
-    return this.batches.filter(batch => !this.batchYaMedido(batch.id));
+    const idsMedidos = new Set(
+      this.medicionesRapidasBatch
+        .map(m => Number(m.idEjecucionBatch))
+        .filter(id => !Number.isNaN(id))
+    );
+
+    return this.batches.filter(batch => !idsMedidos.has(Number(batch.id)));
   }
 
   promedioBrix(): number {
@@ -608,7 +639,7 @@ export class MedicionesCalidadLactea implements OnInit {
 
   private validarBase(idUsuario: number): boolean {
     if (!this.idOrdenSeleccionada) {
-      this.notification.warning('Debe seleccionar una orden de produccion.');
+      this.notification.warning('Debe seleccionar una orden de producción.');
       return false;
     }
 
