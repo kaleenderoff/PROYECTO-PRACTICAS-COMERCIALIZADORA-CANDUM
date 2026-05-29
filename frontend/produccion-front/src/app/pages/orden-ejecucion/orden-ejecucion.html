@@ -139,7 +139,51 @@
         </div>
     </div>
 
-    <!-- Banner de recuperación de sesión -->
+    <!-- Progreso de ejecución -->
+    <div *ngIf="!estaFinalizada" class="bg-white border border-slate-100 rounded-[2rem] p-5 shadow-sm">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+            <div class="flex items-start gap-4">
+                <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
+                    <i class="bi bi-bar-chart-steps text-xl"></i>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-black text-indigo-500 uppercase tracking-widest">
+                        Progreso de ejecución
+                    </p>
+
+                    <h3 class="text-base font-black text-slate-900 mt-1">
+                        {{ progresoBatchesTexto }}
+                    </h3>
+
+                    <p class="text-xs text-slate-500 font-medium mt-1">
+                        {{ totalBatchesPendientes }} pendiente{{ totalBatchesPendientes !== 1 ? 's' : '' }}
+                        ·
+                        {{ totalBatchesActivos }} en proceso
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3 w-full lg:w-auto">
+                <div class="px-4 py-3 bg-emerald-50 border border-emerald-100 rounded-2xl text-center">
+                    <p class="text-lg font-black text-emerald-700">{{ totalBatchesCompletados }}</p>
+                    <p class="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Finalizados</p>
+                </div>
+
+                <div class="px-4 py-3 bg-blue-50 border border-blue-100 rounded-2xl text-center">
+                    <p class="text-lg font-black text-blue-700">{{ totalBatchesActivos }}</p>
+                    <p class="text-[9px] font-black text-blue-500 uppercase tracking-widest">En proceso</p>
+                </div>
+
+                <div class="px-4 py-3 bg-amber-50 border border-amber-100 rounded-2xl text-center">
+                    <p class="text-lg font-black text-amber-700">{{ totalBatchesPendientes }}</p>
+                    <p class="text-[9px] font-black text-amber-500 uppercase tracking-widest">Pendientes</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerta solo si hay batches realmente abiertos -->
     <div *ngIf="totalBatchesActivos > 0 && !estaFinalizada"
         class="bg-amber-50 border border-amber-200 rounded-[2rem] p-5 flex items-start gap-4">
         <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -148,14 +192,12 @@
 
         <div class="flex-1">
             <p class="text-sm font-black text-amber-800 mb-1">
-                {{ totalBatchesActivos }} batch{{ totalBatchesActivos > 1 ? 'es' : '' }} en proceso activo{{
-                totalBatchesActivos > 1 ? 's' : '' }}
+                {{ totalBatchesActivos }} batch{{ totalBatchesActivos > 1 ? 'es' : '' }} realmente en proceso
             </p>
 
             <p class="text-xs text-amber-700 font-medium leading-relaxed">
-                Puede continuar la producción normalmente. Si algún batch quedó abierto por una caída de sesión o error,
-                usa el botón <strong>eliminar</strong> en la tarjeta del batch para anularlo y volver a iniciarlo
-                correctamente.
+                Finalice los batches abiertos antes de cerrar la orden. Si alguno quedó abierto por error,
+                use el botón <strong>eliminar</strong> en la tarjeta del batch para anularlo.
             </p>
         </div>
     </div>

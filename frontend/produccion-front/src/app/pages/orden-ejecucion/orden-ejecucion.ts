@@ -276,10 +276,6 @@ export class OrdenEjecucion implements OnInit {
     });
   }
 
-  get totalBatchesActivos(): number {
-    return this.batches.filter(b => b.estado === 'EN_PROCESO').length;
-  }
-
   get estaFinalizada(): boolean {
     return this.orden?.estado === 'FINALIZADA';
   }
@@ -288,8 +284,39 @@ export class OrdenEjecucion implements OnInit {
     return this.batches.filter(b => b.estado === 'FINALIZADO' || b.estado === 'CON_NOVEDAD');
   }
 
+  get batchesEnProceso(): EjecucionBatch[] {
+    return this.batches.filter(b => b.estado === 'EN_PROCESO');
+  }
+
+  get totalBatchesActivos(): number {
+    return this.batchesEnProceso.length;
+  }
+
   get totalBatchesCompletados(): number {
     return this.batchesLiquidados.length;
+  }
+
+  get totalBatchesPlanificados(): number {
+    return Number(this.orden?.numBachesPlan || 0);
+  }
+
+  get totalBatchesPendientes(): number {
+    if (this.totalBatchesPlanificados <= 0) {
+      return 0;
+    }
+
+    return Math.max(
+      this.totalBatchesPlanificados - this.totalBatchesCompletados - this.totalBatchesActivos,
+      0
+    );
+  }
+
+  get progresoBatchesTexto(): string {
+    if (this.totalBatchesPlanificados <= 0) {
+      return `${this.totalBatchesCompletados} batches finalizados`;
+    }
+
+    return `${this.totalBatchesCompletados} / ${this.totalBatchesPlanificados} batches finalizados`;
   }
 
   get kgEntradaAcumulados(): number {
@@ -337,7 +364,7 @@ export class OrdenEjecucion implements OnInit {
   }
 
   get marmitasActivas(): number {
-    return this.batches.filter(b => b.estado === 'EN_PROCESO').length;
+    return this.totalBatchesActivos;
   }
 
   get limiteAlcanzado(): boolean {
