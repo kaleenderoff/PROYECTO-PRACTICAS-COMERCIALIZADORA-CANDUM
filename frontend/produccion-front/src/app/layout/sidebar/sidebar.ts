@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../core/services/auth';
 
@@ -7,13 +7,22 @@ import { AuthService } from '../../core/services/auth';
   selector: 'app-sidebar',
   imports: [CommonModule, RouterLink, RouterLinkActive],
   templateUrl: './sidebar.html',
+  styleUrl: './sidebar.scss',
 })
 export class Sidebar {
 
+  @Input() mobileOpen = false;
+  @Output() closeMobile = new EventEmitter<void>();
+
   constructor(public authService: AuthService, private router: Router) { }
+
+  cerrarMenuMovil(): void {
+    this.closeMobile.emit();
+  }
 
   cerrarSesion(): void {
     this.authService.logout();
+    this.closeMobile.emit();
     this.router.navigate(['/login']);
   }
 

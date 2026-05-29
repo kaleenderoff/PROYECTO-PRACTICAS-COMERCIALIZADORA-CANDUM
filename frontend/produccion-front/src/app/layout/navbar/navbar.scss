@@ -1,1 +1,5 @@
 /* Navbar styles are now handled by Tailwind CSS utility classes */
+:host {
+    display: block;
+    width: 100%;
+}

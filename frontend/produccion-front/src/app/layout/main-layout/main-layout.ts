@@ -12,6 +12,18 @@ import { Navbar } from '../navbar/navbar';
     Navbar
   ],
   templateUrl: './main-layout.html',
-  
+  styleUrl: './main-layout.scss',
 })
-export class MainLayout { }
+export class MainLayout {
+
+  sidebarMobileAbierto = false;
+
+  abrirMenuMovil(): void {
+    this.sidebarMobileAbierto = true;
+  }
+
+  cerrarMenuMovil(): void {
+    this.sidebarMobileAbierto = false;
+  }
+
+}
