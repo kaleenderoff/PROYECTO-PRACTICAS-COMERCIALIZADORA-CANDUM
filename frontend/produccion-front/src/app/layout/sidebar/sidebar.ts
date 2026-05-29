@@ -14,10 +14,31 @@ export class Sidebar {
   @Input() mobileOpen = false;
   @Output() closeMobile = new EventEmitter<void>();
 
+  administracionAbierto = true;
+  controlAbierto = true;
+  operacionesAbierto = true;
+  produccionAbierto = true;
+
   constructor(public authService: AuthService, private router: Router) { }
 
   cerrarMenuMovil(): void {
     this.closeMobile.emit();
+  }
+
+  toggleAdministracion(): void {
+    this.administracionAbierto = !this.administracionAbierto;
+  }
+
+  toggleControl(): void {
+    this.controlAbierto = !this.controlAbierto;
+  }
+
+  toggleOperaciones(): void {
+    this.operacionesAbierto = !this.operacionesAbierto;
+  }
+
+  toggleProduccion(): void {
+    this.produccionAbierto = !this.produccionAbierto;
   }
 
   cerrarSesion(): void {

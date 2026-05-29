@@ -1,5 +1,6 @@
-/* Main layout styles are now handled by Tailwind CSS utility classes */
 :host {
     display: block;
-    min-height: 100vh;
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden;
 }

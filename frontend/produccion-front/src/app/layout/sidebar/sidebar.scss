@@ -1,9 +1,16 @@
 :host {
     display: block;
+    height: 100dvh;
+    min-height: 100dvh;
+}
+
+.custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #334155 transparent;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
-    width: 4px;
+    width: 5px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
@@ -11,12 +18,12 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #1e293b;
+    background: #334155;
     border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #334155;
+    background: #475569;
 }
 
 @media (max-width: 1023px) {
@@ -37,5 +44,7 @@
     :host {
         width: 16rem;
         flex: 0 0 16rem;
+        height: 100dvh;
+        min-height: 100dvh;
     }
 }
