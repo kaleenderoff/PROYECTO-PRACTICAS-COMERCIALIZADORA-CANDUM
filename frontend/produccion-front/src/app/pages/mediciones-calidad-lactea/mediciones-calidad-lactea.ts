@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { forkJoin, of, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -59,7 +59,9 @@ export class MedicionesCalidadLactea implements OnInit {
     private medicionService: MedicionCalidadLacteaService,
     private controlCalidadService: ControlCalidadLacteaService,
     public authService: AuthService,
-    private notification: NotificationService
+    private notification: NotificationService,
+    private cdr: ChangeDetectorRef,
+    private ngZone: NgZone
   ) { }
 
   ngOnInit(): void {
@@ -130,12 +132,15 @@ export class MedicionesCalidadLactea implements OnInit {
       )
     }).subscribe({
       next: ({ batches, mediciones, controlesProceso, controlesPeso }) => {
-        this.batches = [...batches];
-        this.mediciones = [...mediciones];
-        this.controlesProceso = [...controlesProceso];
-        this.controlesPeso = [...controlesPeso];
-        this.autocompletarReferencia();
-        this.cargando = false;
+        this.ngZone.run(() => {
+          this.batches = [...batches];
+          this.mediciones = [...mediciones];
+          this.controlesProceso = [...controlesProceso];
+          this.controlesPeso = [...controlesPeso];
+          this.autocompletarReferencia();
+          this.cargando = false;
+          this.cdr.detectChanges();
+        });
       },
       error: () => {
         this.error = 'No se pudieron cargar los datos de calidad.';
@@ -238,19 +243,23 @@ export class MedicionesCalidadLactea implements OnInit {
 
     operacion.subscribe({
       next: (medicionGuardada) => {
-        if (this.idMedicionEditando) {
-          this.mediciones = this.mediciones.map(m =>
-            Number(m.id) === Number(medicionGuardada.id) ? medicionGuardada : m
-          );
+        this.ngZone.run(() => {
+          if (this.idMedicionEditando) {
+            this.mediciones = this.mediciones.map(m =>
+              Number(m.id) === Number(medicionGuardada.id) ? medicionGuardada : m
+            );
 
-          this.notification.toast('Medición de calidad actualizada.');
-        } else {
-          this.mediciones = [...this.mediciones, medicionGuardada];
+            this.notification.toast('Medición de calidad actualizada.');
+          } else {
+            this.mediciones = [...this.mediciones, medicionGuardada];
 
-          this.notification.toast('Medición de calidad registrada.');
-        }
+            this.notification.toast('Medición de calidad registrada.');
+          }
 
-        this.limpiarFormulario();
+          this.limpiarFormulario();
+          this.guardando = false;
+          this.cdr.detectChanges();
+        });
       },
       error: (err) => {
         this.notification.error(err.error?.message || 'No se pudo registrar la medición.');
@@ -302,6 +311,7 @@ export class MedicionesCalidadLactea implements OnInit {
     };
 
     this.pestanaActiva = 'rapida';
+    this.cdr.detectChanges();
   }
 
   async eliminarMedicion(medicion: MedicionCalidadLacteaResponse): Promise<void> {
@@ -319,15 +329,18 @@ export class MedicionesCalidadLactea implements OnInit {
 
     this.medicionService.eliminar(medicion.id).subscribe({
       next: () => {
-        this.mediciones = this.mediciones.filter(m =>
-          Number(m.id) !== Number(medicion.id)
-        );
+        this.ngZone.run(() => {
+          this.mediciones = this.mediciones.filter(m =>
+            Number(m.id) !== Number(medicion.id)
+          );
 
-        if (this.idMedicionEditando === medicion.id) {
-          this.limpiarFormulario();
-        }
+          if (this.idMedicionEditando === medicion.id) {
+            this.limpiarFormulario();
+          }
 
-        this.notification.toast('Medición eliminada.');
+          this.notification.toast('Medición eliminada.');
+          this.cdr.detectChanges();
+        });
       },
       error: err => {
         this.notification.error(err.error?.message || 'No se pudo eliminar la medición.');
@@ -448,7 +461,7 @@ export class MedicionesCalidadLactea implements OnInit {
       fechaProduccion: control.fechaProduccion,
       tipoProducto: control.tipoProducto || '',
       producto: control.producto || '',
-      lote: '',
+      lote: control.lote || '',
       numeroMarmita: control.numeroMarmita || null,
       productoEnProceso: control.productoEnProceso || '',
       phLeche: control.phLeche || null,
@@ -481,6 +494,7 @@ export class MedicionesCalidadLactea implements OnInit {
     };
 
     this.pestanaActiva = 'proceso';
+    this.cdr.detectChanges();
   }
 
   async eliminarProceso(control: ControlCalidadProcesoResponse): Promise<void> {
@@ -498,9 +512,18 @@ export class MedicionesCalidadLactea implements OnInit {
 
     this.controlCalidadService.eliminarProceso(control.id).subscribe({
       next: () => {
-        this.controlesProceso = this.controlesProceso.filter(c => Number(c.id) !== Number(control.id));
-        this.notification.toast('Control de proceso eliminado.');
-        this.cargarDatosOrden();
+        this.ngZone.run(() => {
+          this.controlesProceso = this.controlesProceso.filter(c =>
+            Number(c.id) !== Number(control.id)
+          );
+
+          if (this.idProcesoEditando === control.id) {
+            this.cancelarEdicionProceso();
+          }
+
+          this.notification.toast('Control de proceso eliminado.');
+          this.cdr.detectChanges();
+        });
       },
       error: err => this.notification.error(err.error?.message || 'No se pudo eliminar el control de proceso.')
     });
@@ -516,12 +539,12 @@ export class MedicionesCalidadLactea implements OnInit {
       idSku: control.idSku || null,
       fechaControl: control.fechaControl,
       producto: control.producto || '',
-      marca: '',
-      lote: '',
+      marca: control.marca || '',
+      lote: control.lote || '',
       fechaVencimiento: control.fechaVencimiento || null,
-      presentacion: '',
-      numeroTanda: '',
-      rangoBatches: '',
+      presentacion: control.presentacion || '',
+      numeroTanda: control.numeroTanda || '',
+      rangoBatches: control.rangoBatches || '',
       pesoBrutoPromedio: control.pesoBrutoPromedio || null,
       taraPromedio: control.taraPromedio || null,
       pesoNetoPromedio: control.pesoNetoPromedio || null,
@@ -546,6 +569,7 @@ export class MedicionesCalidadLactea implements OnInit {
     };
 
     this.pestanaActiva = 'peso';
+    this.cdr.detectChanges();
   }
 
   async eliminarPeso(control: ControlPesoProductoResponse): Promise<void> {
@@ -563,9 +587,18 @@ export class MedicionesCalidadLactea implements OnInit {
 
     this.controlCalidadService.eliminarPeso(control.id).subscribe({
       next: () => {
-        this.controlesPeso = this.controlesPeso.filter(c => Number(c.id) !== Number(control.id));
-        this.notification.toast('Control de peso eliminado.');
-        this.cargarDatosOrden();
+        this.ngZone.run(() => {
+          this.controlesPeso = this.controlesPeso.filter(c =>
+            Number(c.id) !== Number(control.id)
+          );
+
+          if (this.idPesoEditando === control.id) {
+            this.cancelarEdicionPeso();
+          }
+
+          this.notification.toast('Control de peso eliminado.');
+          this.cdr.detectChanges();
+        });
       },
       error: err => this.notification.error(err.error?.message || 'No se pudo eliminar el control de peso.')
     });
