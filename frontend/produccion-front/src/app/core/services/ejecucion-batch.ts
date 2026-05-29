@@ -30,6 +30,8 @@ export interface EjecucionBatch {
   idMarmita: number;
   nombreMarmita: string;
   idMovimientoLeche?: number;
+  litrosLecheDescontados?: number;
+  saldoResultanteLecheLitros?: number;
   kgEntrada: number;
   kgProducidos?: number;
   rendimientoPct?: number;
@@ -48,6 +50,7 @@ export interface EjecucionBatch {
   providedIn: 'root'
 })
 export class EjecucionBatchService {
+
   private apiUrl = `${environment.apiUrl}/ejecucion-batch`;
 
   constructor(private http: HttpClient) { }

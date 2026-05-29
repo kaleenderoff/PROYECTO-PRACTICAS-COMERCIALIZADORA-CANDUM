@@ -4,12 +4,17 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class EjecucionBatch {
+
     private Long id;
     private Long idOrdenProduccion;
     private Integer numeroBatch;
     private Long idMarmita;
     private String nombreMarmita;
     private Long idMovimientoLeche;
+
+    private BigDecimal litrosLecheDescontados;
+    private BigDecimal saldoResultanteLecheLitros;
+
     private BigDecimal kgEntrada;
     private BigDecimal kgProducidos;
     private BigDecimal rendimientoPct;
@@ -31,12 +36,27 @@ public class EjecucionBatch {
         BRIX_FUERA_RANGO, REPROCESO, CAMBIO_PROCESO, OTRO
     }
 
-    public EjecucionBatch() {}
+    public EjecucionBatch() {
+    }
 
-    public EjecucionBatch(Long id, Long idOrdenProduccion, Integer numeroBatch, Long idMarmita, Long idMovimientoLeche,
-                         BigDecimal kgEntrada, BigDecimal kgProducidos, BigDecimal rendimientoPct,
-                         EstadoBatch estado, String observaciones, Boolean huboReproceso, Boolean batchConforme,
-                         BigDecimal brixFinal, String tipoNovedad, LocalDateTime fechaInicio, LocalDateTime fechaFin) {
+    public EjecucionBatch(
+            Long id,
+            Long idOrdenProduccion,
+            Integer numeroBatch,
+            Long idMarmita,
+            Long idMovimientoLeche,
+            BigDecimal kgEntrada,
+            BigDecimal kgProducidos,
+            BigDecimal rendimientoPct,
+            EstadoBatch estado,
+            String observaciones,
+            Boolean huboReproceso,
+            Boolean batchConforme,
+            BigDecimal brixFinal,
+            String tipoNovedad,
+            LocalDateTime fechaInicio,
+            LocalDateTime fechaFin) {
+
         this.id = id;
         this.idOrdenProduccion = idOrdenProduccion;
         this.numeroBatch = numeroBatch;
@@ -55,55 +75,155 @@ public class EjecucionBatch {
         this.fechaFin = fechaFin;
     }
 
-    // Getters y Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public Long getIdOrdenProduccion() { return idOrdenProduccion; }
-    public void setIdOrdenProduccion(Long idOrdenProduccion) { this.idOrdenProduccion = idOrdenProduccion; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public Integer getNumeroBatch() { return numeroBatch; }
-    public void setNumeroBatch(Integer numeroBatch) { this.numeroBatch = numeroBatch; }
+    public Long getIdOrdenProduccion() {
+        return idOrdenProduccion;
+    }
 
-    public Long getIdMarmita() { return idMarmita; }
-    public void setIdMarmita(Long idMarmita) { this.idMarmita = idMarmita; }
+    public void setIdOrdenProduccion(Long idOrdenProduccion) {
+        this.idOrdenProduccion = idOrdenProduccion;
+    }
 
-    public String getNombreMarmita() { return nombreMarmita; }
-    public void setNombreMarmita(String nombreMarmita) { this.nombreMarmita = nombreMarmita; }
+    public Integer getNumeroBatch() {
+        return numeroBatch;
+    }
 
-    public Long getIdMovimientoLeche() { return idMovimientoLeche; }
-    public void setIdMovimientoLeche(Long idMovimientoLeche) { this.idMovimientoLeche = idMovimientoLeche; }
+    public void setNumeroBatch(Integer numeroBatch) {
+        this.numeroBatch = numeroBatch;
+    }
 
-    public BigDecimal getKgEntrada() { return kgEntrada; }
-    public void setKgEntrada(BigDecimal kgEntrada) { this.kgEntrada = kgEntrada; }
+    public Long getIdMarmita() {
+        return idMarmita;
+    }
 
-    public BigDecimal getKgProducidos() { return kgProducidos; }
-    public void setKgProducidos(BigDecimal kgProducidos) { this.kgProducidos = kgProducidos; }
+    public void setIdMarmita(Long idMarmita) {
+        this.idMarmita = idMarmita;
+    }
 
-    public BigDecimal getRendimientoPct() { return rendimientoPct; }
-    public void setRendimientoPct(BigDecimal rendimientoPct) { this.rendimientoPct = rendimientoPct; }
+    public String getNombreMarmita() {
+        return nombreMarmita;
+    }
 
-    public EstadoBatch getEstado() { return estado; }
-    public void setEstado(EstadoBatch estado) { this.estado = estado; }
+    public void setNombreMarmita(String nombreMarmita) {
+        this.nombreMarmita = nombreMarmita;
+    }
 
-    public String getObservaciones() { return observaciones; }
-    public void setObservaciones(String observaciones) { this.observaciones = observaciones; }
+    public Long getIdMovimientoLeche() {
+        return idMovimientoLeche;
+    }
 
-    public Boolean getHuboReproceso() { return huboReproceso; }
-    public void setHuboReproceso(Boolean huboReproceso) { this.huboReproceso = huboReproceso; }
+    public void setIdMovimientoLeche(Long idMovimientoLeche) {
+        this.idMovimientoLeche = idMovimientoLeche;
+    }
 
-    public Boolean getBatchConforme() { return batchConforme; }
-    public void setBatchConforme(Boolean batchConforme) { this.batchConforme = batchConforme; }
+    public BigDecimal getLitrosLecheDescontados() {
+        return litrosLecheDescontados;
+    }
 
-    public BigDecimal getBrixFinal() { return brixFinal; }
-    public void setBrixFinal(BigDecimal brixFinal) { this.brixFinal = brixFinal; }
+    public void setLitrosLecheDescontados(BigDecimal litrosLecheDescontados) {
+        this.litrosLecheDescontados = litrosLecheDescontados;
+    }
 
-    public String getTipoNovedad() { return tipoNovedad; }
-    public void setTipoNovedad(String tipoNovedad) { this.tipoNovedad = tipoNovedad; }
+    public BigDecimal getSaldoResultanteLecheLitros() {
+        return saldoResultanteLecheLitros;
+    }
 
-    public LocalDateTime getFechaInicio() { return fechaInicio; }
-    public void setFechaInicio(LocalDateTime fechaInicio) { this.fechaInicio = fechaInicio; }
+    public void setSaldoResultanteLecheLitros(BigDecimal saldoResultanteLecheLitros) {
+        this.saldoResultanteLecheLitros = saldoResultanteLecheLitros;
+    }
 
-    public LocalDateTime getFechaFin() { return fechaFin; }
-    public void setFechaFin(LocalDateTime fechaFin) { this.fechaFin = fechaFin; }
+    public BigDecimal getKgEntrada() {
+        return kgEntrada;
+    }
+
+    public void setKgEntrada(BigDecimal kgEntrada) {
+        this.kgEntrada = kgEntrada;
+    }
+
+    public BigDecimal getKgProducidos() {
+        return kgProducidos;
+    }
+
+    public void setKgProducidos(BigDecimal kgProducidos) {
+        this.kgProducidos = kgProducidos;
+    }
+
+    public BigDecimal getRendimientoPct() {
+        return rendimientoPct;
+    }
+
+    public void setRendimientoPct(BigDecimal rendimientoPct) {
+        this.rendimientoPct = rendimientoPct;
+    }
+
+    public EstadoBatch getEstado() {
+        return estado;
+    }
+
+    public void setEstado(EstadoBatch estado) {
+        this.estado = estado;
+    }
+
+    public String getObservaciones() {
+        return observaciones;
+    }
+
+    public void setObservaciones(String observaciones) {
+        this.observaciones = observaciones;
+    }
+
+    public Boolean getHuboReproceso() {
+        return huboReproceso;
+    }
+
+    public void setHuboReproceso(Boolean huboReproceso) {
+        this.huboReproceso = huboReproceso;
+    }
+
+    public Boolean getBatchConforme() {
+        return batchConforme;
+    }
+
+    public void setBatchConforme(Boolean batchConforme) {
+        this.batchConforme = batchConforme;
+    }
+
+    public BigDecimal getBrixFinal() {
+        return brixFinal;
+    }
+
+    public void setBrixFinal(BigDecimal brixFinal) {
+        this.brixFinal = brixFinal;
+    }
+
+    public String getTipoNovedad() {
+        return tipoNovedad;
+    }
+
+    public void setTipoNovedad(String tipoNovedad) {
+        this.tipoNovedad = tipoNovedad;
+    }
+
+    public LocalDateTime getFechaInicio() {
+        return fechaInicio;
+    }
+
+    public void setFechaInicio(LocalDateTime fechaInicio) {
+        this.fechaInicio = fechaInicio;
+    }
+
+    public LocalDateTime getFechaFin() {
+        return fechaFin;
+    }
+
+    public void setFechaFin(LocalDateTime fechaFin) {
+        this.fechaFin = fechaFin;
+    }
 }

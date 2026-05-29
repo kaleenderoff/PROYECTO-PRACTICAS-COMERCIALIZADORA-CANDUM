@@ -235,10 +235,6 @@ export class OrdenEjecucion implements OnInit {
     const idMarmita = Number(this.nuevoBatch.idMarmita);
     const kgEntrada = Number(this.nuevoBatch.kgEntrada);
 
-    console.log('[IniciarBatch] idMarmita:', idMarmita, 'kgEntrada:', kgEntrada, 'idOrden:', this.idOrden);
-    console.log('[IniciarBatch] limiteAlcanzado:', this.limiteAlcanzado, 'cargando:', this.cargando, 'estaFinalizada:', this.estaFinalizada);
-    console.log('[IniciarBatch] orden?.numBachesPlan:', this.orden?.numBachesPlan, 'batches.length:', this.batches.length);
-
     if (idMarmita <= 0) {
       this.notification.warning('Debe seleccionar una marmita.');
       return;
@@ -246,6 +242,18 @@ export class OrdenEjecucion implements OnInit {
 
     if (kgEntrada <= 0) {
       this.notification.warning('La cantidad de entrada debe ser mayor a 0 kg.');
+      return;
+    }
+
+    if (!this.orden?.idTanqueLeche) {
+      this.notification.warning('Debe seleccionar el tanque de leche descremada antes de iniciar un batch.');
+      return;
+    }
+
+    if (this.lecheRequeridaPorBatchLitros > 0 && this.saldoActualTanqueLitros < this.lecheRequeridaPorBatchLitros) {
+      this.notification.warning(
+        `No hay leche suficiente para iniciar el batch. Saldo actual: ${this.saldoActualTanqueLitros.toFixed(2)} L. Requerido: ${this.lecheRequeridaPorBatchLitros.toFixed(2)} L.`
+      );
       return;
     }
 
@@ -261,7 +269,6 @@ export class OrdenEjecucion implements OnInit {
         this.cargarDatos();
       },
       error: (err) => {
-        console.error('[IniciarBatch] Error:', err);
         const msg = err.error?.message || 'Error al iniciar el batch.';
         this.notification.error(msg);
         this.cargando = false;
@@ -277,27 +284,30 @@ export class OrdenEjecucion implements OnInit {
     return this.orden?.estado === 'FINALIZADA';
   }
 
-  get totalBatchesCompletados(): number {
-    return this.batches.filter(b => b.estado === 'FINALIZADO').length;
+  get batchesLiquidados(): EjecucionBatch[] {
+    return this.batches.filter(b => b.estado === 'FINALIZADO' || b.estado === 'CON_NOVEDAD');
   }
 
-  get kgProducidosAcumulados(): number {
-    return this.batches.reduce((sum, b) => sum + (b.kgProducidos || 0), 0);
+  get totalBatchesCompletados(): number {
+    return this.batchesLiquidados.length;
   }
 
   get kgEntradaAcumulados(): number {
-    return this.batches.reduce((sum, b) => sum + (b.kgEntrada || 0), 0);
+    return this.batchesLiquidados.reduce((sum, b) => sum + Number(b.kgEntrada || 0), 0);
+  }
+
+  get kgProducidosAcumulados(): number {
+    return this.batchesLiquidados.reduce((sum, b) => sum + Number(b.kgProducidos || 0), 0);
+  }
+
+  get reduccionEvaporacionReal(): number {
+    return this.kgEntradaAcumulados - this.kgProducidosAcumulados;
   }
 
   get rendimientoPromedio(): number {
-    const finalizados = this.batches.filter(
-      b => (b.estado === 'FINALIZADO' || b.estado === 'CON_NOVEDAD') && b.rendimientoPct
-    );
+    if (this.kgEntradaAcumulados <= 0) return 0;
 
-    if (finalizados.length === 0) return 0;
-
-    const suma = finalizados.reduce((sum, b) => sum + (b.rendimientoPct || 0), 0);
-    return suma / finalizados.length;
+    return (this.kgProducidosAcumulados / this.kgEntradaAcumulados) * 100;
   }
 
   get totalKgSkus(): number {
@@ -336,6 +346,62 @@ export class OrdenEjecucion implements OnInit {
     if (!plan || plan <= 0) return false;
 
     return this.batches.length >= plan;
+  }
+
+  get tanqueSeleccionado(): SaldoTanqueLeche | null {
+    if (!this.orden?.idTanqueLeche) return null;
+
+    return this.tanques.find(t => Number(t.idTanque) === Number(this.orden?.idTanqueLeche)) || null;
+  }
+
+  get saldoActualTanqueLitros(): number {
+    return Number(this.tanqueSeleccionado?.saldoLitros || 0);
+  }
+
+  get lecheConsumidaProduccionLitros(): number {
+    return this.batchesLiquidados.reduce(
+      (sum, b) => sum + Number(b.litrosLecheDescontados || 0),
+      0
+    );
+  }
+
+  get lecheRequeridaPorBatchLitros(): number {
+    const batchConMovimiento = this.batchesLiquidados.find(
+      b => Number(b.litrosLecheDescontados || 0) > 0 && Number(b.kgEntrada || 0) > 0
+    );
+
+    if (batchConMovimiento) {
+      const factorLeche = Number(batchConMovimiento.litrosLecheDescontados) / Number(batchConMovimiento.kgEntrada);
+      return Number((this.obtenerKgBatchFormula() * factorLeche).toFixed(3));
+    }
+
+    return 0;
+  }
+
+  get batchesPendientesPorConsumirLeche(): number {
+    const plan = Number(this.orden?.numBachesPlan || 0);
+
+    if (plan <= 0) return 0;
+
+    return Math.max(plan - this.totalBatchesCompletados, 0);
+  }
+
+  get lechePendientePorConsumirLitros(): number {
+    if (this.lecheRequeridaPorBatchLitros <= 0) return 0;
+
+    return Number((this.batchesPendientesPorConsumirLeche * this.lecheRequeridaPorBatchLitros).toFixed(3));
+  }
+
+  get saldoProyectadoFinalLitros(): number {
+    return Number((this.saldoActualTanqueLitros - this.lechePendientePorConsumirLitros).toFixed(3));
+  }
+
+  get balanceLecheSuficiente(): boolean {
+    if (!this.orden?.idTanqueLeche) return false;
+
+    if (this.lechePendientePorConsumirLitros <= 0) return true;
+
+    return this.saldoActualTanqueLitros >= this.lechePendientePorConsumirLitros;
   }
 
   finalizarInline(batch: EjecucionBatch): void {

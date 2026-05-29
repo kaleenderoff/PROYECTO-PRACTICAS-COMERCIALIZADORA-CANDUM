@@ -4,12 +4,14 @@ import com.yerman.produccion_api.application.dto.response.EjecucionBatchResponse
 import com.yerman.produccion_api.domain.model.EjecucionBatch;
 
 public class EjecucionBatchRestMapper {
-    
-    private EjecucionBatchRestMapper() {}
+
+    private EjecucionBatchRestMapper() {
+    }
 
     public static EjecucionBatchResponse toResponse(EjecucionBatch domain) {
-        if (domain == null) return null;
-        
+        if (domain == null)
+            return null;
+
         return new EjecucionBatchResponse(
                 domain.getId(),
                 domain.getIdOrdenProduccion(),
@@ -17,6 +19,8 @@ public class EjecucionBatchRestMapper {
                 domain.getIdMarmita(),
                 domain.getNombreMarmita(),
                 domain.getIdMovimientoLeche(),
+                domain.getLitrosLecheDescontados(),
+                domain.getSaldoResultanteLecheLitros(),
                 domain.getKgEntrada(),
                 domain.getKgProducidos(),
                 domain.getRendimientoPct(),
@@ -27,7 +31,6 @@ public class EjecucionBatchRestMapper {
                 domain.getFechaInicio(),
                 domain.getFechaFin(),
                 domain.getBrixFinal(),
-                domain.getTipoNovedad()
-        );
+                domain.getTipoNovedad());
     }
 }

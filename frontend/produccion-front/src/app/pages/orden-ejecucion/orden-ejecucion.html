@@ -16,11 +16,11 @@
                         </p>
 
                         <h3 class="text-base font-black text-slate-900 mt-1">
-                            {{ orden.nombreTanqueLeche || 'Seleccione el tanque antes de finalizar' }}
+                            {{ orden.nombreTanqueLeche || 'Seleccione el tanque antes de iniciar o finalizar batches' }}
                         </h3>
 
                         <p class="text-xs text-slate-500 font-medium mt-1">
-                            De este tanque se descontara la leche usada al cerrar la orden.
+                            De este tanque se descuenta automáticamente la leche líquida usada en cada batch.
                         </p>
                     </div>
                 </div>
@@ -49,6 +49,60 @@
 
     <ng-container *ngTemplateOutlet="selectorTanqueOrden"></ng-container>
 
+    <!-- Balance de leche de la orden -->
+    <div *ngIf="orden?.idTanqueLeche"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 bg-white p-6 rounded-[2rem] border border-blue-100 shadow-sm">
+
+        <div class="p-4 bg-blue-50 rounded-2xl border border-blue-100">
+            <p class="text-[9px] font-black text-blue-500 uppercase tracking-widest mb-1">
+                Saldo actual tanque
+            </p>
+            <p class="text-xl font-black text-blue-700">
+                {{ saldoActualTanqueLitros | number:'1.2-2' }} L
+            </p>
+        </div>
+
+        <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
+            <p class="text-[9px] font-black text-emerald-500 uppercase tracking-widest mb-1">
+                Leche consumida
+            </p>
+            <p class="text-xl font-black text-emerald-700">
+                {{ lecheConsumidaProduccionLitros | number:'1.2-2' }} L
+            </p>
+        </div>
+
+        <div class="p-4 bg-amber-50 rounded-2xl border border-amber-100">
+            <p class="text-[9px] font-black text-amber-500 uppercase tracking-widest mb-1">
+                Pendiente por consumir
+            </p>
+            <p class="text-xl font-black text-amber-700">
+                {{ lechePendientePorConsumirLitros | number:'1.2-2' }} L
+            </p>
+        </div>
+
+        <div class="p-4 rounded-2xl border"
+            [ngClass]="balanceLecheSuficiente ? 'bg-slate-50 border-slate-100' : 'bg-red-50 border-red-100'">
+            <p class="text-[9px] font-black uppercase tracking-widest mb-1"
+                [ngClass]="balanceLecheSuficiente ? 'text-slate-400' : 'text-red-500'">
+                Saldo proyectado
+            </p>
+            <p class="text-xl font-black" [ngClass]="balanceLecheSuficiente ? 'text-slate-800' : 'text-red-700'">
+                {{ saldoProyectadoFinalLitros | number:'1.2-2' }} L
+            </p>
+        </div>
+
+        <div class="p-4 rounded-2xl border flex flex-col justify-center"
+            [ngClass]="balanceLecheSuficiente ? 'bg-emerald-50 border-emerald-100' : 'bg-red-50 border-red-100'">
+            <p class="text-[9px] font-black uppercase tracking-widest mb-1"
+                [ngClass]="balanceLecheSuficiente ? 'text-emerald-500' : 'text-red-500'">
+                Estado
+            </p>
+            <p class="text-sm font-black" [ngClass]="balanceLecheSuficiente ? 'text-emerald-700' : 'text-red-700'">
+                {{ balanceLecheSuficiente ? 'Suficiente para terminar' : 'No alcanza para terminar' }}
+            </p>
+        </div>
+    </div>
+
     <!-- Page Header -->
     <div
         class="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
@@ -71,7 +125,7 @@
                 </div>
 
                 <p class="text-slate-500 text-sm font-medium">
-                    Registro de baches y control de marmitas en tiempo real
+                    Registro de batches, balance de leche y control de marmitas en tiempo real
                 </p>
             </div>
         </div>
@@ -113,7 +167,9 @@
                 <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
                     <i class="bi bi-moisture text-xl"></i>
                 </div>
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Kg Entrada</span>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                    Kg entrada ejecutada
+                </span>
             </div>
 
             <div class="flex items-baseline gap-2">
@@ -156,13 +212,13 @@
                     <i class="bi bi-droplet-half text-xl"></i>
                 </div>
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                    Reducción Evaporación
+                    Reducción real
                 </span>
             </div>
 
             <div class="flex items-baseline gap-2">
                 <span class="text-2xl font-black text-slate-900">
-                    {{ (kgEntradaAcumulados - kgProducidosAcumulados) | number:'1.1-1' }}
+                    {{ reduccionEvaporacionReal | number:'1.1-1' }}
                 </span>
                 <span class="text-xs text-slate-400 font-bold text-rose-600">Kg</span>
             </div>
@@ -279,6 +335,12 @@
                         <p *ngIf="obtenerKgBatchFormula() > 0"
                             class="mt-2 text-[9px] text-slate-400 font-bold uppercase tracking-widest px-1">
                             Sugerido por batch fórmula: {{ obtenerKgBatchFormula() | number:'1.0-3' }} kg
+                        </p>
+
+                        <p *ngIf="lecheRequeridaPorBatchLitros > 0"
+                            class="mt-2 text-[9px] text-blue-500 font-bold uppercase tracking-widest px-1">
+                            Leche estimada a descontar por batch:
+                            {{ lecheRequeridaPorBatchLitros | number:'1.2-3' }} L
                         </p>
                     </div>
 
@@ -410,7 +472,7 @@
                         <div class="flex items-center justify-between">
                             <span class="text-[10px] font-bold text-slate-400 uppercase">Rendimiento</span>
                             <span class="text-xs font-black"
-                                [ngClass]="(b.rendimientoPct || 0) > 85 ? 'text-emerald-600' : 'text-amber-600'">
+                                [ngClass]="(b.rendimientoPct || 0) >= 40 ? 'text-emerald-600' : 'text-amber-600'">
                                 {{ b.rendimientoPct | number:'1.1-2' }}%
                             </span>
                         </div>
@@ -422,13 +484,21 @@
                             </span>
                         </div>
 
-                        <div class="flex items-center justify-between">
+                        <div class="flex items-center justify-between gap-3">
                             <span class="text-[10px] font-bold text-slate-400 uppercase">Leche descontada</span>
-                            <span *ngIf="b.idMovimientoLeche"
-                                class="inline-flex items-center gap-1 px-2 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-[10px] font-black uppercase">
-                                <i class="bi bi-check-circle-fill"></i>
-                                Mov. #{{ b.idMovimientoLeche }}
-                            </span>
+
+                            <div *ngIf="b.idMovimientoLeche" class="text-right">
+                                <span
+                                    class="inline-flex items-center gap-1 px-2 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-[10px] font-black uppercase">
+                                    <i class="bi bi-check-circle-fill"></i>
+                                    {{ b.litrosLecheDescontados | number:'1.2-3' }} L
+                                </span>
+                                <p class="text-[9px] text-slate-400 font-bold mt-1">
+                                    Saldo: {{ b.saldoResultanteLecheLitros | number:'1.2-2' }} L · Mov. #{{
+                                    b.idMovimientoLeche }}
+                                </p>
+                            </div>
+
                             <span *ngIf="!b.idMovimientoLeche"
                                 class="inline-flex items-center gap-1 px-2 py-1 bg-amber-50 text-amber-700 rounded-lg text-[10px] font-black uppercase">
                                 <i class="bi bi-exclamation-triangle-fill"></i>
@@ -651,7 +721,7 @@
             <div class="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="p-4 bg-blue-50/50 rounded-2xl border border-blue-100/50">
                     <p class="text-[9px] font-bold text-blue-400 uppercase tracking-widest mb-1">
-                        Entrada Real (Batches)
+                        Entrada Real Ejecutada
                     </p>
                     <p class="text-lg font-black text-blue-700">
                         {{ kgEntradaAcumulados | number:'1.2-2' }} kg
@@ -660,7 +730,7 @@
 
                 <div class="p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100/50">
                     <p class="text-[9px] font-bold text-emerald-400 uppercase tracking-widest mb-1">
-                        Producción Real (Marmitas)
+                        Producción Real Marmitas
                     </p>
                     <p class="text-lg font-black text-emerald-700">
                         {{ kgProducidosAcumulados | number:'1.2-2' }} kg
@@ -669,7 +739,7 @@
 
                 <div class="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100/50">
                     <p class="text-[9px] font-bold text-indigo-400 uppercase tracking-widest mb-1">
-                        Producto Terminado (SKUs)
+                        Producto Terminado SKU
                     </p>
                     <p class="text-lg font-black text-indigo-700">
                         {{ totalKgSkus | number:'1.2-2' }} kg
@@ -680,7 +750,7 @@
                     [ngClass]="Math.abs(desviacionConsistencia) < 5 ? 'bg-emerald-50/50 border-emerald-100/50' : 'bg-rose-50/50 border-rose-100/50'">
                     <p class="text-[9px] font-bold uppercase tracking-widest mb-1"
                         [ngClass]="Math.abs(desviacionConsistencia) < 5 ? 'text-emerald-400' : 'text-rose-400'">
-                        Balance de Masa (Desviación)
+                        Balance de Masa
                     </p>
                     <p class="text-lg font-black"
                         [ngClass]="Math.abs(desviacionConsistencia) < 5 ? 'text-emerald-700' : 'text-rose-700'">
@@ -777,9 +847,9 @@
 
                 <div class="p-3 bg-rose-50 rounded-2xl border border-rose-100">
                     <span class="text-[8px] font-bold text-rose-400 uppercase tracking-widest block mb-1">Reduc.
-                        Evaporación</span>
-                    <span class="text-base font-black text-rose-700">{{ (kgEntradaAcumulados - kgProducidosAcumulados) |
-                        number:'1.1-2' }}</span>
+                        Real</span>
+                    <span class="text-base font-black text-rose-700">{{ reduccionEvaporacionReal | number:'1.1-2'
+                        }}</span>
                 </div>
 
                 <div class="p-3 bg-indigo-50 rounded-2xl border border-indigo-100">
@@ -791,8 +861,7 @@
                 <div class="p-3 bg-slate-900 rounded-2xl border border-slate-800">
                     <span
                         class="text-[8px] font-bold text-slate-400 uppercase tracking-widest block mb-1 text-white/50">Rendimiento</span>
-                    <span class="text-base font-black text-white">{{ (kgProducidosAcumulados / kgEntradaAcumulados *
-                        100) | number:'1.1-1' }}%</span>
+                    <span class="text-base font-black text-white">{{ rendimientoPromedio | number:'1.1-1' }}%</span>
                 </div>
             </div>
 
@@ -804,7 +873,7 @@
                 <table class="w-full text-sm">
                     <tbody class="divide-y divide-slate-200">
                         <tr class="pb-3">
-                            <td class="py-3 text-slate-500 font-medium">Kg Entrada Total</td>
+                            <td class="py-3 text-slate-500 font-medium">Kg Entrada Ejecutada</td>
                             <td class="py-3 text-right font-bold text-slate-900">{{ kgEntradaAcumulados | number:'1.1-2'
                                 }} kg</td>
                         </tr>
@@ -822,9 +891,9 @@
                         </tr>
 
                         <tr>
-                            <td class="py-2 text-slate-500 font-medium">Reducción Evaporación (Humedad Removida)</td>
-                            <td class="py-2 text-right font-bold text-rose-600">{{ (kgEntradaAcumulados -
-                                kgProducidosAcumulados) | number:'1.1-2' }} kg</td>
+                            <td class="py-2 text-slate-500 font-medium">Reducción Evaporación Real</td>
+                            <td class="py-2 text-right font-bold text-rose-600">{{ reduccionEvaporacionReal |
+                                number:'1.1-2' }} kg</td>
                         </tr>
 
                         <tr>
@@ -835,13 +904,27 @@
 
                         <tr>
                             <td class="py-2 text-slate-500 font-medium">Rendimiento Proceso</td>
-                            <td class="py-2 text-right font-bold text-blue-600">{{ (kgProducidosAcumulados /
-                                kgEntradaAcumulados * 100) | number:'1.1-2' }}%</td>
+                            <td class="py-2 text-right font-bold text-blue-600">{{ rendimientoPromedio | number:'1.1-2'
+                                }}%</td>
                         </tr>
 
                         <tr>
                             <td class="py-2 text-slate-500 font-medium">Batches Procesados</td>
                             <td class="py-2 text-right font-bold text-slate-900">{{ totalBatchesCompletados }}</td>
+                        </tr>
+
+                        <tr>
+                            <td class="py-2 text-slate-500 font-medium">Leche Consumida</td>
+                            <td class="py-2 text-right font-bold text-emerald-600">{{ lecheConsumidaProduccionLitros |
+                                number:'1.1-2' }} L</td>
+                        </tr>
+
+                        <tr>
+                            <td class="py-2 text-slate-500 font-medium">Saldo Proyectado Tanque</td>
+                            <td class="py-2 text-right font-bold"
+                                [ngClass]="balanceLecheSuficiente ? 'text-slate-900' : 'text-red-600'">
+                                {{ saldoProyectadoFinalLitros | number:'1.1-2' }} L
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -851,7 +934,7 @@
                 class="p-5 bg-amber-50 text-amber-700 rounded-2xl border border-amber-100 text-sm font-medium leading-relaxed">
                 <i class="bi bi-exclamation-triangle-fill mr-2"></i>
                 Esta acción es irreversible. Se registrarán los resultados finales y no se permitirán más modificaciones
-                en baches ni SKUs.
+                en batches ni SKUs.
             </div>
 
             <div class="flex gap-4 mt-8">

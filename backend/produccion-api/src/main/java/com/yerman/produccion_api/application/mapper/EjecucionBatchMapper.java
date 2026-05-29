@@ -7,10 +7,12 @@ import com.yerman.produccion_api.infrastructure.entity.OrdenProduccionEntity;
 
 public class EjecucionBatchMapper {
 
-    private EjecucionBatchMapper() {}
+    private EjecucionBatchMapper() {
+    }
 
     public static EjecucionBatch toDomain(EjecucionBatchEntity entity) {
-        if (entity == null) return null;
+        if (entity == null)
+            return null;
 
         EjecucionBatch domain = new EjecucionBatch(
                 entity.getId(),
@@ -28,18 +30,27 @@ public class EjecucionBatchMapper {
                 entity.getBrixFinal(),
                 entity.getTipoNovedad(),
                 entity.getFechaInicio(),
-                entity.getFechaFin()
-        );
-        
+                entity.getFechaFin());
+
         if (entity.getMarmita() != null) {
             domain.setNombreMarmita(entity.getMarmita().getNombre());
         }
-        
+
+        if (entity.getMovimientoLeche() != null) {
+            domain.setLitrosLecheDescontados(entity.getMovimientoLeche().getCantidadLitros());
+            domain.setSaldoResultanteLecheLitros(entity.getMovimientoLeche().getSaldoResultanteLitros());
+        }
+
         return domain;
     }
 
-    public static EjecucionBatchEntity toEntity(EjecucionBatch domain, OrdenProduccionEntity orden, MarmitaEntity marmita) {
-        if (domain == null) return null;
+    public static EjecucionBatchEntity toEntity(
+            EjecucionBatch domain,
+            OrdenProduccionEntity orden,
+            MarmitaEntity marmita) {
+
+        if (domain == null)
+            return null;
 
         EjecucionBatchEntity entity = new EjecucionBatchEntity();
         entity.setId(domain.getId());
@@ -57,7 +68,7 @@ public class EjecucionBatchMapper {
         entity.setTipoNovedad(domain.getTipoNovedad());
         entity.setFechaInicio(domain.getFechaInicio());
         entity.setFechaFin(domain.getFechaFin());
-        
+
         return entity;
     }
 }
