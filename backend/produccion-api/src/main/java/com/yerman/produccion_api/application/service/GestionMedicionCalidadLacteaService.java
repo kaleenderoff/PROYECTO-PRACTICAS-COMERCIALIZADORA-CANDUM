@@ -78,6 +78,7 @@ public class GestionMedicionCalidadLacteaService implements GestionMedicionCalid
     }
 
     @Override
+    @Transactional
     public MedicionCalidadLactea obtenerPorId(Long id) {
         return repository.obtenerPorId(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
@@ -85,6 +86,7 @@ public class GestionMedicionCalidadLacteaService implements GestionMedicionCalid
     }
 
     @Override
+    @Transactional
     public List<MedicionCalidadLactea> listarPorProduccion(Long idProduccionLactea) {
         if (idProduccionLactea == null) {
             throw new ReglaNegocioException("La produccion lactea es obligatoria.");
@@ -95,6 +97,7 @@ public class GestionMedicionCalidadLacteaService implements GestionMedicionCalid
     }
 
     @Override
+    @Transactional
     public List<MedicionCalidadLactea> listarPorOrden(Long idOrdenProduccion) {
         if (idOrdenProduccion == null) {
             throw new ReglaNegocioException("La orden de produccion es obligatoria.");
