@@ -5,15 +5,14 @@
 
 <!-- Sidebar -->
 <aside
-    class="fixed lg:static inset-y-0 left-0 z-50 w-72 sm:w-80 lg:w-64 bg-slate-950 text-slate-300 flex flex-col border-r border-slate-800 transition-transform duration-300 ease-in-out h-screen"
+    class="fixed lg:sticky inset-y-0 left-0 top-0 z-50 w-72 sm:w-80 lg:w-64 bg-slate-950 text-slate-300 flex flex-col border-r border-slate-800 transition-transform duration-300 ease-in-out h-dvh min-h-dvh"
     [ngClass]="{
         'translate-x-0': mobileOpen,
         '-translate-x-full lg:translate-x-0': !mobileOpen
     }">
 
     <!-- Sidebar Header -->
-    <div
-        class="px-5 py-5 sm:px-6 sm:py-6 flex items-center justify-between gap-3 border-b border-slate-900 lg:border-b-0">
+    <div class="shrink-0 px-5 py-5 sm:px-6 sm:py-6 flex items-center justify-between gap-3 border-b border-slate-900">
 
         <div class="flex items-center gap-3 min-w-0">
 
@@ -42,170 +41,220 @@
     </div>
 
     <!-- Navigation -->
-    <nav class="flex-1 px-4 py-4 space-y-1 overflow-y-auto custom-scrollbar">
+    <nav class="flex-1 min-h-0 px-4 py-4 space-y-3 overflow-y-auto custom-scrollbar">
 
-        <!-- Section: Administración -->
-        <div *ngIf="authService.isAdmin()" class="pb-4">
-            <p class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-2">
-                Administración
-            </p>
+        <!-- ADMINISTRACIÓN -->
+        <div *ngIf="authService.isAdmin()" class="rounded-2xl overflow-hidden">
+            <button type="button" (click)="toggleAdministracion()"
+                class="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-900 transition-all">
 
-            <a routerLink="/usuarios" routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20"
-                (click)="cerrarMenuMovil()"
-                class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-900 hover:text-white transition-all group">
-                <i class="bi bi-people text-lg"></i>
-                <span class="font-medium">Usuarios</span>
-            </a>
+                <span class="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">
+                    <i class="bi bi-gear text-xs"></i>
+                    Administración
+                </span>
+
+                <i class="bi text-xs text-slate-500 transition-transform"
+                    [ngClass]="administracionAbierto ? 'bi-chevron-up' : 'bi-chevron-down'">
+                </i>
+            </button>
+
+            <div *ngIf="administracionAbierto"
+                class="mt-1 space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
+
+                <a routerLink="/usuarios" routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20"
+                    (click)="cerrarMenuMovil()"
+                    class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-900 hover:text-white transition-all group">
+                    <i class="bi bi-people text-lg"></i>
+                    <span class="font-medium">Usuarios</span>
+                </a>
+            </div>
         </div>
 
-        <div *ngIf="authService.canViewAuditoria()" class="pb-4">
-            <p class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-2">
-                Control
-            </p>
+        <!-- CONTROL -->
+        <div *ngIf="authService.canViewAuditoria()" class="rounded-2xl overflow-hidden">
+            <button type="button" (click)="toggleControl()"
+                class="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-900 transition-all">
 
-            <a routerLink="/auditoria" routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20"
-                (click)="cerrarMenuMovil()"
-                class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-900 hover:text-white transition-all group">
-                <i class="bi bi-shield-lock text-lg"></i>
-                <span class="font-medium">Auditoría</span>
-            </a>
+                <span class="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">
+                    <i class="bi bi-shield-check text-xs"></i>
+                    Control
+                </span>
+
+                <i class="bi text-xs text-slate-500 transition-transform"
+                    [ngClass]="controlAbierto ? 'bi-chevron-up' : 'bi-chevron-down'">
+                </i>
+            </button>
+
+            <div *ngIf="controlAbierto" class="mt-1 space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
+
+                <a routerLink="/auditoria" routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20"
+                    (click)="cerrarMenuMovil()"
+                    class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-900 hover:text-white transition-all group">
+                    <i class="bi bi-shield-lock text-lg"></i>
+                    <span class="font-medium">Auditoría</span>
+                </a>
+            </div>
         </div>
 
-        <!-- Section: Operaciones -->
-        <div class="pt-2 pb-4">
-            <p class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-2">
-                Operaciones
-            </p>
+        <!-- OPERACIONES -->
+        <div class="rounded-2xl overflow-hidden">
+            <button type="button" (click)="toggleOperaciones()"
+                class="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-900 transition-all">
 
-            <a *ngIf="authService.canReadRecepcionLeche()" routerLink="/recepcion-leche"
-                routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" (click)="cerrarMenuMovil()"
-                class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-900 hover:text-white transition-all group">
-                <i class="bi bi-truck text-lg"></i>
-                <span class="font-medium">Recepción Leche</span>
-            </a>
+                <span class="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">
+                    <i class="bi bi-layers text-xs"></i>
+                    Operaciones
+                </span>
 
-            <a *ngIf="authService.canReadOperaciones()" routerLink="/descremado"
-                routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" (click)="cerrarMenuMovil()"
-                class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-900 hover:text-white transition-all group">
-                <i class="bi bi-water text-lg"></i>
-                <span class="font-medium">Descremado</span>
-            </a>
+                <i class="bi text-xs text-slate-500 transition-transform"
+                    [ngClass]="operacionesAbierto ? 'bi-chevron-up' : 'bi-chevron-down'">
+                </i>
+            </button>
 
-            <a *ngIf="authService.canViewCatalogosTecnicos()" routerLink="/proveedores"
-                routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" (click)="cerrarMenuMovil()"
-                class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-900 hover:text-white transition-all group">
-                <i class="bi bi-person-badge text-lg"></i>
-                <span class="font-medium">Proveedores</span>
-            </a>
+            <div *ngIf="operacionesAbierto" class="mt-1 space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
 
-            <a *ngIf="authService.canViewCatalogosTecnicos()" routerLink="/insumos"
-                routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" (click)="cerrarMenuMovil()"
-                class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-900 hover:text-white transition-all group">
-                <i class="bi bi-box-seam text-lg"></i>
-                <span class="font-medium">Insumos</span>
-            </a>
+                <a *ngIf="authService.canReadRecepcionLeche()" routerLink="/recepcion-leche"
+                    routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" (click)="cerrarMenuMovil()"
+                    class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-900 hover:text-white transition-all group">
+                    <i class="bi bi-truck text-lg"></i>
+                    <span class="font-medium">Recepción Leche</span>
+                </a>
 
-            <a *ngIf="authService.canViewCatalogosTecnicos()" routerLink="/formulas"
-                routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" (click)="cerrarMenuMovil()"
-                class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-900 hover:text-white transition-all group">
-                <i class="bi bi-list-check text-lg"></i>
-                <span class="font-medium">Fórmulas</span>
-            </a>
+                <a *ngIf="authService.canReadOperaciones()" routerLink="/descremado"
+                    routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" (click)="cerrarMenuMovil()"
+                    class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-900 hover:text-white transition-all group">
+                    <i class="bi bi-water text-lg"></i>
+                    <span class="font-medium">Descremado</span>
+                </a>
 
-            <a *ngIf="authService.canViewCatalogosTecnicos()" routerLink="/skus"
-                routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" (click)="cerrarMenuMovil()"
-                class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-900 hover:text-white transition-all group">
-                <i class="bi bi-tags text-lg"></i>
-                <span class="font-medium">SKUs</span>
-            </a>
+                <a *ngIf="authService.canViewCatalogosTecnicos()" routerLink="/proveedores"
+                    routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" (click)="cerrarMenuMovil()"
+                    class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-900 hover:text-white transition-all group">
+                    <i class="bi bi-person-badge text-lg"></i>
+                    <span class="font-medium">Proveedores</span>
+                </a>
+
+                <a *ngIf="authService.canViewCatalogosTecnicos()" routerLink="/insumos"
+                    routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" (click)="cerrarMenuMovil()"
+                    class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-900 hover:text-white transition-all group">
+                    <i class="bi bi-box-seam text-lg"></i>
+                    <span class="font-medium">Insumos</span>
+                </a>
+
+                <a *ngIf="authService.canViewCatalogosTecnicos()" routerLink="/formulas"
+                    routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" (click)="cerrarMenuMovil()"
+                    class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-900 hover:text-white transition-all group">
+                    <i class="bi bi-list-check text-lg"></i>
+                    <span class="font-medium">Fórmulas</span>
+                </a>
+
+                <a *ngIf="authService.canViewCatalogosTecnicos()" routerLink="/skus"
+                    routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" (click)="cerrarMenuMovil()"
+                    class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-900 hover:text-white transition-all group">
+                    <i class="bi bi-tags text-lg"></i>
+                    <span class="font-medium">SKUs</span>
+                </a>
+            </div>
         </div>
 
-        <!-- Section: Producción MES -->
-        <div class="pt-2 pb-4">
-            <p class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-2">
-                Producción MES
-            </p>
+        <!-- PRODUCCIÓN MES -->
+        <div class="rounded-2xl overflow-hidden">
+            <button type="button" (click)="toggleProduccion()"
+                class="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-900 transition-all">
 
-            <!-- Módulo 1: Programación -->
-            <a *ngIf="authService.canManageProgramacion()" routerLink="/programacion-produccion/nueva"
-                routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" (click)="cerrarMenuMovil()"
-                class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-900 hover:text-white transition-all group mb-1">
-                <i class="bi bi-calendar-event text-lg text-amber-500"></i>
-                <div class="flex flex-col leading-tight min-w-0">
-                    <span class="font-bold text-sm truncate">
-                        {{ numeroModuloProduccion('programacion') }}. Programación
-                    </span>
-                    <span class="text-[9px] text-slate-500 group-hover:text-slate-400 truncate">
-                        Jefe de Producción
-                    </span>
-                </div>
-            </a>
+                <span class="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">
+                    <i class="bi bi-diagram-3 text-xs"></i>
+                    Producción MES
+                </span>
 
-            <!-- Módulo 2: Órdenes -->
-            <a *ngIf="authService.canReadOperaciones()" routerLink="/ordenes-produccion"
-                routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" (click)="cerrarMenuMovil()"
-                class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-900 hover:text-white transition-all group mb-1">
-                <i class="bi bi-clipboard-check text-lg text-blue-500"></i>
-                <div class="flex flex-col leading-tight min-w-0">
-                    <span class="font-bold text-sm truncate">
-                        {{ numeroModuloProduccion('ordenes') }}. Órdenes
-                    </span>
-                    <span class="text-[9px] text-slate-500 group-hover:text-slate-400 truncate">
-                        Jefe de Línea
-                    </span>
-                </div>
-            </a>
+                <i class="bi text-xs text-slate-500 transition-transform"
+                    [ngClass]="produccionAbierto ? 'bi-chevron-up' : 'bi-chevron-down'">
+                </i>
+            </button>
 
-            <!-- Módulo 3: Ejecución -->
-            <a *ngIf="authService.canReadOperaciones()" routerLink="/ejecucion-produccion"
-                routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" (click)="cerrarMenuMovil()"
-                class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-900 hover:text-white transition-all group mb-1">
-                <i class="bi bi-play-circle text-lg text-emerald-500"></i>
-                <div class="flex flex-col leading-tight min-w-0">
-                    <span class="font-bold text-sm truncate">
-                        {{ numeroModuloProduccion('ejecucion') }}. Ejecución
-                    </span>
-                    <span class="text-[9px] text-slate-500 group-hover:text-slate-400 truncate">
-                        Trazabilidad
-                    </span>
-                </div>
-            </a>
+            <div *ngIf="produccionAbierto" class="mt-1 space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
 
-            <!-- Módulo 4: Calidad -->
-            <a *ngIf="authService.canReadCalidad()" routerLink="/mediciones-calidad-lactea"
-                routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" (click)="cerrarMenuMovil()"
-                class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-900 hover:text-white transition-all group mb-1">
-                <i class="bi bi-clipboard-pulse text-lg text-violet-500"></i>
-                <div class="flex flex-col leading-tight min-w-0">
-                    <span class="font-bold text-sm truncate">
-                        {{ numeroModuloProduccion('calidad') }}. Calidad
-                    </span>
-                    <span class="text-[9px] text-slate-500 group-hover:text-slate-400 truncate">
-                        Brix y pH
-                    </span>
-                </div>
-            </a>
+                <a *ngIf="authService.canManageProgramacion()" routerLink="/programacion-produccion/nueva"
+                    routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" (click)="cerrarMenuMovil()"
+                    class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-900 hover:text-white transition-all group mb-1">
+                    <i class="bi bi-calendar-event text-lg text-amber-500"></i>
 
-            <!-- Módulo 5: Reportes -->
-            <a *ngIf="authService.canViewReportes()" routerLink="/reportes"
-                routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" (click)="cerrarMenuMovil()"
-                class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-900 hover:text-white transition-all group">
-                <i class="bi bi-file-earmark-excel text-lg text-indigo-500"></i>
-                <div class="flex flex-col leading-tight min-w-0">
-                    <span class="font-bold text-sm truncate">
-                        {{ numeroModuloProduccion('reportes') }}. Reportes
-                    </span>
-                    <span class="text-[9px] text-slate-500 group-hover:text-slate-400 truncate">
-                        Exportar Excel
-                    </span>
-                </div>
-            </a>
+                    <div class="flex flex-col leading-tight min-w-0">
+                        <span class="font-bold text-sm truncate">
+                            {{ numeroModuloProduccion('programacion') }}. Programación
+                        </span>
+                        <span class="text-[9px] text-slate-500 group-hover:text-slate-400 truncate">
+                            Jefe de Producción
+                        </span>
+                    </div>
+                </a>
+
+                <a *ngIf="authService.canReadOperaciones()" routerLink="/ordenes-produccion"
+                    routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" (click)="cerrarMenuMovil()"
+                    class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-900 hover:text-white transition-all group mb-1">
+                    <i class="bi bi-clipboard-check text-lg text-blue-500"></i>
+
+                    <div class="flex flex-col leading-tight min-w-0">
+                        <span class="font-bold text-sm truncate">
+                            {{ numeroModuloProduccion('ordenes') }}. Órdenes
+                        </span>
+                        <span class="text-[9px] text-slate-500 group-hover:text-slate-400 truncate">
+                            Jefe de Línea
+                        </span>
+                    </div>
+                </a>
+
+                <a *ngIf="authService.canReadOperaciones()" routerLink="/ejecucion-produccion"
+                    routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" (click)="cerrarMenuMovil()"
+                    class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-900 hover:text-white transition-all group mb-1">
+                    <i class="bi bi-play-circle text-lg text-emerald-500"></i>
+
+                    <div class="flex flex-col leading-tight min-w-0">
+                        <span class="font-bold text-sm truncate">
+                            {{ numeroModuloProduccion('ejecucion') }}. Ejecución
+                        </span>
+                        <span class="text-[9px] text-slate-500 group-hover:text-slate-400 truncate">
+                            Trazabilidad
+                        </span>
+                    </div>
+                </a>
+
+                <a *ngIf="authService.canReadCalidad()" routerLink="/mediciones-calidad-lactea"
+                    routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" (click)="cerrarMenuMovil()"
+                    class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-900 hover:text-white transition-all group mb-1">
+                    <i class="bi bi-clipboard-pulse text-lg text-violet-500"></i>
+
+                    <div class="flex flex-col leading-tight min-w-0">
+                        <span class="font-bold text-sm truncate">
+                            {{ numeroModuloProduccion('calidad') }}. Calidad
+                        </span>
+                        <span class="text-[9px] text-slate-500 group-hover:text-slate-400 truncate">
+                            Brix y pH
+                        </span>
+                    </div>
+                </a>
+
+                <a *ngIf="authService.canViewReportes()" routerLink="/reportes"
+                    routerLinkActive="bg-blue-600 text-white shadow-lg shadow-blue-900/20" (click)="cerrarMenuMovil()"
+                    class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-900 hover:text-white transition-all group">
+                    <i class="bi bi-file-earmark-excel text-lg text-indigo-500"></i>
+
+                    <div class="flex flex-col leading-tight min-w-0">
+                        <span class="font-bold text-sm truncate">
+                            {{ numeroModuloProduccion('reportes') }}. Reportes
+                        </span>
+                        <span class="text-[9px] text-slate-500 group-hover:text-slate-400 truncate">
+                            Exportar Excel
+                        </span>
+                    </div>
+                </a>
+            </div>
         </div>
 
     </nav>
 
     <!-- Sidebar Footer -->
-    <div class="p-4 border-t border-slate-900 bg-slate-950/50">
+    <div class="shrink-0 p-4 border-t border-slate-900 bg-slate-950/50">
         <div class="flex items-center gap-3 px-2 mb-3">
             <div
                 class="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center text-xs font-bold text-blue-400 border border-slate-700 shrink-0">
