@@ -11,6 +11,10 @@ import com.yerman.produccion_api.domain.port.in.GestionEjecucionBatchUseCase;
 import com.yerman.produccion_api.domain.port.in.GestionMovimientoLecheUseCase;
 import com.yerman.produccion_api.domain.port.out.EjecucionBatchRepositoryPort;
 import com.yerman.produccion_api.domain.port.out.OrdenProduccionRepositoryPort;
+import com.yerman.produccion_api.infrastructure.entity.FormulaDetalleEntity;
+import com.yerman.produccion_api.infrastructure.entity.FormulaVersionEntity;
+import com.yerman.produccion_api.infrastructure.repository.FormulaDetalleJpaRepository;
+import com.yerman.produccion_api.infrastructure.repository.FormulaVersionJpaRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -18,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.Normalizer;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -25,21 +30,28 @@ import java.util.List;
 public class GestionEjecucionBatchService implements GestionEjecucionBatchUseCase {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GestionEjecucionBatchService.class);
+    private static final BigDecimal CIEN = new BigDecimal("100");
 
     private final EjecucionBatchRepositoryPort repository;
     private final OrdenProduccionRepositoryPort ordenRepository;
     private final ValidacionOrdenProduccionGuardService validacionGuardService;
     private final GestionMovimientoLecheUseCase movimientoLecheUseCase;
+    private final FormulaVersionJpaRepository formulaVersionRepository;
+    private final FormulaDetalleJpaRepository formulaDetalleRepository;
 
     public GestionEjecucionBatchService(
             EjecucionBatchRepositoryPort repository,
             OrdenProduccionRepositoryPort ordenRepository,
             ValidacionOrdenProduccionGuardService validacionGuardService,
-            GestionMovimientoLecheUseCase movimientoLecheUseCase) {
+            GestionMovimientoLecheUseCase movimientoLecheUseCase,
+            FormulaVersionJpaRepository formulaVersionRepository,
+            FormulaDetalleJpaRepository formulaDetalleRepository) {
         this.repository = repository;
         this.ordenRepository = ordenRepository;
         this.validacionGuardService = validacionGuardService;
         this.movimientoLecheUseCase = movimientoLecheUseCase;
+        this.formulaVersionRepository = formulaVersionRepository;
+        this.formulaDetalleRepository = formulaDetalleRepository;
     }
 
     @Override
@@ -53,9 +65,9 @@ public class GestionEjecucionBatchService implements GestionEjecucionBatchUseCas
             throw new ReglaNegocioException("La marmita ya tiene un batch EN_PROCESO para esta orden.");
         }
 
-        // Validar límite de batches planificados
         OrdenProduccion orden = ordenRepository.obtenerPorId(idOrden)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe la orden con ID: " + idOrden));
+
         validacionGuardService.validarOrdenNoAprobada(idOrden);
 
         if (orden.getEstado() == com.yerman.produccion_api.domain.model.EstadoOrdenProduccion.FINALIZADA) {
@@ -63,15 +75,13 @@ public class GestionEjecucionBatchService implements GestionEjecucionBatchUseCas
         }
 
         List<EjecucionBatch> batchesExistentes = repository.listarPorOrden(idOrden);
-        
-        // Solo validar límite si numBachesPlan está definido
+
         Integer numBachesPlan = orden.getNumBachesPlan();
         if (numBachesPlan != null && numBachesPlan > 0 && batchesExistentes.size() >= numBachesPlan) {
-            throw new ReglaNegocioException("Se ha alcanzado el número máximo de batches planificados (" + 
-                    numBachesPlan + "). No es posible iniciar más baches.");
+            throw new ReglaNegocioException("Se ha alcanzado el número máximo de batches planificados ("
+                    + numBachesPlan + "). No es posible iniciar más baches.");
         }
 
-        // Auto-numeración del batch
         int proximoNumero = batchesExistentes.stream()
                 .mapToInt(EjecucionBatch::getNumeroBatch)
                 .max()
@@ -85,12 +95,13 @@ public class GestionEjecucionBatchService implements GestionEjecucionBatchUseCas
         batch.setEstado(EstadoBatch.EN_PROCESO);
         batch.setFechaInicio(LocalDateTime.now());
 
-        // Si la orden está PROGRAMADA, pasarla automáticamente a EN_EJECUCION al iniciar el primer bache
         if (orden.getEstado() == com.yerman.produccion_api.domain.model.EstadoOrdenProduccion.PROGRAMADA) {
             orden.setEstado(com.yerman.produccion_api.domain.model.EstadoOrdenProduccion.EN_EJECUCION);
+
             if (orden.getFechaInicioReal() == null) {
                 orden.setFechaInicioReal(LocalDateTime.now());
             }
+
             ordenRepository.guardar(orden);
             LOGGER.info("Orden {} pasada a EN_EJECUCION al iniciar batch.", orden.getNumeroOrden());
         }
@@ -107,12 +118,22 @@ public class GestionEjecucionBatchService implements GestionEjecucionBatchUseCas
 
     @Override
     @Transactional
-    public EjecucionBatch finalizarBatch(Long idBatch, BigDecimal kgProducidos, String observaciones, Boolean conNovedad, Boolean huboReproceso, Boolean batchConforme, BigDecimal brixFinal, String tipoNovedad) {
+    public EjecucionBatch finalizarBatch(
+            Long idBatch,
+            BigDecimal kgProducidos,
+            String observaciones,
+            Boolean conNovedad,
+            Boolean huboReproceso,
+            Boolean batchConforme,
+            BigDecimal brixFinal,
+            String tipoNovedad) {
+
         EjecucionBatch batch = repository.obtenerPorId(idBatch)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe el batch con ID: " + idBatch));
 
         OrdenProduccion orden = ordenRepository.obtenerPorId(batch.getIdOrdenProduccion())
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe la orden vinculada al batch."));
+
         validacionGuardService.validarOrdenNoAprobada(batch.getIdOrdenProduccion());
 
         if (orden.getEstado() == com.yerman.produccion_api.domain.model.EstadoOrdenProduccion.FINALIZADA) {
@@ -121,6 +142,10 @@ public class GestionEjecucionBatchService implements GestionEjecucionBatchUseCas
 
         if (batch.getEstado() != EstadoBatch.EN_PROCESO) {
             throw new ReglaNegocioException("Solo se puede finalizar un batch que esté EN_PROCESO.");
+        }
+
+        if (kgProducidos == null || kgProducidos.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ReglaNegocioException("Los kg producidos deben ser mayores a cero.");
         }
 
         MovimientoLeche movimientoLeche = registrarSalidaLecheProduccion(batch, orden);
@@ -133,14 +158,16 @@ public class GestionEjecucionBatchService implements GestionEjecucionBatchUseCas
         batch.setHuboReproceso(huboReproceso);
         batch.setBatchConforme(batchConforme);
         batch.setBrixFinal(brixFinal);
+
         if (Boolean.TRUE.equals(conNovedad) && tipoNovedad != null && !tipoNovedad.isBlank()) {
             batch.setTipoNovedad(tipoNovedad.trim());
         }
 
         if (batch.getKgEntrada() != null && batch.getKgEntrada().compareTo(BigDecimal.ZERO) > 0) {
             BigDecimal rendimiento = kgProducidos
-                    .multiply(BigDecimal.valueOf(100))
+                    .multiply(CIEN)
                     .divide(batch.getKgEntrada(), 3, RoundingMode.HALF_UP);
+
             batch.setRendimientoPct(rendimiento);
         }
 
@@ -157,10 +184,24 @@ public class GestionEjecucionBatchService implements GestionEjecucionBatchUseCas
             throw new ReglaNegocioException("El batch no tiene kg de entrada validos para descontar leche.");
         }
 
-        BigDecimal litrosConsumidos = batch.getKgEntrada()
-                .divide(new BigDecimal("1.03"), 3, RoundingMode.HALF_UP);
+        BigDecimal porcentajeLecheLiquida = obtenerPorcentajeLecheLiquidaFormula(orden);
+        BigDecimal litrosConsumidos = calcularLitrosLecheConsumida(batch.getKgEntrada(), porcentajeLecheLiquida);
 
         String referencia = "ORDEN-" + orden.getNumeroOrden() + "-BATCH-" + batch.getNumeroBatch();
+
+        String observaciones = "Consumo automatico de leche liquida al finalizar batch de produccion. "
+                + "Kg entrada batch: " + batch.getKgEntrada().setScale(3, RoundingMode.HALF_UP)
+                + " kg. Porcentaje leche formula: " + porcentajeLecheLiquida.setScale(3, RoundingMode.HALF_UP)
+                + "%. Litros descontados: " + litrosConsumidos.setScale(3, RoundingMode.HALF_UP)
+                + " L.";
+
+        LOGGER.info(
+                "Descuento leche por formula. Orden: {}, Batch: {}, Kg entrada: {}, % leche: {}, Litros descontados: {}",
+                orden.getNumeroOrden(),
+                batch.getNumeroBatch(),
+                batch.getKgEntrada(),
+                porcentajeLecheLiquida,
+                litrosConsumidos);
 
         return movimientoLecheUseCase.registrarMovimiento(
                 orden.getIdTanqueLeche(),
@@ -168,7 +209,78 @@ public class GestionEjecucionBatchService implements GestionEjecucionBatchUseCas
                 litrosConsumidos,
                 orden.getIdJefeLineaEjecutor() != null ? orden.getIdJefeLineaEjecutor() : 1L,
                 referencia,
-                "Consumo automatico de leche al finalizar batch de produccion.");
+                observaciones);
+    }
+
+    private BigDecimal obtenerPorcentajeLecheLiquidaFormula(OrdenProduccion orden) {
+        if (orden.getIdProducto() == null) {
+            throw new ReglaNegocioException(
+                    "La orden no tiene producto asociado para buscar la formula vigente.");
+        }
+
+        FormulaVersionEntity formulaVigente = formulaVersionRepository
+                .findFirstByFormulaProductoIdAndEstadoOrderByFechaInicioVigenciaDesc(
+                        orden.getIdProducto(),
+                        FormulaVersionEntity.EstadoFormula.VIGENTE)
+                .orElseThrow(() -> new ReglaNegocioException(
+                        "No existe una formula vigente para el producto de la orden. "
+                                + "No es posible calcular el consumo real de leche liquida."));
+
+        List<FormulaDetalleEntity> detalles = formulaDetalleRepository
+                .findByFormulaVersionIdOrderByOrdenAdicionAsc(formulaVigente.getId());
+
+        FormulaDetalleEntity detalleLecheLiquida = detalles.stream()
+                .filter(this::esDetalleLecheLiquida)
+                .findFirst()
+                .orElseThrow(() -> new ReglaNegocioException(
+                        "La formula vigente no tiene un insumo identificado como Leche liquida. "
+                                + "No es posible descontar leche del tanque de forma correcta."));
+
+        BigDecimal porcentaje = detalleLecheLiquida.getPorcentaje();
+
+        if (porcentaje != null && porcentaje.compareTo(BigDecimal.ZERO) > 0) {
+            return porcentaje;
+        }
+
+        if (detalleLecheLiquida.getCantidadKg() != null
+                && formulaVigente.getKgBatchTotal() != null
+                && formulaVigente.getKgBatchTotal().compareTo(BigDecimal.ZERO) > 0) {
+
+            return detalleLecheLiquida.getCantidadKg()
+                    .multiply(CIEN)
+                    .divide(formulaVigente.getKgBatchTotal(), 6, RoundingMode.HALF_UP);
+        }
+
+        throw new ReglaNegocioException(
+                "El insumo Leche liquida de la formula no tiene porcentaje ni cantidad valida.");
+    }
+
+    private BigDecimal calcularLitrosLecheConsumida(BigDecimal kgEntradaBatch, BigDecimal porcentajeLecheLiquida) {
+        return kgEntradaBatch
+                .multiply(porcentajeLecheLiquida)
+                .divide(CIEN, 3, RoundingMode.HALF_UP);
+    }
+
+    private boolean esDetalleLecheLiquida(FormulaDetalleEntity detalle) {
+        if (detalle == null || detalle.getInsumo() == null || detalle.getInsumo().getNombre() == null) {
+            return false;
+        }
+
+        String nombre = normalizar(detalle.getInsumo().getNombre());
+
+        return nombre.contains("LECHE")
+                && (nombre.contains("LIQUIDA")
+                        || nombre.contains("LIQUIDO")
+                        || nombre.contains("LIQ"));
+    }
+
+    private String normalizar(String texto) {
+        String sinAcentos = Normalizer.normalize(texto, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
+
+        return sinAcentos
+                .toUpperCase()
+                .trim();
     }
 
     @Override
@@ -176,6 +288,7 @@ public class GestionEjecucionBatchService implements GestionEjecucionBatchUseCas
     public EjecucionBatch registrarNovedad(Long idBatch, String observaciones) {
         EjecucionBatch batch = repository.obtenerPorId(idBatch)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe el batch con ID: " + idBatch));
+
         validacionGuardService.validarOrdenNoAprobada(batch.getIdOrdenProduccion());
 
         batch.setEstado(EstadoBatch.CON_NOVEDAD);
@@ -198,6 +311,7 @@ public class GestionEjecucionBatchService implements GestionEjecucionBatchUseCas
 
         OrdenProduccion orden = ordenRepository.obtenerPorId(batch.getIdOrdenProduccion())
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe la orden vinculada al batch."));
+
         validacionGuardService.validarOrdenNoAprobada(batch.getIdOrdenProduccion());
 
         if (orden.getEstado() == com.yerman.produccion_api.domain.model.EstadoOrdenProduccion.FINALIZADA) {
