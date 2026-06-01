@@ -694,12 +694,9 @@
                     class="px-4 py-3 bg-slate-100 rounded-2xl font-bold text-slate-700 cursor-not-allowed"
                     placeholder="Producto">
 
-                <select [(ngModel)]="pesoForm.marca" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
-                    <option value="">Marca</option>
-                    <option *ngFor="let marca of opcionesMarcaPeso" [value]="marca">
-                        {{ marca }}
-                    </option>
-                </select>
+                <input type="text" [(ngModel)]="pesoForm.marca" readonly
+                    class="px-4 py-3 bg-slate-100 rounded-2xl font-bold text-slate-700 cursor-not-allowed"
+                    placeholder="Marca automática">
 
                 <select [(ngModel)]="pesoForm.numeroTanda" (ngModelChange)="onCambioTandaPeso()"
                     class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">

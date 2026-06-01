@@ -5,6 +5,7 @@ import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 import { AuthService } from '../../core/services/auth';
+import { CatalogoService } from '../../core/services/catalogo';
 import {
   ControlCalidadLacteaService,
   ControlCalidadProcesoResponse,
@@ -23,6 +24,13 @@ import {
   ProgramacionSkuResponse
 } from '../../core/services/orden-produccion';
 
+interface MarcaCatalogo {
+  id: number;
+  nombre: string;
+  esPropia?: boolean;
+  activo?: boolean;
+}
+
 @Component({
   selector: 'app-mediciones-calidad-lactea',
   imports: [CommonModule, FormsModule],
@@ -35,6 +43,7 @@ export class MedicionesCalidadLactea implements OnInit {
   mediciones: MedicionCalidadLacteaResponse[] = [];
   controlesProceso: ControlCalidadProcesoResponse[] = [];
   controlesPeso: ControlPesoProductoResponse[] = [];
+  marcas: MarcaCatalogo[] = [];
 
   idOrdenSeleccionada = 0;
   pestanaActiva: 'rapida' | 'proceso' | 'peso' = 'rapida';
@@ -116,6 +125,7 @@ export class MedicionesCalidadLactea implements OnInit {
     private batchService: EjecucionBatchService,
     private medicionService: MedicionCalidadLacteaService,
     private controlCalidadService: ControlCalidadLacteaService,
+    private catalogoService: CatalogoService,
     public authService: AuthService,
     private notification: NotificationService,
     private cdr: ChangeDetectorRef,
@@ -193,9 +203,15 @@ export class MedicionesCalidadLactea implements OnInit {
           console.error('Error cargando controles de peso:', err);
           return of([]);
         })
+      ),
+      marcas: this.catalogoService.listarMarcas(true).pipe(
+        catchError(err => {
+          console.error('Error cargando marcas:', err);
+          return of([]);
+        })
       )
     }).subscribe({
-      next: ({ orden, batches, mediciones, controlesProceso, controlesPeso }) => {
+      next: ({ orden, batches, mediciones, controlesProceso, controlesPeso, marcas }) => {
         this.ngZone.run(() => {
           if (orden) {
             this.actualizarOrdenLocal(orden);
@@ -205,6 +221,7 @@ export class MedicionesCalidadLactea implements OnInit {
           this.mediciones = [...mediciones];
           this.controlesProceso = [...controlesProceso];
           this.controlesPeso = [...controlesPeso];
+          this.marcas = [...marcas];
 
           this.reiniciarProcesoFormConSiguienteBatch();
           this.pesoForm = this.crearPesoForm();
@@ -697,6 +714,7 @@ export class MedicionesCalidadLactea implements OnInit {
     if (!idSku) {
       this.pesoForm.idSku = null;
       this.pesoForm.presentacion = '';
+      this.pesoForm.marca = '';
       return;
     }
 
@@ -838,6 +856,13 @@ export class MedicionesCalidadLactea implements OnInit {
         };
       })
     };
+
+    if (this.pesoForm.idSku && !this.pesoForm.marca) {
+      const sku = this.obtenerSkuOrden(this.pesoForm.idSku);
+      if (sku) {
+        this.pesoForm.marca = this.obtenerMarcaSku(sku);
+      }
+    }
 
     this.pestanaActiva = 'peso';
     this.cdr.detectChanges();
@@ -1035,22 +1060,6 @@ export class MedicionesCalidadLactea implements OnInit {
 
   get skusOrden(): ProgramacionSkuResponse[] {
     return this.obtenerOrdenSeleccionada()?.skus || [];
-  }
-
-  get opcionesMarcaPeso(): string[] {
-    const marcas = this.skusOrden
-      .map(sku => this.obtenerMarcaSku(sku))
-      .filter(valor => Boolean(valor));
-
-    return this.unicos(marcas.length ? marcas : ['Yerman']);
-  }
-
-  get opcionesPresentacionPeso(): string[] {
-    return this.unicos(
-      this.skusOrden
-        .map(sku => this.obtenerPresentacionSku(sku))
-        .filter(valor => Boolean(valor))
-    );
   }
 
   get opcionesRangoBatchesPeso(): string[] {
@@ -1426,7 +1435,7 @@ export class MedicionesCalidadLactea implements OnInit {
     }
 
     if (!this.pesoForm.marca?.trim()) {
-      this.notification.warning('Debe seleccionar la marca.');
+      this.notification.warning('No se pudo identificar la marca desde el SKU seleccionado.');
       return false;
     }
 
@@ -1774,17 +1783,17 @@ export class MedicionesCalidadLactea implements OnInit {
   }
 
   private obtenerMarcaSku(sku: ProgramacionSkuResponse): string {
-    const texto = `${sku.codigoSku || ''} ${sku.descripcionSku || ''}`.toUpperCase();
+    const textoSkuNormalizado = this.normalizarTexto(`${sku.codigoSku || ''} ${sku.descripcionSku || ''}`);
 
-    if (texto.includes('YERMAN')) {
-      return 'Yerman';
-    }
+    const marcasOrdenadas = [...this.marcas]
+      .filter(marca => marca?.nombre)
+      .sort((a, b) => b.nombre.length - a.nombre.length);
 
-    if (texto.includes('CANDUM')) {
-      return 'Candum';
-    }
+    const marcaEncontrada = marcasOrdenadas.find(marca =>
+      textoSkuNormalizado.includes(this.normalizarTexto(marca.nombre))
+    );
 
-    return 'Yerman';
+    return marcaEncontrada?.nombre || '';
   }
 
   private unicos(valores: string[]): string[] {
