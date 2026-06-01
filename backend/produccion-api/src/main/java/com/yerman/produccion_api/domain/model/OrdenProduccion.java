@@ -29,13 +29,20 @@ public class OrdenProduccion {
     private Long idTanqueLeche;
     private String nombreTanqueLeche;
 
-    // Métricas Reales
+    // Cierre de tandas de calidad
+    private Boolean tandasCerradas;
+    private LocalDateTime fechaCierreTandas;
+    private Long idUsuarioCierreTandas;
+    private String nombreUsuarioCierreTandas;
+    private String observacionesCierreTandas;
+
+    // Metricas Reales
     private BigDecimal kgEntradaReal;
-    private BigDecimal kgProducidoBatches; // Nueva métrica: Salida de marmitas
-    private BigDecimal kgPtReal;           // Métrica corregida: PT Empacado (SKUs)
+    private BigDecimal kgProducidoBatches;
+    private BigDecimal kgPtReal;
     private BigDecimal rendimientoReal;
-    private BigDecimal mermaReal;          // Merma de Proceso (Entrada - Batches)
-    private BigDecimal mermaEmpaque;       // Nueva métrica: Balance de empaque (Batches - PT)
+    private BigDecimal mermaReal;
+    private BigDecimal mermaEmpaque;
 
     // Resumen Operativo
     private Integer numBachesPlan;
@@ -80,9 +87,8 @@ public class OrdenProduccion {
         this.fechaInicioReal = fechaInicioReal;
         this.fechaFinReal = fechaFinReal;
         this.idTanqueLeche = idTanqueLeche;
+        this.tandasCerradas = false;
     }
-
-    // Getters y Setters
 
     public Long getId() {
         return id;
@@ -242,6 +248,46 @@ public class OrdenProduccion {
 
     public void setNombreTanqueLeche(String nombreTanqueLeche) {
         this.nombreTanqueLeche = nombreTanqueLeche;
+    }
+
+    public Boolean getTandasCerradas() {
+        return tandasCerradas;
+    }
+
+    public void setTandasCerradas(Boolean tandasCerradas) {
+        this.tandasCerradas = tandasCerradas;
+    }
+
+    public LocalDateTime getFechaCierreTandas() {
+        return fechaCierreTandas;
+    }
+
+    public void setFechaCierreTandas(LocalDateTime fechaCierreTandas) {
+        this.fechaCierreTandas = fechaCierreTandas;
+    }
+
+    public Long getIdUsuarioCierreTandas() {
+        return idUsuarioCierreTandas;
+    }
+
+    public void setIdUsuarioCierreTandas(Long idUsuarioCierreTandas) {
+        this.idUsuarioCierreTandas = idUsuarioCierreTandas;
+    }
+
+    public String getNombreUsuarioCierreTandas() {
+        return nombreUsuarioCierreTandas;
+    }
+
+    public void setNombreUsuarioCierreTandas(String nombreUsuarioCierreTandas) {
+        this.nombreUsuarioCierreTandas = nombreUsuarioCierreTandas;
+    }
+
+    public String getObservacionesCierreTandas() {
+        return observacionesCierreTandas;
+    }
+
+    public void setObservacionesCierreTandas(String observacionesCierreTandas) {
+        this.observacionesCierreTandas = observacionesCierreTandas;
     }
 
     public Integer getNumBachesPlan() {

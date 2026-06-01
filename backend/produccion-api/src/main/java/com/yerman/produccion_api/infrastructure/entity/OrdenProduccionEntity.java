@@ -86,6 +86,19 @@ public class OrdenProduccionEntity {
     @Column(name = "merma_empaque", precision = 12, scale = 2)
     private BigDecimal mermaEmpaque;
 
+    @Column(name = "tandas_cerradas", nullable = false)
+    private Boolean tandasCerradas = false;
+
+    @Column(name = "fecha_cierre_tandas")
+    private LocalDateTime fechaCierreTandas;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_usuario_cierre_tandas")
+    private UsuarioEntity usuarioCierreTandas;
+
+    @Column(name = "observaciones_cierre_tandas", columnDefinition = "TEXT")
+    private String observacionesCierreTandas;
+
     @OneToMany(mappedBy = "orden", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrdenProduccionDetalleEntity> detalles = new ArrayList<>();
 
@@ -250,6 +263,38 @@ public class OrdenProduccionEntity {
 
     public void setMermaEmpaque(BigDecimal mermaEmpaque) {
         this.mermaEmpaque = mermaEmpaque;
+    }
+
+    public Boolean getTandasCerradas() {
+        return tandasCerradas;
+    }
+
+    public void setTandasCerradas(Boolean tandasCerradas) {
+        this.tandasCerradas = tandasCerradas;
+    }
+
+    public LocalDateTime getFechaCierreTandas() {
+        return fechaCierreTandas;
+    }
+
+    public void setFechaCierreTandas(LocalDateTime fechaCierreTandas) {
+        this.fechaCierreTandas = fechaCierreTandas;
+    }
+
+    public UsuarioEntity getUsuarioCierreTandas() {
+        return usuarioCierreTandas;
+    }
+
+    public void setUsuarioCierreTandas(UsuarioEntity usuarioCierreTandas) {
+        this.usuarioCierreTandas = usuarioCierreTandas;
+    }
+
+    public String getObservacionesCierreTandas() {
+        return observacionesCierreTandas;
+    }
+
+    public void setObservacionesCierreTandas(String observacionesCierreTandas) {
+        this.observacionesCierreTandas = observacionesCierreTandas;
     }
 
     public List<OrdenProduccionDetalleEntity> getDetalles() {

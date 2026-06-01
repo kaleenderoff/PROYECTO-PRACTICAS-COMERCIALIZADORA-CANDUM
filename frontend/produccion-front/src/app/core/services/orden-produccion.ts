@@ -29,6 +29,11 @@ export interface RegistrarProduccionSkuRequest {
   observaciones?: string;
 }
 
+export interface CerrarTandasRequest {
+  idUsuarioCierre: number;
+  observaciones?: string;
+}
+
 export interface OrdenProduccionResponse {
   id: number;
   numeroOrden: string;
@@ -50,6 +55,12 @@ export interface OrdenProduccionResponse {
   fechaFinReal?: string;
   idTanqueLeche?: number;
   nombreTanqueLeche?: string;
+
+  tandasCerradas?: boolean;
+  fechaCierreTandas?: string;
+  idUsuarioCierreTandas?: number;
+  nombreUsuarioCierreTandas?: string;
+  observacionesCierreTandas?: string;
 
   // Resumen Operativo
   numBachesPlan: number;
@@ -114,6 +125,23 @@ export class OrdenProduccionService {
   }
 
   actualizarTanqueLeche(id: number, idTanque: number): Observable<OrdenProduccionResponse> {
-    return this.http.patch<OrdenProduccionResponse>(`${this.apiUrl}/${id}/tanque?idTanque=${idTanque}`, {});
+    return this.http.patch<OrdenProduccionResponse>(
+      `${this.apiUrl}/${id}/tanque?idTanque=${idTanque}`,
+      {}
+    );
+  }
+
+  cerrarTandas(id: number, request: CerrarTandasRequest): Observable<OrdenProduccionResponse> {
+    return this.http.patch<OrdenProduccionResponse>(
+      `${this.apiUrl}/${id}/cerrar-tandas`,
+      request
+    );
+  }
+
+  reabrirTandas(id: number): Observable<OrdenProduccionResponse> {
+    return this.http.patch<OrdenProduccionResponse>(
+      `${this.apiUrl}/${id}/reabrir-tandas`,
+      {}
+    );
   }
 }

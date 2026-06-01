@@ -26,4 +26,8 @@ public interface GestionOrdenProduccionUseCase {
     void registrarProduccionSku(Long idOrden, List<RegistrarProduccionSkuRequest> producciones);
 
     OrdenProduccion actualizarTanqueLeche(Long idOrden, Long idTanque);
+
+    OrdenProduccion cerrarTandas(Long idOrden, Long idUsuarioCierre, String observaciones);
+
+    OrdenProduccion reabrirTandas(Long idOrden);
 }

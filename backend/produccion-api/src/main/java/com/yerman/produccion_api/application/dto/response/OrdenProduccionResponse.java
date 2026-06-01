@@ -44,6 +44,12 @@ public class OrdenProduccionResponse {
     private Long idTanqueLeche;
     private String nombreTanqueLeche;
 
+    private Boolean tandasCerradas;
+    private LocalDateTime fechaCierreTandas;
+    private Long idUsuarioCierreTandas;
+    private String nombreUsuarioCierreTandas;
+    private String observacionesCierreTandas;
+
     // Resumen Operativo
     private Integer numBachesPlan;
     private BigDecimal kgBachePlan;
@@ -110,6 +116,7 @@ public class OrdenProduccionResponse {
         this.nombreFormula = nombreFormula;
         this.versionFormula = versionFormula;
         this.skus = skus;
+        this.tandasCerradas = false;
     }
 
     public Long getId() {
@@ -274,5 +281,45 @@ public class OrdenProduccionResponse {
 
     public void setNombreTanqueLeche(String nombreTanqueLeche) {
         this.nombreTanqueLeche = nombreTanqueLeche;
+    }
+
+    public Boolean getTandasCerradas() {
+        return tandasCerradas;
+    }
+
+    public void setTandasCerradas(Boolean tandasCerradas) {
+        this.tandasCerradas = tandasCerradas;
+    }
+
+    public LocalDateTime getFechaCierreTandas() {
+        return fechaCierreTandas;
+    }
+
+    public void setFechaCierreTandas(LocalDateTime fechaCierreTandas) {
+        this.fechaCierreTandas = fechaCierreTandas;
+    }
+
+    public Long getIdUsuarioCierreTandas() {
+        return idUsuarioCierreTandas;
+    }
+
+    public void setIdUsuarioCierreTandas(Long idUsuarioCierreTandas) {
+        this.idUsuarioCierreTandas = idUsuarioCierreTandas;
+    }
+
+    public String getNombreUsuarioCierreTandas() {
+        return nombreUsuarioCierreTandas;
+    }
+
+    public void setNombreUsuarioCierreTandas(String nombreUsuarioCierreTandas) {
+        this.nombreUsuarioCierreTandas = nombreUsuarioCierreTandas;
+    }
+
+    public String getObservacionesCierreTandas() {
+        return observacionesCierreTandas;
+    }
+
+    public void setObservacionesCierreTandas(String observacionesCierreTandas) {
+        this.observacionesCierreTandas = observacionesCierreTandas;
     }
 }

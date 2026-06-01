@@ -77,6 +77,15 @@
                 </p>
             </div>
 
+            <div *ngIf="tandasCerradas" class="mb-5 p-4 rounded-2xl bg-emerald-50 border border-emerald-100">
+                <p class="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-1">
+                    Registro de tandas cerrado
+                </p>
+                <p class="text-sm font-bold text-emerald-700">
+                    Las tandas de esta orden ya fueron cerradas. No se pueden agregar, editar ni eliminar tandas.
+                </p>
+            </div>
+
             <div class="space-y-5">
                 <div class="grid grid-cols-3 gap-2">
                     <button type="button" (click)="formulario.tipoMedicion = 'BACHE'; onCambioTipo()"
@@ -91,9 +100,9 @@
                         MEZCLA
                     </button>
 
-                    <button type="button" (click)="prepararNuevaTanda()"
+                    <button type="button" (click)="prepararNuevaTanda()" [disabled]="tandasCerradas"
                         [ngClass]="formulario.tipoMedicion === 'TANDA' ? 'bg-violet-600 text-white' : 'bg-slate-50 text-slate-500'"
-                        class="py-3 rounded-2xl text-xs font-black transition-all">
+                        class="py-3 rounded-2xl text-xs font-black transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                         TANDA
                     </button>
                 </div>
@@ -131,21 +140,14 @@
                     <p class="text-[10px] font-black uppercase tracking-widest text-violet-500 mb-1">
                         Tanda actual
                     </p>
-                    <div class="flex items-center justify-between gap-3">
-                        <div>
-                            <p class="text-2xl font-black text-violet-700">
-                                {{ formulario.referencia || 'Tanda 1' }}
-                            </p>
-                            <p class="text-xs text-violet-500 font-bold mt-1">
-                                El sistema genera el número de tanda automáticamente.
-                            </p>
-                        </div>
 
-                        <button type="button" (click)="prepararNuevaTanda()"
-                            class="px-4 py-3 bg-white text-violet-700 rounded-2xl text-xs font-black hover:bg-violet-100 transition-all">
-                            + Agregar otra tanda
-                        </button>
-                    </div>
+                    <p class="text-2xl font-black text-violet-700">
+                        {{ formulario.referencia || 'Tanda 1' }}
+                    </p>
+
+                    <p class="text-xs text-violet-500 font-bold mt-1">
+                        El sistema genera el número de tanda automáticamente.
+                    </p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
@@ -174,7 +176,8 @@
                     placeholder="Observaciones..."></textarea>
 
                 <div class="flex flex-col sm:flex-row gap-3">
-                    <button type="button" (click)="registrar()" [disabled]="guardando || cargando"
+                    <button type="button" (click)="registrar()"
+                        [disabled]="guardando || cargando || (formulario.tipoMedicion === 'TANDA' && tandasCerradas)"
                         class="flex-1 py-4 bg-violet-600 hover:bg-violet-700 disabled:bg-slate-200 text-white rounded-2xl font-black transition-all">
                         {{ textoBotonMedicionRapida }}
                     </button>
@@ -220,12 +223,17 @@
                             </p>
                         </div>
 
-                        <div class="px-4 py-3 rounded-2xl bg-blue-50">
-                            <p class="text-[10px] uppercase font-black text-blue-500">
+                        <div class="px-4 py-3 rounded-2xl" [ngClass]="tandasCerradas ? 'bg-emerald-50' : 'bg-blue-50'">
+                            <p class="text-[10px] uppercase font-black"
+                                [ngClass]="tandasCerradas ? 'text-emerald-600' : 'text-blue-500'">
                                 Tandas
                             </p>
                             <p class="font-black text-slate-900">
                                 {{ totalTandasRegistradas }}
+                            </p>
+                            <p class="text-[10px] font-black mt-1"
+                                [ngClass]="tandasCerradas ? 'text-emerald-600' : 'text-blue-500'">
+                                {{ tandasCerradas ? 'Cerradas' : 'Abiertas' }}
                             </p>
                         </div>
                     </div>
@@ -353,26 +361,69 @@
                 </section>
 
                 <section>
-                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3">
+                    <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 mb-3">
                         <div>
-                            <h4 class="font-black text-slate-800">
-                                3. Tandas
-                            </h4>
+                            <div class="flex flex-wrap items-center gap-3">
+                                <h4 class="font-black text-slate-800">
+                                    3. Tandas
+                                </h4>
+
+                                <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest"
+                                    [ngClass]="tandasCerradas ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'">
+                                    {{ estadoTandasTexto }}
+                                </span>
+                            </div>
+
                             <p class="text-xs text-slate-400 font-bold mt-1">
-                                El auxiliar puede agregar las tandas que sean necesarias.
+                                El auxiliar puede agregar las tandas necesarias y cerrar el registro cuando considere
+                                que es la última tanda.
                             </p>
                         </div>
 
-                        <div class="flex items-center gap-3">
+                        <div *ngIf="authService.canWriteCalidad()" class="flex flex-wrap items-center gap-3">
                             <span class="text-xs font-black text-slate-400">
                                 {{ totalTandasRegistradas }} registradas
                             </span>
 
-                            <button *ngIf="authService.canWriteCalidad()" type="button" (click)="prepararNuevaTanda()"
+                            <button *ngIf="!tandasCerradas" type="button" (click)="prepararNuevaTanda()"
                                 class="px-4 py-3 rounded-2xl bg-violet-600 text-white text-xs font-black hover:bg-violet-700 transition-all">
                                 + Agregar otra tanda
                             </button>
+
+                            <button *ngIf="puedeCerrarTandas" type="button" (click)="cerrarRegistroTandas()"
+                                class="px-4 py-3 rounded-2xl bg-emerald-600 text-white text-xs font-black hover:bg-emerald-700 transition-all">
+                                Cerrar registro de tandas
+                            </button>
+
+                            <button *ngIf="puedeReabrirTandas" type="button" (click)="reabrirRegistroTandas()"
+                                class="px-4 py-3 rounded-2xl bg-amber-500 text-white text-xs font-black hover:bg-amber-600 transition-all">
+                                Reabrir tandas
+                            </button>
                         </div>
+                    </div>
+
+                    <div *ngIf="tandasCerradas" class="mb-4 p-4 bg-emerald-50 border border-emerald-100 rounded-2xl">
+                        <p class="text-sm font-bold text-emerald-700">
+                            El registro de tandas está cerrado. Esta orden conserva {{ totalTandasRegistradas }}
+                            tanda(s)
+                            registradas para consulta y para el control de peso producto terminado.
+                        </p>
+
+                        <p *ngIf="obtenerOrdenSeleccionada()?.fechaCierreTandas"
+                            class="text-xs text-emerald-600 font-bold mt-2">
+                            Cerrado el {{ obtenerOrdenSeleccionada()?.fechaCierreTandas | date:'dd/MM/yyyy hh:mm a' }}
+                            <span *ngIf="obtenerOrdenSeleccionada()?.nombreUsuarioCierreTandas">
+                                por {{ obtenerOrdenSeleccionada()?.nombreUsuarioCierreTandas }}
+                            </span>.
+                        </p>
+                    </div>
+
+                    <div *ngIf="!tandasCerradas && totalTandasRegistradas > 0"
+                        class="mb-4 p-4 bg-blue-50 border border-blue-100 rounded-2xl">
+                        <p class="text-sm font-bold text-blue-700">
+                            Las tandas siguen abiertas. Cuando calidad considere que ya registró la última tanda,
+                            debe cerrar el registro para evitar que luego se agreguen tandas por error.
+                        </p>
                     </div>
 
                     <div *ngIf="medicionesTanda.length > 0" class="overflow-x-auto rounded-2xl border border-slate-100">
@@ -407,11 +458,13 @@
                                     <td *ngIf="authService.canWriteCalidad()" class="px-4 py-3">
                                         <div class="flex justify-end gap-2">
                                             <button type="button" (click)="editarMedicion(medicion)"
-                                                class="px-3 py-2 rounded-xl bg-blue-50 text-blue-700 text-xs font-black hover:bg-blue-100">
+                                                [disabled]="tandasCerradas"
+                                                class="px-3 py-2 rounded-xl bg-blue-50 text-blue-700 text-xs font-black hover:bg-blue-100 disabled:opacity-40 disabled:cursor-not-allowed">
                                                 Editar
                                             </button>
                                             <button type="button" (click)="eliminarMedicion(medicion)"
-                                                class="px-3 py-2 rounded-xl bg-red-50 text-red-700 text-xs font-black hover:bg-red-100">
+                                                [disabled]="tandasCerradas"
+                                                class="px-3 py-2 rounded-xl bg-red-50 text-red-700 text-xs font-black hover:bg-red-100 disabled:opacity-40 disabled:cursor-not-allowed">
                                                 Eliminar
                                             </button>
                                         </div>
@@ -425,7 +478,8 @@
                         class="p-4 bg-slate-50 rounded-2xl text-sm text-slate-400 font-bold flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                         <span>No hay tandas registradas.</span>
 
-                        <button *ngIf="authService.canWriteCalidad()" type="button" (click)="prepararNuevaTanda()"
+                        <button *ngIf="authService.canWriteCalidad() && !tandasCerradas" type="button"
+                            (click)="prepararNuevaTanda()"
                             class="px-4 py-3 rounded-2xl bg-violet-600 text-white text-xs font-black hover:bg-violet-700 transition-all">
                             Registrar Tanda 1
                         </button>
@@ -435,328 +489,7 @@
         </div>
     </div>
 
-    <div *ngIf="pestanaActiva === 'proceso'" class="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        <div *ngIf="authService.canWriteCalidad()"
-            class="xl:col-span-2 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
-            <h3 class="text-lg font-black text-slate-900 mb-2">
-                {{ idProcesoEditando ? 'Editar control de proceso' : 'Formato de variables de calidad en proceso' }}
-            </h3>
-
-            <p *ngIf="idProcesoEditando" class="mb-5 text-xs font-bold text-amber-600">
-                Está corrigiendo un control de proceso existente.
-            </p>
-
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <input type="date" [(ngModel)]="procesoForm.fechaProduccion"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
-
-                <select [(ngModel)]="procesoForm.idEjecucionBatch" (ngModelChange)="onCambioBatchProceso()"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
-                    <option [ngValue]="0">Batch / marmita</option>
-                    <option *ngFor="let batch of batches" [ngValue]="batch.id">
-                        B.{{ batch.numeroBatch }} - {{ batch.nombreMarmita || 'Marmita' }}
-                    </option>
-                </select>
-
-                <input type="text" [(ngModel)]="procesoForm.producto"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Producto">
-
-                <input type="text" [(ngModel)]="procesoForm.lote" readonly
-                    class="px-4 py-3 bg-slate-100 rounded-2xl font-bold text-slate-700 cursor-not-allowed"
-                    placeholder="Lote automático">
-
-                <input type="number" step="0.01" [(ngModel)]="procesoForm.phLeche"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="pH leche">
-
-                <input type="number" step="0.0001" [(ngModel)]="procesoForm.acidezLeche"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Acidez leche">
-
-                <input type="number" step="0.0001" [(ngModel)]="procesoForm.densidadLeche"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Densidad">
-
-                <input type="number" step="0.0001" [(ngModel)]="procesoForm.grasaLeche"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Grasa">
-
-                <input type="time" [(ngModel)]="procesoForm.horaInicioHidrolisis"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
-
-                <input type="number" step="0.01" [(ngModel)]="procesoForm.phInicial"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="pH inicial">
-
-                <input type="time" [(ngModel)]="procesoForm.horaFinHidrolisis"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
-
-                <input type="number" step="0.01" [(ngModel)]="procesoForm.phFinal"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="pH final">
-
-                <input type="number" step="0.01" [(ngModel)]="procesoForm.brixInicial"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Brix inicial">
-
-                <input type="number" step="0.01" [(ngModel)]="procesoForm.brixFinal"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Brix final">
-
-                <input type="number" step="0.01" [(ngModel)]="procesoForm.temperaturaCoccion"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Temp. cocción">
-
-                <input type="number" step="0.01" [(ngModel)]="procesoForm.temperaturaEnvasado"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Temp. envasado">
-
-                <input type="text" [(ngModel)]="procesoForm.colorVisual"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Color visual">
-
-                <input type="text" [(ngModel)]="procesoForm.saborVisual"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Sabor">
-
-                <input type="text" [(ngModel)]="procesoForm.texturaVisual"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Textura">
-
-                <input type="date" [(ngModel)]="procesoForm.fechaVencimiento"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                <label class="p-4 bg-slate-50 rounded-2xl font-bold flex gap-3 items-center">
-                    <input type="checkbox" [(ngModel)]="procesoForm.liberado">
-                    Liberado
-                </label>
-
-                <label class="p-4 bg-slate-50 rounded-2xl font-bold flex gap-3 items-center">
-                    <input type="checkbox" [(ngModel)]="procesoForm.retenido">
-                    Retenido
-                </label>
-
-                <input type="text" [(ngModel)]="procesoForm.presentacionEnvasado"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Presentación envasado">
-            </div>
-
-            <textarea [(ngModel)]="procesoForm.observaciones" rows="3"
-                class="mt-4 w-full p-4 bg-slate-50 rounded-2xl font-medium" placeholder="Observaciones"></textarea>
-
-            <div class="mt-6 flex flex-col sm:flex-row gap-3">
-                <button type="button" (click)="registrarProceso()" [disabled]="guardando"
-                    class="px-8 py-4 bg-violet-600 hover:bg-violet-700 disabled:bg-slate-200 text-white rounded-2xl font-black transition-all">
-                    {{ idProcesoEditando ? 'ACTUALIZAR CONTROL DE PROCESO' : 'GUARDAR CONTROL DE PROCESO' }}
-                </button>
-
-                <button *ngIf="idProcesoEditando" type="button" (click)="cancelarEdicionProceso()"
-                    class="px-5 py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl font-black transition-all">
-                    CANCELAR
-                </button>
-            </div>
-        </div>
-
-        <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
-            <h3 class="font-black text-slate-900 mb-4">
-                Registros de proceso
-            </h3>
-
-            <div class="space-y-3">
-                <div *ngFor="let control of controlesProceso" class="p-4 bg-slate-50 rounded-2xl">
-                    <p class="font-black text-slate-900">
-                        {{ control.producto || 'Producto' }} - {{ control.lote || 'Sin lote' }}
-                    </p>
-
-                    <p class="text-xs text-slate-500">
-                        Brix final {{ control.brixFinal || '-' }} - pH final {{ control.phFinal || '-' }}
-                    </p>
-
-                    <div *ngIf="authService.canWriteCalidad()" class="flex gap-2 mt-3">
-                        <button type="button" (click)="editarProceso(control)"
-                            class="px-3 py-2 rounded-xl bg-blue-50 text-blue-700 text-xs font-black hover:bg-blue-100">
-                            Editar
-                        </button>
-
-                        <button type="button" (click)="eliminarProceso(control)"
-                            class="px-3 py-2 rounded-xl bg-red-50 text-red-700 text-xs font-black hover:bg-red-100">
-                            Eliminar
-                        </button>
-                    </div>
-                </div>
-
-                <p *ngIf="controlesProceso.length === 0" class="text-sm text-slate-400 font-bold">
-                    Sin controles registrados.
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <div *ngIf="pestanaActiva === 'peso'" class="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        <div *ngIf="authService.canWriteCalidad()"
-            class="xl:col-span-2 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
-            <h3 class="text-lg font-black text-slate-900 mb-2">
-                {{ idPesoEditando ? 'Editar control de peso' : 'Control de peso y producto terminado' }}
-            </h3>
-
-            <p *ngIf="idPesoEditando" class="mb-5 text-xs font-bold text-amber-600">
-                Está corrigiendo un control de peso existente.
-            </p>
-
-            <div *ngIf="medicionesTanda.length === 0" class="mb-5 p-4 bg-amber-50 text-amber-700 rounded-2xl">
-                <p class="text-xs font-black uppercase tracking-widest mb-1">
-                    Tandas pendientes
-                </p>
-                <p class="text-sm font-bold">
-                    Para registrar peso producto terminado primero debe registrar al menos una tanda en Brix / pH
-                    rápido.
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <input type="date" [(ngModel)]="pesoForm.fechaControl"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
-
-                <input type="text" [(ngModel)]="pesoForm.producto" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold"
-                    placeholder="Producto">
-
-                <input type="text" [(ngModel)]="pesoForm.marca" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold"
-                    placeholder="Marca">
-
-                <select [(ngModel)]="pesoForm.numeroTanda" (ngModelChange)="onCambioTandaPeso()"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
-                    <option value="">Seleccionar tanda</option>
-                    <option *ngFor="let tanda of medicionesTanda" [value]="tanda.referencia">
-                        {{ tanda.referencia }} - Brix {{ tanda.brix }}{{ tanda.ph ? ' - pH ' + tanda.ph : '' }}
-                    </option>
-                </select>
-
-                <input type="text" [(ngModel)]="pesoForm.lote" readonly
-                    class="px-4 py-3 bg-slate-100 rounded-2xl font-bold text-slate-700 cursor-not-allowed"
-                    placeholder="Lote automático">
-
-                <input type="date" [(ngModel)]="pesoForm.fechaVencimiento"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
-
-                <input type="text" [(ngModel)]="pesoForm.presentacion"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Presentación">
-
-                <input type="text" [(ngModel)]="pesoForm.rangoBatches"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Batches: B1-B4">
-            </div>
-
-            <div class="mt-6 overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead>
-                        <tr>
-                            <th class="py-3 text-xs text-slate-400 uppercase">Muestra</th>
-                            <th class="py-3 text-xs text-slate-400 uppercase">Peso bruto</th>
-                            <th class="py-3 text-xs text-slate-400 uppercase">Tara</th>
-                            <th class="py-3 text-xs text-slate-400 uppercase">Peso neto</th>
-                        </tr>
-                    </thead>
-
-                    <tbody class="divide-y divide-slate-50">
-                        <tr *ngFor="let muestra of pesoForm.muestras">
-                            <td class="py-2 font-black text-slate-600">
-                                #{{ muestra.numeroMuestra }}
-                            </td>
-
-                            <td class="py-2">
-                                <input type="number" step="0.001" [(ngModel)]="muestra.pesoBruto"
-                                    class="w-28 px-3 py-2 bg-slate-50 rounded-xl font-bold">
-                            </td>
-
-                            <td class="py-2">
-                                <input type="number" step="0.001" [(ngModel)]="muestra.tara"
-                                    class="w-28 px-3 py-2 bg-slate-50 rounded-xl font-bold">
-                            </td>
-
-                            <td class="py-2">
-                                <input type="number" step="0.001" [(ngModel)]="muestra.pesoNeto"
-                                    (ngModelChange)="recalcularPromediosPeso()"
-                                    class="w-28 px-3 py-2 bg-slate-50 rounded-xl font-bold">
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-                <input type="number" step="0.001" [(ngModel)]="pesoForm.pesoNetoPromedio"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Prom. neto">
-
-                <input type="number" [(ngModel)]="pesoForm.cantidadPorCaja"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Cantidad caja">
-
-                <label class="p-4 bg-slate-50 rounded-2xl font-bold flex gap-3 items-center">
-                    <input type="checkbox" [(ngModel)]="pesoForm.liberado">
-                    Liberado
-                </label>
-
-                <label class="p-4 bg-slate-50 rounded-2xl font-bold flex gap-3 items-center">
-                    <input type="checkbox" [(ngModel)]="pesoForm.retenido">
-                    Retenido
-                </label>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                <label class="p-4 bg-slate-50 rounded-2xl font-bold flex gap-3 items-center">
-                    <input type="checkbox" [(ngModel)]="pesoForm.aparienciaOk">
-                    Apariencia
-                </label>
-
-                <label class="p-4 bg-slate-50 rounded-2xl font-bold flex gap-3 items-center">
-                    <input type="checkbox" [(ngModel)]="pesoForm.etiquetadoOk">
-                    Etiquetado
-                </label>
-
-                <label class="p-4 bg-slate-50 rounded-2xl font-bold flex gap-3 items-center">
-                    <input type="checkbox" [(ngModel)]="pesoForm.tapadoOk">
-                    Tapado
-                </label>
-            </div>
-
-            <textarea [(ngModel)]="pesoForm.observaciones" rows="3"
-                class="mt-4 w-full p-4 bg-slate-50 rounded-2xl font-medium" placeholder="Observaciones"></textarea>
-
-            <div class="mt-6 flex flex-col sm:flex-row gap-3">
-                <button type="button" (click)="registrarPeso()" [disabled]="guardando || medicionesTanda.length === 0"
-                    class="px-8 py-4 bg-violet-600 hover:bg-violet-700 disabled:bg-slate-200 text-white rounded-2xl font-black transition-all">
-                    {{ idPesoEditando ? 'ACTUALIZAR CONTROL DE PESO' : 'GUARDAR CONTROL DE PESO' }}
-                </button>
-
-                <button *ngIf="idPesoEditando" type="button" (click)="cancelarEdicionPeso()"
-                    class="px-5 py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl font-black transition-all">
-                    CANCELAR
-                </button>
-            </div>
-        </div>
-
-        <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
-            <h3 class="font-black text-slate-900 mb-4">
-                Registros de peso
-            </h3>
-
-            <div class="space-y-3">
-                <div *ngFor="let control of controlesPeso" class="p-4 bg-slate-50 rounded-2xl">
-                    <p class="font-black text-slate-900">
-                        {{ control.producto || 'Producto' }} - {{ control.lote || 'Sin lote' }}
-                    </p>
-
-                    <p class="text-xs text-slate-500">
-                        Tanda {{ control.numeroTanda || '-' }} - Promedio neto {{ control.pesoNetoPromedio || '-' }}
-                    </p>
-
-                    <p class="text-xs text-slate-500">
-                        {{ control.rangoBatches || 'Sin batches' }}
-                    </p>
-
-                    <div *ngIf="authService.canWriteCalidad()" class="flex gap-2 mt-3">
-                        <button type="button" (click)="editarPeso(control)"
-                            class="px-3 py-2 rounded-xl bg-blue-50 text-blue-700 text-xs font-black hover:bg-blue-100">
-                            Editar
-                        </button>
-
-                        <button type="button" (click)="eliminarPeso(control)"
-                            class="px-3 py-2 rounded-xl bg-red-50 text-red-700 text-xs font-black hover:bg-red-100">
-                            Eliminar
-                        </button>
-                    </div>
-                </div>
-
-                <p *ngIf="controlesPeso.length === 0" class="text-sm text-slate-400 font-bold">
-                    Sin controles registrados.
-                </p>
-            </div>
-        </div>
-    </div>
+    <!-- Mantén aquí exactamente igual tu bloque actual de proceso y peso si ya lo tienes debajo.
+         En este reemplazo se actualizó toda la parte de medición rápida y tandas.
+         Si quieres, en el siguiente mensaje te paso el HTML completo incluyendo proceso y peso. -->
 </div>

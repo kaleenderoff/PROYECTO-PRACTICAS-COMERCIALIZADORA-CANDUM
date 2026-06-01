@@ -36,6 +36,8 @@ export class MedicionesCalidadLactea implements OnInit {
   pestanaActiva: 'rapida' | 'proceso' | 'peso' = 'rapida';
   cargando = false;
   guardando = false;
+  cerrandoTandas = false;
+  reabriendoTandas = false;
   error = '';
 
   idMedicionEditando: number | null = null;
@@ -106,6 +108,12 @@ export class MedicionesCalidadLactea implements OnInit {
     this.error = '';
 
     forkJoin({
+      orden: this.ordenService.obtenerPorId(this.idOrdenSeleccionada).pipe(
+        catchError(err => {
+          console.error('Error cargando orden:', err);
+          return of(null);
+        })
+      ),
       batches: this.batchService.listarPorOrden(this.idOrdenSeleccionada).pipe(
         catchError(err => {
           console.error('Error cargando batches:', err);
@@ -132,8 +140,12 @@ export class MedicionesCalidadLactea implements OnInit {
         })
       )
     }).subscribe({
-      next: ({ batches, mediciones, controlesProceso, controlesPeso }) => {
+      next: ({ orden, batches, mediciones, controlesProceso, controlesPeso }) => {
         this.ngZone.run(() => {
+          if (orden) {
+            this.actualizarOrdenLocal(orden);
+          }
+
           this.batches = [...batches];
           this.mediciones = [...mediciones];
           this.controlesProceso = [...controlesProceso];
@@ -173,6 +185,11 @@ export class MedicionesCalidadLactea implements OnInit {
   }
 
   onCambioTipo(): void {
+    if (this.formulario.tipoMedicion === 'TANDA' && this.tandasCerradas) {
+      this.notification.warning('Las tandas de esta orden ya están cerradas. No se pueden agregar más tandas.');
+      this.formulario.tipoMedicion = 'BACHE';
+    }
+
     if (this.formulario.tipoMedicion !== 'BACHE') {
       this.formulario.idEjecucionBatch = 0;
     }
@@ -191,6 +208,11 @@ export class MedicionesCalidadLactea implements OnInit {
   }
 
   prepararNuevaTanda(): void {
+    if (this.tandasCerradas) {
+      this.notification.warning('Las tandas de esta orden ya están cerradas. Reabra las tandas si necesita corregir o agregar una nueva.');
+      return;
+    }
+
     this.pestanaActiva = 'rapida';
     this.idMedicionEditando = null;
 
@@ -261,7 +283,7 @@ export class MedicionesCalidadLactea implements OnInit {
             }
           }
 
-          if (eraTanda && !this.idMedicionEditando) {
+          if (eraTanda && !this.idMedicionEditando && !this.tandasCerradas) {
             this.prepararNuevaTanda();
           } else {
             this.limpiarFormulario();
@@ -311,6 +333,11 @@ export class MedicionesCalidadLactea implements OnInit {
   editarMedicion(medicion: MedicionCalidadLacteaResponse): void {
     if (!this.authService.canWriteCalidad()) return;
 
+    if (medicion.tipoMedicion === 'TANDA' && this.tandasCerradas) {
+      this.notification.warning('Las tandas están cerradas. Reabra las tandas si necesita corregir una tanda.');
+      return;
+    }
+
     this.idMedicionEditando = medicion.id;
 
     this.formulario = {
@@ -330,6 +357,11 @@ export class MedicionesCalidadLactea implements OnInit {
 
   async eliminarMedicion(medicion: MedicionCalidadLacteaResponse): Promise<void> {
     if (!this.authService.canWriteCalidad()) return;
+
+    if (medicion.tipoMedicion === 'TANDA' && this.tandasCerradas) {
+      this.notification.warning('Las tandas están cerradas. Reabra las tandas si necesita eliminar una tanda.');
+      return;
+    }
 
     const confirmado = await this.notification.confirm({
       title: 'Eliminar medición',
@@ -363,6 +395,111 @@ export class MedicionesCalidadLactea implements OnInit {
       error: err => {
         this.notification.error(err.error?.message || 'No se pudo eliminar la medición.');
       }
+    });
+  }
+
+  async cerrarRegistroTandas(): Promise<void> {
+    if (!this.authService.canWriteCalidad()) return;
+
+    if (!this.idOrdenSeleccionada) {
+      this.notification.warning('Debe seleccionar una orden de producción.');
+      return;
+    }
+
+    if (this.tandasCerradas) {
+      this.notification.warning('Las tandas de esta orden ya están cerradas.');
+      return;
+    }
+
+    if (this.medicionesTanda.length === 0) {
+      this.notification.warning('Debe registrar al menos una tanda antes de cerrar el registro de tandas.');
+      return;
+    }
+
+    const confirmado = await this.notification.confirm({
+      title: 'Cerrar registro de tandas',
+      text: 'Después de cerrar, no se podrán agregar, editar ni eliminar tandas, salvo que se reabra el registro. ¿Desea continuar?',
+      confirmText: 'Sí, cerrar tandas',
+      cancelText: 'Cancelar',
+      icon: 'warning'
+    });
+
+    if (!confirmado) return;
+
+    const idUsuarioCierre = this.authService.getIdUsuario();
+
+    if (!idUsuarioCierre) {
+      this.notification.warning('No se pudo identificar el usuario autenticado.');
+      return;
+    }
+
+    this.cerrandoTandas = true;
+
+    this.ordenService.cerrarTandas(this.idOrdenSeleccionada, {
+      idUsuarioCierre,
+      observaciones: `Registro cerrado con ${this.medicionesTanda.length} tanda(s) registradas.`
+    }).subscribe({
+      next: (ordenActualizada) => {
+        this.ngZone.run(() => {
+          this.actualizarOrdenLocal(ordenActualizada);
+
+          if (this.formulario.tipoMedicion === 'TANDA') {
+            this.formulario.tipoMedicion = 'BACHE';
+            this.limpiarFormulario();
+          }
+
+          this.notification.toast('Registro de tandas cerrado.');
+          this.cerrandoTandas = false;
+          this.cdr.detectChanges();
+        });
+      },
+      error: err => {
+        this.notification.error(err.error?.message || 'No se pudo cerrar el registro de tandas.');
+        this.cerrandoTandas = false;
+      },
+      complete: () => this.cerrandoTandas = false
+    });
+  }
+
+  async reabrirRegistroTandas(): Promise<void> {
+    if (!this.authService.canWriteCalidad()) return;
+
+    if (!this.idOrdenSeleccionada) {
+      this.notification.warning('Debe seleccionar una orden de producción.');
+      return;
+    }
+
+    if (!this.tandasCerradas) {
+      this.notification.warning('Las tandas de esta orden ya están abiertas.');
+      return;
+    }
+
+    const confirmado = await this.notification.confirm({
+      title: 'Reabrir registro de tandas',
+      text: 'Al reabrir, se podrán agregar, editar o eliminar tandas nuevamente. ¿Desea continuar?',
+      confirmText: 'Sí, reabrir',
+      cancelText: 'Cancelar',
+      icon: 'question'
+    });
+
+    if (!confirmado) return;
+
+    this.reabriendoTandas = true;
+
+    this.ordenService.reabrirTandas(this.idOrdenSeleccionada).subscribe({
+      next: (ordenActualizada) => {
+        this.ngZone.run(() => {
+          this.actualizarOrdenLocal(ordenActualizada);
+          this.notification.toast('Registro de tandas reabierto.');
+          this.reabriendoTandas = false;
+          this.cdr.detectChanges();
+        });
+      },
+      error: err => {
+        this.notification.error(err.error?.message || 'No se pudo reabrir el registro de tandas.');
+        this.reabriendoTandas = false;
+      },
+      complete: () => this.reabriendoTandas = false
     });
   }
 
@@ -726,6 +863,27 @@ export class MedicionesCalidadLactea implements OnInit {
     return 'REGISTRAR MEDICIÓN';
   }
 
+  get tandasCerradas(): boolean {
+    return Boolean(this.obtenerOrdenSeleccionada()?.tandasCerradas);
+  }
+
+  get estadoTandasTexto(): string {
+    return this.tandasCerradas ? 'Tandas cerradas' : 'Tandas abiertas';
+  }
+
+  get puedeCerrarTandas(): boolean {
+    return this.authService.canWriteCalidad()
+      && !this.tandasCerradas
+      && this.totalTandasRegistradas > 0
+      && !this.cerrandoTandas;
+  }
+
+  get puedeReabrirTandas(): boolean {
+    return this.authService.canWriteCalidad()
+      && this.tandasCerradas
+      && !this.reabriendoTandas;
+  }
+
   batchYaMedido(idBatch: number): boolean {
     return this.medicionesRapidasBatch.some(m =>
       Number(m.idEjecucionBatch) === Number(idBatch) &&
@@ -794,6 +952,11 @@ export class MedicionesCalidadLactea implements OnInit {
 
     if (!this.formulario.tipoMedicion) {
       this.notification.warning('Debe seleccionar el tipo de medición.');
+      return false;
+    }
+
+    if (this.formulario.tipoMedicion === 'TANDA' && this.tandasCerradas) {
+      this.notification.warning('Las tandas de esta orden ya están cerradas. No se pueden registrar nuevas tandas.');
       return false;
     }
 
@@ -1243,6 +1406,12 @@ export class MedicionesCalidadLactea implements OnInit {
 
     if (this.formulario.tipoMedicion === 'TANDA') {
       this.formulario.idEjecucionBatch = 0;
+
+      if (this.tandasCerradas) {
+        this.formulario.referencia = '';
+        return;
+      }
+
       this.formulario.referencia = `Tanda ${this.siguienteNumeroTanda()}`;
     }
   }
@@ -1295,6 +1464,16 @@ export class MedicionesCalidadLactea implements OnInit {
       : new Date().toISOString().slice(0, 10).replaceAll('-', '');
 
     return `OP-${fecha}-${orden.id}`;
+  }
+
+  private actualizarOrdenLocal(ordenActualizada: OrdenProduccionResponse): void {
+    this.ordenes = this.ordenes.map(orden =>
+      Number(orden.id) === Number(ordenActualizada.id) ? ordenActualizada : orden
+    );
+
+    if (!this.ordenes.some(orden => Number(orden.id) === Number(ordenActualizada.id))) {
+      this.ordenes = [ordenActualizada, ...this.ordenes];
+    }
   }
 
   private normalizarSegmentoLote(valor: string): string {

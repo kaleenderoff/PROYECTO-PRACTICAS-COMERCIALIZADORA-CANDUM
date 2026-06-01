@@ -1,6 +1,7 @@
 package com.yerman.produccion_api.infrastructure.adapter.in.rest;
 
 import com.yerman.produccion_api.application.dto.request.CancelarOrdenProduccionRequest;
+import com.yerman.produccion_api.application.dto.request.CerrarTandasRequest;
 import com.yerman.produccion_api.application.dto.request.IniciarOrdenProduccionRequest;
 import com.yerman.produccion_api.application.dto.request.OrdenProduccionRequest;
 import com.yerman.produccion_api.application.dto.request.RegistrarProduccionSkuRequest;
@@ -93,5 +94,23 @@ public class OrdenProduccionController {
     public OrdenProduccionResponse actualizarTanque(@PathVariable Long id, @RequestParam Long idTanque) {
         return OrdenProduccionRestMapper.toResponse(
                 gestionOrdenProduccionUseCase.actualizarTanqueLeche(id, idTanque));
+    }
+
+    @PatchMapping("/{id}/cerrar-tandas")
+    public OrdenProduccionResponse cerrarTandas(
+            @PathVariable Long id,
+            @Valid @RequestBody CerrarTandasRequest request) {
+
+        return OrdenProduccionRestMapper.toResponse(
+                gestionOrdenProduccionUseCase.cerrarTandas(
+                        id,
+                        request.getIdUsuarioCierre(),
+                        request.getObservaciones()));
+    }
+
+    @PatchMapping("/{id}/reabrir-tandas")
+    public OrdenProduccionResponse reabrirTandas(@PathVariable Long id) {
+        return OrdenProduccionRestMapper.toResponse(
+                gestionOrdenProduccionUseCase.reabrirTandas(id));
     }
 }

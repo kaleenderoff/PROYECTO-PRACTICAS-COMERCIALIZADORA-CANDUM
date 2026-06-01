@@ -33,7 +33,6 @@ public class OrdenProduccionMapper {
                 entity.getFechaFinReal(),
                 entity.getTanqueLeche() != null ? entity.getTanqueLeche().getId() : null);
 
-        // Mapear Métricas Reales
         domain.setKgEntradaReal(entity.getKgEntradaReal());
         domain.setKgProducidoBatches(entity.getKgProducidoBatches());
         domain.setKgPtReal(entity.getKgPtReal());
@@ -41,27 +40,33 @@ public class OrdenProduccionMapper {
         domain.setMermaReal(entity.getMermaReal());
         domain.setMermaEmpaque(entity.getMermaEmpaque());
 
-        // Enriquecer con nombres descriptivos
+        domain.setTandasCerradas(Boolean.TRUE.equals(entity.getTandasCerradas()));
+        domain.setFechaCierreTandas(entity.getFechaCierreTandas());
+        domain.setIdUsuarioCierreTandas(
+                entity.getUsuarioCierreTandas() != null ? entity.getUsuarioCierreTandas().getIdUsuario() : null);
+        domain.setNombreUsuarioCierreTandas(
+                entity.getUsuarioCierreTandas() != null ? nombreCompleto(entity.getUsuarioCierreTandas()) : null);
+        domain.setObservacionesCierreTandas(entity.getObservacionesCierreTandas());
+
         domain.setNombreLinea(entity.getLinea() != null ? entity.getLinea().getNombre() : null);
         domain.setNombreProducto(entity.getProducto() != null ? entity.getProducto().getNombre() : null);
         domain.setNombreTurno(entity.getTurno() != null ? entity.getTurno().getNombre() : null);
         domain.setNombreCreadaPor(entity.getCreadaPor() != null ? nombreCompleto(entity.getCreadaPor()) : null);
-        domain.setNombreJefeLineaEjecutor(entity.getJefeLineaEjecutor() != null ? nombreCompleto(entity.getJefeLineaEjecutor()) : null);
+        domain.setNombreJefeLineaEjecutor(
+                entity.getJefeLineaEjecutor() != null ? nombreCompleto(entity.getJefeLineaEjecutor()) : null);
         domain.setNombreTanqueLeche(entity.getTanqueLeche() != null ? entity.getTanqueLeche().getNombre() : null);
 
-        // Enriquecer con Resumen Operativo desde Programación
         if (entity.getProgramacion() != null) {
             var prog = entity.getProgramacion();
             domain.setNumBachesPlan(prog.getNumBachesPlan());
             domain.setKgBachePlan(prog.getKgBachePlan());
-            
+
             if (prog.getFormulaVersion() != null) {
                 var formula = prog.getFormulaVersion().getFormula();
                 domain.setNombreFormula(formula != null ? formula.getNombre() : null);
                 domain.setVersionFormula(prog.getFormulaVersion().getVersion());
             }
 
-            // Mapear SKUs desde los detalles de la orden (tienen los valores reales)
             if (entity.getDetalles() != null && !entity.getDetalles().isEmpty()) {
                 domain.setSkus(entity.getDetalles().stream()
                         .map(ProgramacionSkuMapper::toDomain)
@@ -72,49 +77,44 @@ public class OrdenProduccionMapper {
                         .toList());
             }
 
-            // Cálculos del Plan Operativo
             if (domain.getSkus() != null) {
-                java.math.BigDecimal kgTotalPT = domain.getSkus().stream()
-                        .map(sku -> sku.getKgProductoTerminado() != null ? sku.getKgProductoTerminado() : java.math.BigDecimal.ZERO)
-                        .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
-                
-                java.math.BigDecimal kgEntradaTotal = domain.getSkus().stream()
-                        .map(sku -> sku.getKgBatchCalculado() != null ? sku.getKgBatchCalculado() : java.math.BigDecimal.ZERO)
-                        .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+                BigDecimal kgTotalPT = domain.getSkus().stream()
+                        .map(sku -> sku.getKgProductoTerminado() != null
+                                ? sku.getKgProductoTerminado()
+                                : BigDecimal.ZERO)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                BigDecimal kgEntradaTotal = domain.getSkus().stream()
+                        .map(sku -> sku.getKgBatchCalculado() != null
+                                ? sku.getKgBatchCalculado()
+                                : BigDecimal.ZERO)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
 
                 domain.setKgPTTotalPlan(kgTotalPT);
                 domain.setKgEntradaTotalPlan(kgEntradaTotal);
             }
         }
 
-        // --- REPARACIÓN DE DATOS PARA ÓRDENES HISTÓRICAS ---
-        // Si la orden está finalizada pero faltan métricas (debido a actualizaciones de versión),
-        // recalculamos para que el usuario no vea datos vacíos en el detalle.
         if (com.yerman.produccion_api.domain.model.EstadoOrdenProduccion.FINALIZADA.equals(domain.getEstado())) {
-            
-            // 1. Recalcular Producto Terminado desde SKUs reales
+
             if (domain.getSkus() != null) {
                 BigDecimal totalSkus = domain.getSkus().stream()
                         .map(s -> s.getCantidadReal() != null ? s.getCantidadReal() : BigDecimal.ZERO)
                         .reduce(BigDecimal.ZERO, BigDecimal::add);
-                
-                // Si el total de SKUs es diferente a lo guardado, priorizamos el detalle real
+
                 if (totalSkus.compareTo(BigDecimal.ZERO) > 0) {
-                    // Si el valor guardado en kgPtReal era el de los baches (error versión anterior),
-                    // lo movemos a kgProducidoBatches antes de sobreescribirlo.
-                    if (domain.getKgProducidoBatches() == null || domain.getKgProducidoBatches().compareTo(BigDecimal.ZERO) == 0) {
+                    if (domain.getKgProducidoBatches() == null
+                            || domain.getKgProducidoBatches().compareTo(BigDecimal.ZERO) == 0) {
                         domain.setKgProducidoBatches(domain.getKgPtReal());
                     }
                     domain.setKgPtReal(totalSkus);
                 }
             }
-            
-            // 2. Recalcular Merma de Empaque si es necesario
+
             if (domain.getKgProducidoBatches() != null && domain.getKgPtReal() != null) {
                 domain.setMermaEmpaque(domain.getKgProducidoBatches().subtract(domain.getKgPtReal()));
             }
-            
-            // 3. Recalcular Merma de Proceso si es necesario
+
             if (domain.getKgEntradaReal() != null && domain.getKgProducidoBatches() != null) {
                 domain.setMermaReal(domain.getKgEntradaReal().subtract(domain.getKgProducidoBatches()));
             }
@@ -128,7 +128,6 @@ public class OrdenProduccionMapper {
             return null;
         }
 
-        // Usar toDomain para aprovechar toda la lógica de mapeo y cálculos
         OrdenProduccion domain = toDomain(entity);
         return OrdenProduccionRestMapper.toResponse(domain);
     }

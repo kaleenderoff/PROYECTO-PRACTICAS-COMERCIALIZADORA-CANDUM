@@ -125,6 +125,7 @@ public class GestionMedicionCalidadLacteaService implements GestionMedicionCalid
         boolean tieneProduccionLactea = medicion.getIdProduccionLactea() != null;
         boolean tieneOrdenProduccion = medicion.getIdOrdenProduccion() != null;
         String nombreProductoOrden = null;
+        Boolean tandasCerradas = false;
 
         if (!tieneProduccionLactea && !tieneOrdenProduccion) {
             throw new ReglaNegocioException(
@@ -148,6 +149,7 @@ public class GestionMedicionCalidadLacteaService implements GestionMedicionCalid
                             "No existe una orden de produccion con ID: " + medicion.getIdOrdenProduccion()));
 
             nombreProductoOrden = orden.getNombreProducto();
+            tandasCerradas = Boolean.TRUE.equals(orden.getTandasCerradas());
 
             validacionGuardService.validarOrdenNoAprobada(medicion.getIdOrdenProduccion());
         }
@@ -155,6 +157,8 @@ public class GestionMedicionCalidadLacteaService implements GestionMedicionCalid
         if (medicion.getTipoMedicion() == null) {
             throw new ReglaNegocioException("El tipo de medicion es obligatorio.");
         }
+
+        validarTandasAbiertasSiAplica(medicion, tandasCerradas);
 
         if (medicion.getReferencia() == null || medicion.getReferencia().isBlank()) {
             throw new ReglaNegocioException("La referencia de la medicion es obligatoria.");
@@ -174,6 +178,17 @@ public class GestionMedicionCalidadLacteaService implements GestionMedicionCalid
 
         if (medicion.getFechaHoraMedicion() == null) {
             medicion.setFechaHoraMedicion(LocalDateTime.now());
+        }
+    }
+
+    private void validarTandasAbiertasSiAplica(MedicionCalidadLactea medicion, Boolean tandasCerradas) {
+        if (medicion.getTipoMedicion() != TipoMedicionCalidadLactea.TANDA) {
+            return;
+        }
+
+        if (Boolean.TRUE.equals(tandasCerradas)) {
+            throw new ReglaNegocioException(
+                    "No se pueden registrar ni modificar tandas porque el registro de tandas de esta orden ya fue cerrado.");
         }
     }
 
@@ -291,6 +306,12 @@ public class GestionMedicionCalidadLacteaService implements GestionMedicionCalid
 
             if (nueva.getTipoMedicion() == TipoMedicionCalidadLactea.MEZCLA
                     && mismosValores(actual.getIdOrdenProduccion(), nueva.getIdOrdenProduccion())) {
+                return;
+            }
+
+            if (nueva.getTipoMedicion() == TipoMedicionCalidadLactea.TANDA
+                    && mismosValores(actual.getIdOrdenProduccion(), nueva.getIdOrdenProduccion())
+                    && mismosValores(actual.getId(), nueva.getId())) {
                 return;
             }
         }

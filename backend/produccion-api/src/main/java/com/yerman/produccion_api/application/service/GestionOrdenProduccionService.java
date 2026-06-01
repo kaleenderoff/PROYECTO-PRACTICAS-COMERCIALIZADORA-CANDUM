@@ -1,20 +1,20 @@
 package com.yerman.produccion_api.application.service;
 
-import com.yerman.produccion_api.domain.model.EstadoOrdenProduccion;
+import com.yerman.produccion_api.application.dto.request.RegistrarProduccionSkuRequest;
+import com.yerman.produccion_api.application.exception.RecursoDuplicadoException;
+import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
+import com.yerman.produccion_api.application.exception.ReglaNegocioException;
 import com.yerman.produccion_api.domain.model.EjecucionBatch;
+import com.yerman.produccion_api.domain.model.EstadoOrdenProduccion;
 import com.yerman.produccion_api.domain.model.OrdenProduccion;
 import com.yerman.produccion_api.domain.model.ProgramacionProduccion;
 import com.yerman.produccion_api.domain.port.in.GestionOrdenProduccionUseCase;
 import com.yerman.produccion_api.domain.port.out.EjecucionBatchRepositoryPort;
 import com.yerman.produccion_api.domain.port.out.OrdenProduccionRepositoryPort;
 import com.yerman.produccion_api.domain.port.out.ProgramacionProduccionRepositoryPort;
-import com.yerman.produccion_api.application.dto.request.RegistrarProduccionSkuRequest;
-import com.yerman.produccion_api.application.exception.RecursoDuplicadoException;
-import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
-import com.yerman.produccion_api.application.exception.ReglaNegocioException;
-import com.yerman.produccion_api.infrastructure.repository.OrdenProduccionDetalleJpaRepository;
 import com.yerman.produccion_api.infrastructure.entity.OrdenProduccionDetalleEntity;
 import com.yerman.produccion_api.infrastructure.entity.ReporteProduccionDiariaEntity;
+import com.yerman.produccion_api.infrastructure.repository.OrdenProduccionDetalleJpaRepository;
 import com.yerman.produccion_api.infrastructure.repository.ReporteProduccionDiariaJpaRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,24 +78,25 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
         orden.setFechaProduccion(programacion.getFechaProduccion());
         orden.setEstado(EstadoOrdenProduccion.PROGRAMADA);
         orden.setObservaciones(observaciones);
+        orden.setTandasCerradas(false);
 
         return ordenRepository.guardar(orden);
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public Optional<OrdenProduccion> obtenerPorId(Long id) {
         return ordenRepository.obtenerPorId(id);
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public List<OrdenProduccion> listarTodas() {
         return ordenRepository.listarTodas();
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public List<OrdenProduccion> listarPorFecha(LocalDate fechaProduccion) {
         return ordenRepository.listarPorFecha(fechaProduccion);
     }
@@ -129,7 +130,11 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
             throw new ReglaNegocioException("Solo se puede finalizar una orden en estado PROGRAMADA o EN_EJECUCION.");
         }
 
-        // 1. Validar que todos los batches esten FINALIZADOS.
+        if (!Boolean.TRUE.equals(orden.getTandasCerradas())) {
+            throw new ReglaNegocioException(
+                    "No se puede finalizar la orden porque el registro de tandas de calidad aun esta abierto. Primero cierre las tandas.");
+        }
+
         var batches = batchRepository.listarPorOrden(idOrden);
 
         if (batches.isEmpty()) {
@@ -144,7 +149,6 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
                     "No se puede finalizar la orden porque existen batches en proceso. Por favor, finalice todos los batches primero.");
         }
 
-        // 2. Validar que se hayan registrado resultados para los SKUs
         var detalles = detalleRepository.findByOrdenId(idOrden);
         BigDecimal totalUnidadesReales = detalles.stream()
                 .map(d -> d.getUnidadesReales() != null ? BigDecimal.valueOf(d.getUnidadesReales()) : BigDecimal.ZERO)
@@ -155,20 +159,14 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
                     "No se puede finalizar la orden porque no se han registrado unidades reales producidas para ningun SKU. Por favor, guarde los resultados de produccion al final de la pagina.");
         }
 
-        // 3. Consolidar batches.
-        // Esto ya se valida arriba, pero podemos asegurar que no haya nada PENDIENTE.
-
-        // 4. Calcular metricas reales finales.
         BigDecimal kgEntradaReal = batches.stream()
                 .map(b -> b.getKgEntrada() != null ? b.getKgEntrada() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // A. Produccion de proceso (marmitas).
         BigDecimal kgProducidoBatches = batches.stream()
                 .map(b -> b.getKgProducidos() != null ? b.getKgProducidos() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // B. Produccion empacada (SKUs).
         BigDecimal kgPtReal = detalles.stream()
                 .map(d -> d.getCantidadReal() != null ? d.getCantidadReal() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -178,16 +176,10 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
         orden.setKgPtReal(kgPtReal);
 
         if (kgEntradaReal.compareTo(BigDecimal.ZERO) > 0) {
-            // Rendimiento = (Kg Producido Batches / Kg Entrada) * 100
-            // Usamos la produccion de marmitas para medir eficiencia de coccion.
             BigDecimal rendimiento = kgProducidoBatches.multiply(new BigDecimal("100"))
                     .divide(kgEntradaReal, 2, RoundingMode.HALF_UP);
             orden.setRendimientoReal(rendimiento);
-
-            // Merma de Proceso = Kg Entrada - Kg Producido Batches
             orden.setMermaReal(kgEntradaReal.subtract(kgProducidoBatches));
-
-            // Balance de empaque = Kg Producido Batches - Kg PT (SKUs)
             orden.setMermaEmpaque(kgProducidoBatches.subtract(kgPtReal));
         } else {
             orden.setRendimientoReal(BigDecimal.ZERO);
@@ -195,11 +187,9 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
             orden.setMermaEmpaque(BigDecimal.ZERO);
         }
 
-        // 4. Cambiar estado y registrar fecha de fin real
         orden.setEstado(EstadoOrdenProduccion.FINALIZADA);
         orden.setFechaFinReal(LocalDateTime.now());
 
-        // Asegurar fecha de inicio si por alguna razon no se registro automaticamente.
         if (orden.getFechaInicioReal() == null) {
             LocalDateTime fechaPrimerBatch = batches.stream()
                     .map(EjecucionBatch::getFechaInicio)
@@ -209,7 +199,6 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
             orden.setFechaInicioReal(fechaPrimerBatch);
         }
 
-        // 5. Validar que la orden tenga tanque. El descuento de leche se registra por batch.
         impactarInventario(orden);
 
         LOGGER.info("Orden {} finalizada exitosamente.", orden.getNumeroOrden());
@@ -226,6 +215,7 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
             throw new ReglaNegocioException(
                     "No hay entrada real registrada para descontar leche del tanque.");
         }
+
         LOGGER.info("Orden {} validada contra tanque ID: {}. El consumo ya fue descontado por batch.",
                 orden.getNumeroOrden(),
                 orden.getIdTanqueLeche());
@@ -253,7 +243,7 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
         validacionGuardService.validarOrdenNoAprobada(idOrden);
 
         if (orden.getEstado() == EstadoOrdenProduccion.FINALIZADA) {
-            throw new ReglaNegocioException("No se pueden registrar SKUs porque la orden ya está FINALIZADA.");
+            throw new ReglaNegocioException("No se pueden registrar SKUs porque la orden ya esta FINALIZADA.");
         }
 
         for (RegistrarProduccionSkuRequest prod : producciones) {
@@ -280,10 +270,63 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
     public OrdenProduccion actualizarTanqueLeche(Long idOrden, Long idTanque) {
         OrdenProduccion orden = buscarOrden(idOrden);
         validacionGuardService.validarOrdenNoAprobada(idOrden);
+
         if (orden.getEstado() == EstadoOrdenProduccion.FINALIZADA) {
             throw new ReglaNegocioException("No se puede cambiar el tanque de una orden ya finalizada.");
         }
+
         orden.setIdTanqueLeche(idTanque);
+        return ordenRepository.guardar(orden);
+    }
+
+    @Override
+    @Transactional
+    public OrdenProduccion cerrarTandas(Long idOrden, Long idUsuarioCierre, String observaciones) {
+        OrdenProduccion orden = buscarOrden(idOrden);
+        validacionGuardService.validarOrdenNoAprobada(idOrden);
+
+        if (orden.getEstado() == EstadoOrdenProduccion.FINALIZADA
+                || orden.getEstado() == EstadoOrdenProduccion.CANCELADA) {
+            throw new ReglaNegocioException("No se pueden cerrar tandas en una orden finalizada o cancelada.");
+        }
+
+        if (Boolean.TRUE.equals(orden.getTandasCerradas())) {
+            throw new ReglaNegocioException("Las tandas de esta orden ya se encuentran cerradas.");
+        }
+
+        if (idUsuarioCierre == null) {
+            throw new ReglaNegocioException("El usuario que cierra las tandas es obligatorio.");
+        }
+
+        orden.setTandasCerradas(true);
+        orden.setFechaCierreTandas(LocalDateTime.now());
+        orden.setIdUsuarioCierreTandas(idUsuarioCierre);
+        orden.setObservacionesCierreTandas(observaciones);
+
+        return ordenRepository.guardar(orden);
+    }
+
+    @Override
+    @Transactional
+    public OrdenProduccion reabrirTandas(Long idOrden) {
+        OrdenProduccion orden = buscarOrden(idOrden);
+        validacionGuardService.validarOrdenNoAprobada(idOrden);
+
+        if (orden.getEstado() == EstadoOrdenProduccion.FINALIZADA
+                || orden.getEstado() == EstadoOrdenProduccion.CANCELADA) {
+            throw new ReglaNegocioException("No se pueden reabrir tandas en una orden finalizada o cancelada.");
+        }
+
+        if (!Boolean.TRUE.equals(orden.getTandasCerradas())) {
+            throw new ReglaNegocioException("Las tandas de esta orden ya estan abiertas.");
+        }
+
+        orden.setTandasCerradas(false);
+        orden.setFechaCierreTandas(null);
+        orden.setIdUsuarioCierreTandas(null);
+        orden.setNombreUsuarioCierreTandas(null);
+        orden.setObservacionesCierreTandas(null);
+
         return ordenRepository.guardar(orden);
     }
 
@@ -298,8 +341,8 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
             return;
         }
 
-        List<OrdenProduccionDetalleEntity> detalles =
-                detalleRepository.findProduccionRealParaReporteDiario(fechaProduccion);
+        List<OrdenProduccionDetalleEntity> detalles = detalleRepository
+                .findProduccionRealParaReporteDiario(fechaProduccion);
 
         reporteProduccionDiariaRepository.deleteByFechaAndFuente(fechaProduccion, "SISTEMA");
 
@@ -351,12 +394,15 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
 
     private ReporteProduccionDiariaEntity.TipoProducto inferirTipoProducto(String producto, String sku) {
         String texto = ((producto != null ? producto : "") + " " + (sku != null ? sku : "")).toUpperCase();
+
         if (texto.contains("CONDENSADA") || texto.contains("LC")) {
             return ReporteProduccionDiariaEntity.TipoProducto.LC;
         }
+
         if (texto.contains("DULCE") || texto.contains("DL") || texto.contains("AREQUIPE")) {
             return ReporteProduccionDiariaEntity.TipoProducto.DL;
         }
+
         return ReporteProduccionDiariaEntity.TipoProducto.OTRO;
     }
 
