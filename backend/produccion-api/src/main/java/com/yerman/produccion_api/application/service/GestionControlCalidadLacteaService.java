@@ -11,6 +11,7 @@ import com.yerman.produccion_api.application.dto.response.ControlPesoProductoRes
 import com.yerman.produccion_api.application.dto.response.EstadoCalidadRecepcionResponse;
 import com.yerman.produccion_api.application.exception.RecursoNoEncontradoException;
 import com.yerman.produccion_api.application.exception.ReglaNegocioException;
+import com.yerman.produccion_api.domain.model.TipoMedicionCalidadLactea;
 import com.yerman.produccion_api.infrastructure.entity.CalidadRecepcionLecheEntity;
 import com.yerman.produccion_api.infrastructure.entity.CatalogoSkuEntity;
 import com.yerman.produccion_api.infrastructure.entity.ControlCalidadProcesoEntity;
@@ -23,6 +24,7 @@ import com.yerman.produccion_api.infrastructure.entity.UsuarioEntity;
 import com.yerman.produccion_api.infrastructure.repository.CalidadRecepcionLecheJpaRepository;
 import com.yerman.produccion_api.infrastructure.repository.ControlCalidadProcesoJpaRepository;
 import com.yerman.produccion_api.infrastructure.repository.ControlPesoProductoJpaRepository;
+import com.yerman.produccion_api.infrastructure.repository.MedicionCalidadLacteaJpaRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -48,6 +50,7 @@ public class GestionControlCalidadLacteaService {
     private final ControlCalidadProcesoJpaRepository procesoRepository;
     private final ControlPesoProductoJpaRepository pesoRepository;
     private final CalidadRecepcionLecheJpaRepository calidadRecepcionRepository;
+    private final MedicionCalidadLacteaJpaRepository medicionCalidadRepository;
     private final EntityManager entityManager;
     private final ValidacionOrdenProduccionGuardService validacionGuardService;
 
@@ -55,11 +58,13 @@ public class GestionControlCalidadLacteaService {
             ControlCalidadProcesoJpaRepository procesoRepository,
             ControlPesoProductoJpaRepository pesoRepository,
             CalidadRecepcionLecheJpaRepository calidadRecepcionRepository,
+            MedicionCalidadLacteaJpaRepository medicionCalidadRepository,
             EntityManager entityManager,
             ValidacionOrdenProduccionGuardService validacionGuardService) {
         this.procesoRepository = procesoRepository;
         this.pesoRepository = pesoRepository;
         this.calidadRecepcionRepository = calidadRecepcionRepository;
+        this.medicionCalidadRepository = medicionCalidadRepository;
         this.entityManager = entityManager;
         this.validacionGuardService = validacionGuardService;
     }
@@ -436,7 +441,8 @@ public class GestionControlCalidadLacteaService {
         }
 
         validarTexto(request.presentacion(), "Debe registrar la presentacion.");
-        validarTexto(request.numeroTanda(), "Debe registrar el numero de tanda.");
+        validarTexto(request.numeroTanda(), "Debe seleccionar una tanda registrada.");
+        validarTandaExisteEnOrden(request.idOrdenProduccion(), request.numeroTanda());
         validarTexto(request.rangoBatches(), "Debe registrar el rango de batches.");
 
         validarNumeroNoNegativoOpcional(request.pesoBrutoPromedio(), "Peso bruto promedio");
@@ -465,6 +471,22 @@ public class GestionControlCalidadLacteaService {
                         || Boolean.FALSE.equals(request.tapadoOk()))) {
             throw new ReglaNegocioException(
                     "No puede liberar producto terminado si apariencia, etiquetado o tapado no estan conformes.");
+        }
+    }
+
+    private void validarTandaExisteEnOrden(Long idOrdenProduccion, String numeroTanda) {
+        if (idOrdenProduccion == null || numeroTanda == null || numeroTanda.isBlank()) {
+            throw new ReglaNegocioException("Debe seleccionar una tanda registrada.");
+        }
+
+        boolean existe = medicionCalidadRepository.existsByOrdenProduccionIdAndTipoMedicionAndReferencia(
+                idOrdenProduccion,
+                TipoMedicionCalidadLactea.TANDA,
+                numeroTanda.trim());
+
+        if (!existe) {
+            throw new ReglaNegocioException(
+                    "La tanda seleccionada no existe en las mediciones de calidad de esta orden. Primero registre la tanda en Brix / pH rapido.");
         }
     }
 

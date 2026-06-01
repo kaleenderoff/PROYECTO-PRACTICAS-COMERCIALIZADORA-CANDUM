@@ -546,6 +546,16 @@
                 Está corrigiendo un control de peso existente.
             </p>
 
+            <div *ngIf="medicionesTanda.length === 0" class="mb-5 p-4 bg-amber-50 text-amber-700 rounded-2xl">
+                <p class="text-xs font-black uppercase tracking-widest mb-1">
+                    Tandas pendientes
+                </p>
+                <p class="text-sm font-bold">
+                    Para registrar peso producto terminado primero debe registrar al menos una tanda en Brix / pH
+                    rápido.
+                </p>
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <input type="date" [(ngModel)]="pesoForm.fechaControl"
                     class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
@@ -556,8 +566,17 @@
                 <input type="text" [(ngModel)]="pesoForm.marca" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold"
                     placeholder="Marca">
 
-                <input type="text" [(ngModel)]="pesoForm.lote" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold"
-                    placeholder="Lote">
+                <select [(ngModel)]="pesoForm.numeroTanda" (ngModelChange)="onCambioTandaPeso()"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
+                    <option value="">Seleccionar tanda</option>
+                    <option *ngFor="let tanda of medicionesTanda" [value]="tanda.referencia">
+                        {{ tanda.referencia }} - Brix {{ tanda.brix }}{{ tanda.ph ? ' - pH ' + tanda.ph : '' }}
+                    </option>
+                </select>
+
+                <input type="text" [(ngModel)]="pesoForm.lote" readonly
+                    class="px-4 py-3 bg-slate-100 rounded-2xl font-bold text-slate-700 cursor-not-allowed"
+                    placeholder="Lote automático">
 
                 <input type="date" [(ngModel)]="pesoForm.fechaVencimiento"
                     class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
@@ -565,11 +584,8 @@
                 <input type="text" [(ngModel)]="pesoForm.presentacion"
                     class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Presentación">
 
-                <input type="text" [(ngModel)]="pesoForm.numeroTanda"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Tanda">
-
                 <input type="text" [(ngModel)]="pesoForm.rangoBatches"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Batches: B4-8">
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Batches: B1-B4">
             </div>
 
             <div class="mt-6 overflow-x-auto">
@@ -648,7 +664,7 @@
                 class="mt-4 w-full p-4 bg-slate-50 rounded-2xl font-medium" placeholder="Observaciones"></textarea>
 
             <div class="mt-6 flex flex-col sm:flex-row gap-3">
-                <button type="button" (click)="registrarPeso()" [disabled]="guardando"
+                <button type="button" (click)="registrarPeso()" [disabled]="guardando || medicionesTanda.length === 0"
                     class="px-8 py-4 bg-violet-600 hover:bg-violet-700 disabled:bg-slate-200 text-white rounded-2xl font-black transition-all">
                     {{ idPesoEditando ? 'ACTUALIZAR CONTROL DE PESO' : 'GUARDAR CONTROL DE PESO' }}
                 </button>
@@ -672,8 +688,11 @@
                     </p>
 
                     <p class="text-xs text-slate-500">
-                        Promedio neto {{ control.pesoNetoPromedio || '-' }} - {{ control.rangoBatches || 'Sin batches'
-                        }}
+                        Tanda {{ control.numeroTanda || '-' }} - Promedio neto {{ control.pesoNetoPromedio || '-' }}
+                    </p>
+
+                    <p class="text-xs text-slate-500">
+                        {{ control.rangoBatches || 'Sin batches' }}
                     </p>
 
                     <div *ngIf="authService.canWriteCalidad()" class="flex gap-2 mt-3">

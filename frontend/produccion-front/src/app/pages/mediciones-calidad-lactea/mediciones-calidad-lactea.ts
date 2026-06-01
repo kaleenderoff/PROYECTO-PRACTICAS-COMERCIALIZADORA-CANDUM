@@ -388,9 +388,7 @@ export class MedicionesCalidadLactea implements OnInit {
 
     if (!this.validarBase(idRealizadoPor)) return;
 
-    if (!this.pesoForm.lote?.trim()) {
-      this.pesoForm.lote = this.generarLotePesoAutomatico();
-    }
+    this.pesoForm.lote = this.generarLotePesoAutomatico();
 
     if (!this.validarFormularioPeso()) return;
 
@@ -445,6 +443,10 @@ export class MedicionesCalidadLactea implements OnInit {
 
     this.procesoForm.numeroMarmita = batch?.numeroBatch || null;
     this.procesoForm.lote = this.generarLoteProcesoAutomatico();
+  }
+
+  onCambioTandaPeso(): void {
+    this.pesoForm.lote = this.generarLotePesoAutomatico();
   }
 
   editarProceso(control: ControlCalidadProcesoResponse): void {
@@ -1013,8 +1015,18 @@ export class MedicionesCalidadLactea implements OnInit {
       return false;
     }
 
+    if (!this.pesoForm.numeroTanda?.trim()) {
+      this.notification.warning('Debe seleccionar una tanda registrada.');
+      return false;
+    }
+
+    if (!this.tandaExiste(this.pesoForm.numeroTanda)) {
+      this.notification.warning('La tanda seleccionada no existe. Primero registre la tanda en Brix / pH rápido.');
+      return false;
+    }
+
     if (!this.pesoForm.lote?.trim()) {
-      this.notification.warning('Debe registrar el lote.');
+      this.notification.warning('No se pudo generar el lote del producto terminado.');
       return false;
     }
 
@@ -1025,11 +1037,6 @@ export class MedicionesCalidadLactea implements OnInit {
 
     if (!this.pesoForm.presentacion?.trim()) {
       this.notification.warning('Debe registrar la presentación.');
-      return false;
-    }
-
-    if (!this.pesoForm.numeroTanda?.trim()) {
-      this.notification.warning('Debe registrar el número de tanda.');
       return false;
     }
 
@@ -1086,6 +1093,10 @@ export class MedicionesCalidadLactea implements OnInit {
     }
 
     return true;
+  }
+
+  private tandaExiste(referenciaTanda: string): boolean {
+    return this.medicionesTanda.some(tanda => tanda.referencia === referenciaTanda);
   }
 
   private crearProcesoForm() {
@@ -1216,21 +1227,12 @@ export class MedicionesCalidadLactea implements OnInit {
   private generarLotePesoAutomatico(): string {
     const orden = this.obtenerOrdenSeleccionada();
 
-    if (!orden) {
+    if (!orden || !this.pesoForm.numeroTanda?.trim()) {
       return '';
     }
 
     const numeroOrden = this.obtenerNumeroOrdenLegible(orden);
-
-    if (this.pesoForm.numeroTanda?.trim()) {
-      return `${numeroOrden}-${this.normalizarSegmentoLote(this.pesoForm.numeroTanda)}`;
-    }
-
-    if (this.pesoForm.rangoBatches?.trim()) {
-      return `${numeroOrden}-${this.normalizarSegmentoLote(this.pesoForm.rangoBatches)}`;
-    }
-
-    return `${numeroOrden}-PT`;
+    return `${numeroOrden}-${this.normalizarSegmentoLote(this.pesoForm.numeroTanda)}`;
   }
 
   private obtenerNumeroOrdenLegible(orden: OrdenProduccionResponse): string {
