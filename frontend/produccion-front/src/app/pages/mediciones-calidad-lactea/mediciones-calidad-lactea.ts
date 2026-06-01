@@ -17,7 +17,11 @@ import {
   TipoMedicionCalidadLactea
 } from '../../core/services/medicion-calidad-lactea';
 import { NotificationService } from '../../core/services/notification';
-import { OrdenProduccionResponse, OrdenProduccionService } from '../../core/services/orden-produccion';
+import {
+  OrdenProduccionResponse,
+  OrdenProduccionService,
+  ProgramacionSkuResponse
+} from '../../core/services/orden-produccion';
 
 @Component({
   selector: 'app-mediciones-calidad-lactea',
@@ -204,6 +208,7 @@ export class MedicionesCalidadLactea implements OnInit {
 
           this.reiniciarProcesoFormConSiguienteBatch();
           this.pesoForm = this.crearPesoForm();
+          this.autocompletarPesoDesdeOrden();
 
           this.autocompletarReferencia();
 
@@ -395,6 +400,7 @@ export class MedicionesCalidadLactea implements OnInit {
   cancelarEdicionPeso(): void {
     this.idPesoEditando = null;
     this.pesoForm = this.crearPesoForm();
+    this.autocompletarPesoDesdeOrden();
   }
 
   editarMedicion(medicion: MedicionCalidadLacteaResponse): void {
@@ -664,6 +670,7 @@ export class MedicionesCalidadLactea implements OnInit {
 
         this.idPesoEditando = null;
         this.pesoForm = this.crearPesoForm();
+        this.autocompletarPesoDesdeOrden();
         this.cargarDatosOrden();
       },
       error: err => {
@@ -684,6 +691,29 @@ export class MedicionesCalidadLactea implements OnInit {
 
   onCambioTandaPeso(): void {
     this.pesoForm.lote = this.generarLotePesoAutomatico();
+  }
+
+  onCambioSkuPeso(idSku?: number | null): void {
+    if (!idSku) {
+      this.pesoForm.idSku = null;
+      this.pesoForm.presentacion = '';
+      return;
+    }
+
+    const sku = this.obtenerSkuOrden(idSku);
+
+    if (!sku) {
+      return;
+    }
+
+    this.pesoForm.idSku = Number(sku.idSku);
+    this.pesoForm.producto = this.obtenerOrdenSeleccionada()?.nombreProducto || this.pesoForm.producto;
+    this.pesoForm.presentacion = this.obtenerPresentacionSku(sku);
+    this.pesoForm.marca = this.obtenerMarcaSku(sku);
+  }
+
+  onCambioRangoBatchesPeso(rango: string): void {
+    this.pesoForm.rangoBatches = rango;
   }
 
   editarProceso(control: ControlCalidadProcesoResponse): void {
@@ -869,6 +899,16 @@ export class MedicionesCalidadLactea implements OnInit {
     return this.batches.find(b => Number(b.id) === Number(idBatch));
   }
 
+  obtenerSkuOrden(idSku?: number | null): ProgramacionSkuResponse | undefined {
+    const orden = this.obtenerOrdenSeleccionada();
+
+    if (!orden?.skus?.length || !idSku) {
+      return undefined;
+    }
+
+    return orden.skus.find(sku => Number(sku.idSku) === Number(idSku));
+  }
+
   get medicionesRapidasBatch(): MedicionCalidadLacteaResponse[] {
     return this.mediciones.filter(m =>
       m.tipoMedicion === 'BACHE' &&
@@ -991,6 +1031,49 @@ export class MedicionesCalidadLactea implements OnInit {
 
   get procesoTodosBatchesRegistrados(): boolean {
     return this.batches.length > 0 && this.batchesDisponiblesParaProceso.length === 0;
+  }
+
+  get skusOrden(): ProgramacionSkuResponse[] {
+    return this.obtenerOrdenSeleccionada()?.skus || [];
+  }
+
+  get opcionesMarcaPeso(): string[] {
+    const marcas = this.skusOrden
+      .map(sku => this.obtenerMarcaSku(sku))
+      .filter(valor => Boolean(valor));
+
+    return this.unicos(marcas.length ? marcas : ['Yerman']);
+  }
+
+  get opcionesPresentacionPeso(): string[] {
+    return this.unicos(
+      this.skusOrden
+        .map(sku => this.obtenerPresentacionSku(sku))
+        .filter(valor => Boolean(valor))
+    );
+  }
+
+  get opcionesRangoBatchesPeso(): string[] {
+    if (!this.batches.length) {
+      return [];
+    }
+
+    const batchesOrdenados = [...this.batches].sort((a, b) => Number(a.numeroBatch) - Number(b.numeroBatch));
+    const primero = batchesOrdenados[0];
+    const ultimo = batchesOrdenados[batchesOrdenados.length - 1];
+
+    const opciones = [
+      `B${primero.numeroBatch}-B${ultimo.numeroBatch}`,
+      ...batchesOrdenados.map(batch => `B${batch.numeroBatch}`)
+    ];
+
+    if (batchesOrdenados.length > 1) {
+      for (let i = 0; i < batchesOrdenados.length - 1; i++) {
+        opciones.push(`B${batchesOrdenados[i].numeroBatch}-B${batchesOrdenados[i + 1].numeroBatch}`);
+      }
+    }
+
+    return this.unicos(opciones);
   }
 
   batchYaMedido(idBatch: number): boolean {
@@ -1343,7 +1426,7 @@ export class MedicionesCalidadLactea implements OnInit {
     }
 
     if (!this.pesoForm.marca?.trim()) {
-      this.notification.warning('Debe registrar la marca.');
+      this.notification.warning('Debe seleccionar la marca.');
       return false;
     }
 
@@ -1368,12 +1451,12 @@ export class MedicionesCalidadLactea implements OnInit {
     }
 
     if (!this.pesoForm.presentacion?.trim()) {
-      this.notification.warning('Debe registrar la presentación.');
+      this.notification.warning('Debe seleccionar la presentación.');
       return false;
     }
 
     if (!this.pesoForm.rangoBatches?.trim()) {
-      this.notification.warning('Debe registrar el rango de batches.');
+      this.notification.warning('Debe seleccionar el rango de batches.');
       return false;
     }
 
@@ -1523,6 +1606,29 @@ export class MedicionesCalidadLactea implements OnInit {
     this.procesoForm.numeroMarmita = null;
   }
 
+  private autocompletarPesoDesdeOrden(): void {
+    const orden = this.obtenerOrdenSeleccionada();
+
+    if (!orden) {
+      return;
+    }
+
+    this.pesoForm.producto = orden.nombreProducto || this.pesoForm.producto;
+    this.pesoForm.lote = this.generarLotePesoAutomatico();
+
+    const primerSku = this.skusOrden[0];
+
+    if (primerSku && !this.pesoForm.idSku) {
+      this.pesoForm.idSku = Number(primerSku.idSku);
+      this.pesoForm.presentacion = this.obtenerPresentacionSku(primerSku);
+      this.pesoForm.marca = this.obtenerMarcaSku(primerSku);
+    }
+
+    if (!this.pesoForm.rangoBatches && this.opcionesRangoBatchesPeso.length) {
+      this.pesoForm.rangoBatches = this.opcionesRangoBatchesPeso[0];
+    }
+  }
+
   private sincronizarDatosBatchProceso(): void {
     const batch = this.obtenerBatch(this.procesoForm.idEjecucionBatch);
 
@@ -1655,6 +1761,38 @@ export class MedicionesCalidadLactea implements OnInit {
     if (!this.ordenes.some(orden => Number(orden.id) === Number(ordenActualizada.id))) {
       this.ordenes = [ordenActualizada, ...this.ordenes];
     }
+  }
+
+  private obtenerPresentacionSku(sku: ProgramacionSkuResponse): string {
+    const peso = Number(sku.pesoUnidadGr || 0);
+
+    if (peso > 0) {
+      return `${peso} g`;
+    }
+
+    return sku.descripcionSku || sku.codigoSku || 'Presentación programada';
+  }
+
+  private obtenerMarcaSku(sku: ProgramacionSkuResponse): string {
+    const texto = `${sku.codigoSku || ''} ${sku.descripcionSku || ''}`.toUpperCase();
+
+    if (texto.includes('YERMAN')) {
+      return 'Yerman';
+    }
+
+    if (texto.includes('CANDUM')) {
+      return 'Candum';
+    }
+
+    return 'Yerman';
+  }
+
+  private unicos(valores: string[]): string[] {
+    return [...new Set(
+      valores
+        .map(valor => String(valor || '').trim())
+        .filter(valor => Boolean(valor))
+    )];
   }
 
   private normalizarSegmentoLote(valor: string): string {

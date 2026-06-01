@@ -690,11 +690,16 @@
                 <input type="date" [(ngModel)]="pesoForm.fechaControl"
                     class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
 
-                <input type="text" [(ngModel)]="pesoForm.producto" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold"
+                <input type="text" [(ngModel)]="pesoForm.producto" readonly
+                    class="px-4 py-3 bg-slate-100 rounded-2xl font-bold text-slate-700 cursor-not-allowed"
                     placeholder="Producto">
 
-                <input type="text" [(ngModel)]="pesoForm.marca" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold"
-                    placeholder="Marca">
+                <select [(ngModel)]="pesoForm.marca" class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
+                    <option value="">Marca</option>
+                    <option *ngFor="let marca of opcionesMarcaPeso" [value]="marca">
+                        {{ marca }}
+                    </option>
+                </select>
 
                 <select [(ngModel)]="pesoForm.numeroTanda" (ngModelChange)="onCambioTandaPeso()"
                     class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
@@ -711,11 +716,50 @@
                 <input type="date" [(ngModel)]="pesoForm.fechaVencimiento"
                     class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
 
-                <input type="text" [(ngModel)]="pesoForm.presentacion"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Presentación">
+                <select [(ngModel)]="pesoForm.idSku" (ngModelChange)="onCambioSkuPeso($event)"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
+                    <option [ngValue]="null">Presentación</option>
+                    <option *ngFor="let sku of skusOrden" [ngValue]="sku.idSku">
+                        {{ sku.pesoUnidadGr || '-' }} g - {{ sku.descripcionSku || sku.codigoSku }}
+                    </option>
+                </select>
 
-                <input type="text" [(ngModel)]="pesoForm.rangoBatches"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Batches: B1-B4">
+                <select [(ngModel)]="pesoForm.rangoBatches" (ngModelChange)="onCambioRangoBatchesPeso($event)"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
+                    <option value="">Batches</option>
+                    <option *ngFor="let rango of opcionesRangoBatchesPeso" [value]="rango">
+                        {{ rango }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="p-4 bg-slate-50 rounded-2xl">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        Presentación seleccionada
+                    </p>
+                    <p class="font-black text-slate-800 mt-1">
+                        {{ pesoForm.presentacion || 'Sin presentación' }}
+                    </p>
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-2xl">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        SKU
+                    </p>
+                    <p class="font-black text-slate-800 mt-1">
+                        {{ pesoForm.idSku || 'Sin SKU' }}
+                    </p>
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-2xl">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        Rango de batches
+                    </p>
+                    <p class="font-black text-slate-800 mt-1">
+                        {{ pesoForm.rangoBatches || 'Sin rango' }}
+                    </p>
+                </div>
             </div>
 
             <div class="mt-6 overflow-x-auto">
@@ -819,6 +863,10 @@
 
                     <p class="text-xs text-slate-500">
                         Tanda {{ control.numeroTanda || '-' }} - Promedio neto {{ control.pesoNetoPromedio || '-' }}
+                    </p>
+
+                    <p class="text-xs text-slate-500">
+                        {{ control.marca || 'Sin marca' }} - {{ control.presentacion || 'Sin presentación' }}
                     </p>
 
                     <p class="text-xs text-slate-500">
