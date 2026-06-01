@@ -36,6 +36,8 @@ interface GrupoPesoProducto {
   controles: ControlPesoProductoResponse[];
 }
 
+type EstadoCalidadOrden = 'SIN_CONSULTAR' | 'PENDIENTE' | 'EN_PROCESO' | 'TANDAS_CERRADAS' | 'COMPLETA';
+
 @Component({
   selector: 'app-mediciones-calidad-lactea',
   imports: [CommonModule, FormsModule],
@@ -51,13 +53,19 @@ export class MedicionesCalidadLactea implements OnInit {
   marcas: MarcaCatalogo[] = [];
 
   idOrdenSeleccionada = 0;
-  pestanaActiva: 'rapida' | 'proceso' | 'peso' = 'rapida';
+  pestanaActiva: 'rapida' | 'proceso' | 'peso' | 'resumen' = 'rapida';
+
   cargando = false;
   guardando = false;
   cerrandoTandas = false;
   reabriendoTandas = false;
   resumenWhatsappVisible = false;
+  detalleCalidadAbierto = false;
   error = '';
+
+  busquedaOrdenCalidad = '';
+  filtroEstadoCalidad: 'TODOS' | EstadoCalidadOrden = 'TODOS';
+  filtroFechaCalidad = '';
 
   idMedicionEditando: number | null = null;
   idProcesoEditando: number | null = null;
@@ -149,11 +157,12 @@ export class MedicionesCalidadLactea implements OnInit {
     this.ordenService.listar().subscribe({
       next: (ordenes) => {
         this.ordenes = ordenes;
+
         const ordenActiva = ordenes.find(o => o.estado === 'EN_EJECUCION') || ordenes[0];
 
         if (ordenActiva) {
           this.idOrdenSeleccionada = ordenActiva.id;
-          this.cargarDatosOrden();
+          this.cargarDatosOrden(false);
         } else {
           this.cargando = false;
         }
@@ -165,7 +174,7 @@ export class MedicionesCalidadLactea implements OnInit {
     });
   }
 
-  cargarDatosOrden(): void {
+  cargarDatosOrden(abrirDetalle = true): void {
     if (!this.idOrdenSeleccionada) {
       this.batches = [];
       this.mediciones = [];
@@ -177,6 +186,10 @@ export class MedicionesCalidadLactea implements OnInit {
 
     this.cargando = true;
     this.error = '';
+
+    if (abrirDetalle) {
+      this.detalleCalidadAbierto = true;
+    }
 
     forkJoin({
       orden: this.ordenService.obtenerPorId(this.idOrdenSeleccionada).pipe(
@@ -245,6 +258,37 @@ export class MedicionesCalidadLactea implements OnInit {
     });
   }
 
+  abrirDetalleOrden(orden: OrdenProduccionResponse): void {
+    this.idOrdenSeleccionada = orden.id;
+    this.pestanaActiva = 'rapida';
+    this.resumenWhatsappVisible = false;
+    this.idMedicionEditando = null;
+    this.idProcesoEditando = null;
+    this.idPesoEditando = null;
+
+    this.formulario = {
+      tipoMedicion: 'BACHE',
+      idEjecucionBatch: 0,
+      referencia: '',
+      brix: null,
+      ph: null,
+      observaciones: ''
+    };
+
+    this.procesoForm = this.crearProcesoForm();
+    this.pesoForm = this.crearPesoForm();
+
+    this.cargarDatosOrden(true);
+  }
+
+  cerrarDetalleCalidad(): void {
+    this.detalleCalidadAbierto = false;
+    this.idMedicionEditando = null;
+    this.idProcesoEditando = null;
+    this.idPesoEditando = null;
+    this.resumenWhatsappVisible = false;
+  }
+
   onCambioOrden(): void {
     this.formulario.idEjecucionBatch = 0;
     this.formulario.referencia = '';
@@ -260,7 +304,13 @@ export class MedicionesCalidadLactea implements OnInit {
     this.procesoForm = this.crearProcesoForm();
     this.pesoForm = this.crearPesoForm();
 
-    this.cargarDatosOrden();
+    this.cargarDatosOrden(true);
+  }
+
+  limpiarFiltrosCalidad(): void {
+    this.busquedaOrdenCalidad = '';
+    this.filtroEstadoCalidad = 'TODOS';
+    this.filtroFechaCalidad = '';
   }
 
   onCambioTipo(): void {
@@ -636,7 +686,7 @@ export class MedicionesCalidadLactea implements OnInit {
         );
 
         this.idProcesoEditando = null;
-        this.cargarDatosOrden();
+        this.cargarDatosOrden(false);
       },
       error: err => {
         this.notification.error(err.error?.message || 'No se pudo registrar el control de proceso.');
@@ -699,7 +749,7 @@ export class MedicionesCalidadLactea implements OnInit {
         this.idPesoEditando = null;
         this.pesoForm = this.crearPesoForm();
         this.autocompletarPesoDesdeOrden();
-        this.cargarDatosOrden();
+        this.cargarDatosOrden(false);
       },
       error: err => {
         this.notification.error(err.error?.message || 'No se pudo registrar el control de peso.');
@@ -943,6 +993,52 @@ export class MedicionesCalidadLactea implements OnInit {
     }
 
     return orden.skus.find(sku => Number(sku.idSku) === Number(idSku));
+  }
+
+  get ordenesFiltradasCalidad(): OrdenProduccionResponse[] {
+    const busqueda = this.normalizarTexto(this.busquedaOrdenCalidad);
+
+    return this.ordenes.filter(orden => {
+      const textoOrden = this.normalizarTexto([
+        orden.id,
+        orden.nombreProducto,
+        orden.fechaProduccion,
+        orden.estado,
+        (orden as any).numeroOrden
+      ].join(' '));
+
+      const coincideBusqueda = !busqueda || textoOrden.includes(busqueda);
+      const coincideFecha = !this.filtroFechaCalidad || orden.fechaProduccion === this.filtroFechaCalidad;
+
+      const estado = this.estadoCalidadOrden(orden);
+      const coincideEstado = this.filtroEstadoCalidad === 'TODOS' || estado === this.filtroEstadoCalidad;
+
+      return coincideBusqueda && coincideFecha && coincideEstado;
+    });
+  }
+
+  get ordenDetalleSeleccionada(): OrdenProduccionResponse | undefined {
+    return this.obtenerOrdenSeleccionada();
+  }
+
+  get totalOrdenesCalidad(): number {
+    return this.ordenes.length;
+  }
+
+  get totalOrdenesFiltradasCalidad(): number {
+    return this.ordenesFiltradasCalidad.length;
+  }
+
+  get totalOrdenesCalidadTandasCerradas(): number {
+    return this.ordenes.filter(orden => Boolean(orden.tandasCerradas)).length;
+  }
+
+  get totalOrdenesCalidadEnEjecucion(): number {
+    return this.ordenes.filter(orden => orden.estado === 'EN_EJECUCION').length;
+  }
+
+  get totalOrdenesCalidadCompletasEstimadas(): number {
+    return this.ordenes.filter(orden => this.estadoCalidadOrden(orden) === 'COMPLETA').length;
   }
 
   get medicionesRapidasBatch(): MedicionCalidadLacteaResponse[] {
@@ -1211,6 +1307,75 @@ export class MedicionesCalidadLactea implements OnInit {
       this.notification.warning('No se pudo copiar automáticamente. Seleccione el texto y cópielo manualmente.');
       this.resumenWhatsappVisible = true;
     }
+  }
+
+  estadoCalidadOrden(orden: OrdenProduccionResponse): EstadoCalidadOrden {
+    const esOrdenSeleccionada = Number(orden.id) === Number(this.idOrdenSeleccionada);
+
+    if (!esOrdenSeleccionada) {
+      if (Boolean(orden.tandasCerradas)) {
+        return 'TANDAS_CERRADAS';
+      }
+
+      if (orden.estado === 'EN_EJECUCION') {
+        return 'PENDIENTE';
+      }
+
+      return 'SIN_CONSULTAR';
+    }
+
+    const batchesOk = this.totalBatches > 0 && this.totalBatchesMedidos >= this.totalBatches;
+    const mezclaOk = this.mezclaRegistrada;
+    const procesoOk = this.totalBatches > 0 && this.totalBatchesConControlProceso >= this.totalBatches;
+    const pesoOk = this.controlesPeso.length > 0;
+
+    if (batchesOk && mezclaOk && this.tandasCerradas && procesoOk && pesoOk) {
+      return 'COMPLETA';
+    }
+
+    if (this.tandasCerradas) {
+      return 'TANDAS_CERRADAS';
+    }
+
+    if (this.mediciones.length || this.controlesProceso.length || this.controlesPeso.length) {
+      return 'EN_PROCESO';
+    }
+
+    return 'PENDIENTE';
+  }
+
+  textoEstadoCalidadOrden(orden: OrdenProduccionResponse): string {
+    const estado = this.estadoCalidadOrden(orden);
+
+    if (estado === 'COMPLETA') return 'Completa';
+    if (estado === 'TANDAS_CERRADAS') return 'Tandas cerradas';
+    if (estado === 'EN_PROCESO') return 'En proceso';
+    if (estado === 'PENDIENTE') return 'Pendiente';
+    return 'Por consultar';
+  }
+
+  claseEstadoCalidadOrden(orden: OrdenProduccionResponse): string {
+    const estado = this.estadoCalidadOrden(orden);
+
+    if (estado === 'COMPLETA') return 'bg-emerald-100 text-emerald-700';
+    if (estado === 'TANDAS_CERRADAS') return 'bg-blue-100 text-blue-700';
+    if (estado === 'EN_PROCESO') return 'bg-violet-100 text-violet-700';
+    if (estado === 'PENDIENTE') return 'bg-amber-100 text-amber-700';
+    return 'bg-slate-100 text-slate-500';
+  }
+
+  obtenerResumenOrdenLista(orden: OrdenProduccionResponse): string {
+    const esOrdenSeleccionada = Number(orden.id) === Number(this.idOrdenSeleccionada);
+
+    if (!esOrdenSeleccionada) {
+      if (Boolean(orden.tandasCerradas)) {
+        return 'Tandas cerradas. Abra el detalle para consultar mediciones.';
+      }
+
+      return 'Abra el detalle para consultar el avance de calidad.';
+    }
+
+    return `Batches ${this.totalBatchesMedidos}/${this.totalBatches || 0} · Mezcla ${this.mezclaRegistrada ? 'OK' : 'Pendiente'} · Tandas ${this.totalTandasRegistradas} · Proceso ${this.totalBatchesConControlProceso}/${this.totalBatches || 0} · Peso ${this.controlesPeso.length}`;
   }
 
   private validarBase(idUsuario: number): boolean {
