@@ -561,14 +561,29 @@
                 <input type="number" step="0.01" [(ngModel)]="procesoForm.temperaturaEnvasado"
                     class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Temp. envasado">
 
-                <input type="text" [(ngModel)]="procesoForm.colorVisual"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Color visual">
+                <select [(ngModel)]="procesoForm.colorVisual" (ngModelChange)="onCambioEvaluacionProceso()"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
+                    <option value="">Color visual</option>
+                    <option *ngFor="let opcion of opcionesColorVisual" [value]="opcion">
+                        {{ opcion }}
+                    </option>
+                </select>
 
-                <input type="text" [(ngModel)]="procesoForm.saborVisual"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Sabor">
+                <select [(ngModel)]="procesoForm.saborVisual" (ngModelChange)="onCambioEvaluacionProceso()"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
+                    <option value="">Sabor</option>
+                    <option *ngFor="let opcion of opcionesSaborVisual" [value]="opcion">
+                        {{ opcion }}
+                    </option>
+                </select>
 
-                <input type="text" [(ngModel)]="procesoForm.texturaVisual"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Textura">
+                <select [(ngModel)]="procesoForm.texturaVisual" (ngModelChange)="onCambioEvaluacionProceso()"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
+                    <option value="">Textura</option>
+                    <option *ngFor="let opcion of opcionesTexturaVisual" [value]="opcion">
+                        {{ opcion }}
+                    </option>
+                </select>
 
                 <input type="date" [(ngModel)]="procesoForm.fechaVencimiento"
                     class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">

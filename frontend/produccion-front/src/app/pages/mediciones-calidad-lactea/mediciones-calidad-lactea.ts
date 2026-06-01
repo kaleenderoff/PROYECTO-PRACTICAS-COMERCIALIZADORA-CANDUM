@@ -56,6 +56,45 @@ export class MedicionesCalidadLactea implements OnInit {
     'Otro'
   ];
 
+  readonly opcionesColorVisual = [
+    'Normal',
+    'Característico',
+    'Más claro de lo esperado',
+    'Más oscuro de lo esperado',
+    'No conforme',
+    'Otro'
+  ];
+
+  readonly opcionesSaborVisual = [
+    'Característico',
+    'Conforme',
+    'Dulce alto',
+    'Dulce bajo',
+    'Sabor extraño',
+    'No conforme',
+    'Otro'
+  ];
+
+  readonly opcionesTexturaVisual = [
+    'Conforme',
+    'Homogénea',
+    'Líquida',
+    'Espesa',
+    'Grumosa',
+    'Cristalizada',
+    'No conforme',
+    'Otro'
+  ];
+
+  private readonly valoresEvaluacionNoConforme = [
+    'NO CONFORME',
+    'SABOR EXTRAÑO',
+    'MAS CLARO DE LO ESPERADO',
+    'MAS OSCURO DE LO ESPERADO',
+    'GRUMOSA',
+    'CRISTALIZADA'
+  ];
+
   formulario = {
     tipoMedicion: 'BACHE' as TipoMedicionCalidadLactea,
     idEjecucionBatch: 0,
@@ -217,6 +256,22 @@ export class MedicionesCalidadLactea implements OnInit {
 
   onCambioBatch(): void {
     this.autocompletarReferencia();
+  }
+
+  onCambioEvaluacionProceso(): void {
+    if (!this.evaluacionProcesoSugiereRetencion()) {
+      return;
+    }
+
+    if (!this.procesoForm.liberado && !this.procesoForm.retenido) {
+      this.procesoForm.retenido = true;
+      this.notification.warning('La evaluación visual sugiere retener el producto. Se marcó Retenido automáticamente.');
+      return;
+    }
+
+    if (this.procesoForm.liberado) {
+      this.notification.warning('La evaluación visual tiene una novedad. Revise si el producto debe quedar Retenido en lugar de Liberado.');
+    }
   }
 
   prepararNuevaTanda(): void {
@@ -1234,17 +1289,17 @@ export class MedicionesCalidadLactea implements OnInit {
     }
 
     if (!this.procesoForm.colorVisual?.trim()) {
-      this.notification.warning('Debe registrar el color visual.');
+      this.notification.warning('Debe seleccionar el color visual.');
       return false;
     }
 
     if (!this.procesoForm.saborVisual?.trim()) {
-      this.notification.warning('Debe registrar el sabor.');
+      this.notification.warning('Debe seleccionar el sabor.');
       return false;
     }
 
     if (!this.procesoForm.texturaVisual?.trim()) {
-      this.notification.warning('Debe registrar la textura.');
+      this.notification.warning('Debe seleccionar la textura.');
       return false;
     }
 
@@ -1265,6 +1320,11 @@ export class MedicionesCalidadLactea implements OnInit {
 
     if (this.procesoForm.liberado && this.procesoForm.retenido) {
       this.notification.warning('No puede marcar Liberado y Retenido al mismo tiempo.');
+      return false;
+    }
+
+    if (this.evaluacionProcesoSugiereRetencion() && this.procesoForm.liberado) {
+      this.notification.warning('La evaluación visual tiene una novedad. Revise si el producto debe quedar retenido antes de liberarlo.');
       return false;
     }
 
@@ -1496,6 +1556,16 @@ export class MedicionesCalidadLactea implements OnInit {
       Number(control.idEjecucionBatch) === Number(idBatch) &&
       Number(control.id) !== Number(this.idProcesoEditando)
     );
+  }
+
+  private evaluacionProcesoSugiereRetencion(): boolean {
+    const valores = [
+      this.procesoForm.colorVisual,
+      this.procesoForm.saborVisual,
+      this.procesoForm.texturaVisual
+    ].map(valor => this.normalizarTexto(valor));
+
+    return valores.some(valor => this.valoresEvaluacionNoConforme.includes(valor));
   }
 
   private autocompletarReferencia(): void {
