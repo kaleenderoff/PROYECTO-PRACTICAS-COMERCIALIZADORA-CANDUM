@@ -5,26 +5,63 @@ import { environment } from '../../../environments/environment';
 
 export interface ResumenConsumoInsumos {
   fecha: string;
-  totalOrdenes: number;
-  totalBatches: number;
-  totalKgEntrada: number;
-  totalKgProducidos: number;
-  rendimientoPromedio: number;
-  insumos: ConsumoInsumoDetalle[];
+  totales: TotalesConsumoInsumos;
+  detalles: ConsumoInsumoDetalle[];
+}
+
+export interface TotalesConsumoInsumos {
+  registros: number;
+  producciones: number;
+  batches: number;
+  cantidadRequeridaTotal: number;
+  cantidadUsadaTotal: number;
+  diferenciaTotal: number;
 }
 
 export interface ConsumoInsumoDetalle {
-  nombreInsumo: string;
+  fechaProduccion: string;
+  producto: string;
+  numeroBatch?: number;
+  codigoInsumo?: string;
+  insumo: string;
+  tipoInsumo: string;
+  loteInsumo?: string;
+  cantidadRequerida: number;
+  cantidadUsada: number;
+  diferencia: number;
   unidadMedida: string;
-  cantidadTotal: number;
+  usuario: string;
 }
 
 export interface ResumenRecepcionDescremado {
   fecha: string;
-  totalRecepciones: number;
-  totalLitrosRecibidos: number;
-  totalKgCrema: number;
-  recepciones: any[];
+  totales: TotalesRecepcionDescremado;
+  detalles: RecepcionDescremadoDetalle[];
+}
+
+export interface TotalesRecepcionDescremado {
+  recepciones: number;
+  proveedores: number;
+  descremados: number;
+  litrosRecibidos: number;
+  litrosRemision: number;
+  litrosDescremados: number;
+  cremaObtenidaKg: number;
+  unidadesCrema: number;
+}
+
+export interface RecepcionDescremadoDetalle {
+  idRecepcion: number;
+  fechaRecepcion: string;
+  proveedor: string;
+  tipoMateriaPrima: string;
+  litrosRecibidos: number;
+  litrosRemision: number;
+  numeroRemision: string;
+  tanqueRecepcion: string;
+  recibidoPor?: string;
+  observacionesRecepcion?: string;
+  pesajes: any[];
   descremados: any[];
 }
 

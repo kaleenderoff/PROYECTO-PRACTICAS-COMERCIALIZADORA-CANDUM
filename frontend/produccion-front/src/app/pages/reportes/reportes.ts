@@ -50,7 +50,10 @@ export class Reportes implements OnInit {
   }
 
   hoy(): string {
-    return new Date().toISOString().slice(0, 10);
+    const fecha = new Date();
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+    const dia = String(fecha.getDate()).padStart(2, '0');
+    return `${fecha.getFullYear()}-${mes}-${dia}`;
   }
 
   // ─── CONSUMO INSUMOS ─────────────────────────────────────────────────────────

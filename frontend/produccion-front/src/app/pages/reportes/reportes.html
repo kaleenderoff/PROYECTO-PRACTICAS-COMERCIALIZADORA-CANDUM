@@ -79,40 +79,48 @@
     <!-- Resumen cards -->
     <div *ngIf="resumenConsumo && !cargandoConsumo" class="grid grid-cols-2 gap-4 mb-5 sm:grid-cols-4">
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center">
-        <div class="text-2xl font-bold text-blue-400">{{ resumenConsumo.totalOrdenes }}</div>
-        <div class="text-xs text-slate-400 mt-1">Órdenes</div>
+        <div class="text-2xl font-bold text-blue-400">{{ resumenConsumo.totales.producciones }}</div>
+        <div class="text-xs text-slate-400 mt-1">Producciones</div>
       </div>
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center">
-        <div class="text-2xl font-bold text-amber-400">{{ resumenConsumo.totalBatches }}</div>
+        <div class="text-2xl font-bold text-amber-400">{{ resumenConsumo.totales.batches }}</div>
         <div class="text-xs text-slate-400 mt-1">Batches</div>
       </div>
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center">
-        <div class="text-2xl font-bold text-slate-200">{{ resumenConsumo.totalKgEntrada | number:'1.1-1' }} kg</div>
-        <div class="text-xs text-slate-400 mt-1">Kg Entrada</div>
+        <div class="text-2xl font-bold text-slate-200">{{ resumenConsumo.totales.cantidadRequeridaTotal | number:'1.1-1' }}</div>
+        <div class="text-xs text-slate-400 mt-1">Cantidad requerida</div>
       </div>
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center">
-        <div class="text-2xl font-bold text-emerald-400">{{ resumenConsumo.totalKgProducidos | number:'1.1-1' }} kg</div>
-        <div class="text-xs text-slate-400 mt-1">Kg Producidos</div>
+        <div class="text-2xl font-bold text-emerald-400">{{ resumenConsumo.totales.cantidadUsadaTotal | number:'1.1-1' }}</div>
+        <div class="text-xs text-slate-400 mt-1">Cantidad usada</div>
       </div>
     </div>
 
     <!-- Tabla insumos -->
-    <div *ngIf="resumenConsumo?.insumos?.length" class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+    <div *ngIf="resumenConsumo?.detalles?.length" class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
       <div class="px-5 py-3 border-b border-slate-800">
         <h3 class="text-sm font-bold text-slate-300">Insumos Consumidos</h3>
       </div>
       <table class="w-full text-sm">
         <thead class="bg-slate-800/50">
           <tr>
+            <th class="px-4 py-2 text-left text-xs text-slate-400 font-semibold">PRODUCCIÓN</th>
+            <th class="px-4 py-2 text-left text-xs text-slate-400 font-semibold">BATCH</th>
             <th class="px-4 py-2 text-left text-xs text-slate-400 font-semibold">INSUMO</th>
-            <th class="px-4 py-2 text-right text-xs text-slate-400 font-semibold">CANTIDAD</th>
+            <th class="px-4 py-2 text-right text-xs text-slate-400 font-semibold">REQUERIDA</th>
+            <th class="px-4 py-2 text-right text-xs text-slate-400 font-semibold">USADA</th>
+            <th class="px-4 py-2 text-right text-xs text-slate-400 font-semibold">DIF.</th>
             <th class="px-4 py-2 text-right text-xs text-slate-400 font-semibold">UNIDAD</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let ins of resumenConsumo!.insumos" class="border-t border-slate-800 hover:bg-slate-800/30">
-            <td class="px-4 py-2.5 text-slate-200">{{ ins.nombreInsumo }}</td>
-            <td class="px-4 py-2.5 text-right font-mono text-slate-200">{{ ins.cantidadTotal | number:'1.2-2' }}</td>
+          <tr *ngFor="let ins of resumenConsumo!.detalles" class="border-t border-slate-800 hover:bg-slate-800/30">
+            <td class="px-4 py-2.5 text-slate-200">{{ ins.producto }}</td>
+            <td class="px-4 py-2.5 text-slate-400">{{ ins.numeroBatch || '-' }}</td>
+            <td class="px-4 py-2.5 text-slate-200">{{ ins.insumo }}</td>
+            <td class="px-4 py-2.5 text-right font-mono text-slate-200">{{ ins.cantidadRequerida | number:'1.2-2' }}</td>
+            <td class="px-4 py-2.5 text-right font-mono text-emerald-400">{{ ins.cantidadUsada | number:'1.2-2' }}</td>
+            <td class="px-4 py-2.5 text-right font-mono text-amber-300">{{ ins.diferencia | number:'1.2-2' }}</td>
             <td class="px-4 py-2.5 text-right text-slate-400">{{ ins.unidadMedida }}</td>
           </tr>
         </tbody>
@@ -162,21 +170,21 @@
     <!-- Resumen cards recepción -->
     <div *ngIf="resumenRecepcion && !cargandoRecepcion" class="grid grid-cols-3 gap-4 mb-5">
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center">
-        <div class="text-2xl font-bold text-blue-400">{{ resumenRecepcion.totalRecepciones }}</div>
+        <div class="text-2xl font-bold text-blue-400">{{ resumenRecepcion.totales.recepciones }}</div>
         <div class="text-xs text-slate-400 mt-1">Recepciones</div>
       </div>
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center">
-        <div class="text-2xl font-bold text-slate-200">{{ resumenRecepcion.totalLitrosRecibidos | number:'1.1-1' }} L</div>
+        <div class="text-2xl font-bold text-slate-200">{{ resumenRecepcion.totales.litrosRecibidos | number:'1.1-1' }} L</div>
         <div class="text-xs text-slate-400 mt-1">Litros Recibidos</div>
       </div>
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center">
-        <div class="text-2xl font-bold text-amber-400">{{ resumenRecepcion.totalKgCrema | number:'1.1-1' }} kg</div>
+        <div class="text-2xl font-bold text-amber-400">{{ resumenRecepcion.totales.cremaObtenidaKg | number:'1.1-1' }} kg</div>
         <div class="text-xs text-slate-400 mt-1">Kg Crema</div>
       </div>
     </div>
 
     <!-- Tabla recepciones -->
-    <div *ngIf="resumenRecepcion?.recepciones?.length" class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden mb-4">
+    <div *ngIf="resumenRecepcion?.detalles?.length" class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden mb-4">
       <div class="px-5 py-3 border-b border-slate-800">
         <h3 class="text-sm font-bold text-slate-300">Recepciones del día</h3>
       </div>
@@ -184,17 +192,21 @@
         <thead class="bg-slate-800/50">
           <tr>
             <th class="px-4 py-2 text-left text-xs text-slate-400 font-semibold">PROVEEDOR</th>
-            <th class="px-4 py-2 text-right text-xs text-slate-400 font-semibold">KG BRUTO</th>
-            <th class="px-4 py-2 text-right text-xs text-slate-400 font-semibold">KG NETO</th>
-            <th class="px-4 py-2 text-right text-xs text-slate-400 font-semibold">LITROS</th>
+            <th class="px-4 py-2 text-left text-xs text-slate-400 font-semibold">TANQUE</th>
+            <th class="px-4 py-2 text-right text-xs text-slate-400 font-semibold">LITROS REAL</th>
+            <th class="px-4 py-2 text-right text-xs text-slate-400 font-semibold">REMISIÓN</th>
+            <th class="px-4 py-2 text-right text-xs text-slate-400 font-semibold">PESAJES</th>
+            <th class="px-4 py-2 text-right text-xs text-slate-400 font-semibold">DESCREMADOS</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let r of resumenRecepcion!.recepciones" class="border-t border-slate-800 hover:bg-slate-800/30">
-            <td class="px-4 py-2.5 text-slate-200">{{ r.nombreProveedor || r.proveedor || '—' }}</td>
-            <td class="px-4 py-2.5 text-right font-mono text-slate-200">{{ r.kgBruto | number:'1.1-1' }}</td>
-            <td class="px-4 py-2.5 text-right font-mono text-slate-200">{{ r.kgNeto | number:'1.1-1' }}</td>
-            <td class="px-4 py-2.5 text-right font-mono text-emerald-400">{{ r.litrosCalculados | number:'1.1-1' }}</td>
+          <tr *ngFor="let r of resumenRecepcion!.detalles" class="border-t border-slate-800 hover:bg-slate-800/30">
+            <td class="px-4 py-2.5 text-slate-200">{{ r.proveedor || '-' }}</td>
+            <td class="px-4 py-2.5 text-slate-400">{{ r.tanqueRecepcion || '-' }}</td>
+            <td class="px-4 py-2.5 text-right font-mono text-emerald-400">{{ r.litrosRecibidos | number:'1.1-1' }}</td>
+            <td class="px-4 py-2.5 text-right font-mono text-slate-200">{{ r.litrosRemision | number:'1.1-1' }}</td>
+            <td class="px-4 py-2.5 text-right font-mono text-slate-300">{{ r.pesajes.length || 0 }}</td>
+            <td class="px-4 py-2.5 text-right font-mono text-amber-300">{{ r.descremados.length || 0 }}</td>
           </tr>
         </tbody>
       </table>
