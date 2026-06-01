@@ -8,4 +8,19 @@ import java.util.List;
 public interface ControlPesoProductoJpaRepository extends JpaRepository<ControlPesoProductoEntity, Long> {
 
     List<ControlPesoProductoEntity> findByOrdenProduccionIdOrderByFechaControlDescIdDesc(Long idOrdenProduccion);
+
+    boolean existsByOrdenProduccionIdAndNumeroTandaIgnoreCaseAndSkuIdAndRangoBatchesIgnoreCase(
+            Long idOrdenProduccion,
+            String numeroTanda,
+            Long idSku,
+            String rangoBatches
+    );
+
+    boolean existsByOrdenProduccionIdAndNumeroTandaIgnoreCaseAndSkuIdAndRangoBatchesIgnoreCaseAndIdNot(
+            Long idOrdenProduccion,
+            String numeroTanda,
+            Long idSku,
+            String rangoBatches,
+            Long id
+    );
 }

@@ -199,6 +199,7 @@ public class GestionControlCalidadLacteaService {
     public ControlPesoProductoResponse registrarPeso(ControlPesoProductoRequest request) {
         validarOrdenYBatch(request.idOrdenProduccion(), request.idEjecucionBatch());
         validarControlPeso(request);
+        validarControlPesoDuplicado(request, null);
 
         ControlPesoProductoEntity entity = new ControlPesoProductoEntity();
         aplicarPeso(entity, request);
@@ -214,6 +215,7 @@ public class GestionControlCalidadLacteaService {
 
         validarOrdenYBatch(request.idOrdenProduccion(), request.idEjecucionBatch());
         validarControlPeso(request);
+        validarControlPesoDuplicado(request, id);
         aplicarPeso(entity, request);
 
         return toResponse(pesoRepository.save(entity));
@@ -432,6 +434,14 @@ public class GestionControlCalidadLacteaService {
         validarTexto(request.marca(), "Debe registrar la marca.");
         validarTexto(request.lote(), "Debe registrar el lote.");
 
+        if (request.idSku() == null) {
+            throw new ReglaNegocioException("Debe seleccionar la presentacion / SKU.");
+        }
+
+        if (entityManager.find(CatalogoSkuEntity.class, request.idSku()) == null) {
+            throw new RecursoNoEncontradoException("No existe un SKU con ID: " + request.idSku());
+        }
+
         if (request.fechaVencimiento() == null) {
             throw new ReglaNegocioException("Debe registrar la fecha de vencimiento.");
         }
@@ -471,6 +481,30 @@ public class GestionControlCalidadLacteaService {
                         || Boolean.FALSE.equals(request.tapadoOk()))) {
             throw new ReglaNegocioException(
                     "No puede liberar producto terminado si apariencia, etiquetado o tapado no estan conformes.");
+        }
+    }
+
+    private void validarControlPesoDuplicado(ControlPesoProductoRequest request, Long idActual) {
+        String numeroTanda = request.numeroTanda().trim();
+        String rangoBatches = request.rangoBatches().trim();
+
+        boolean duplicado = idActual == null
+                ? pesoRepository.existsByOrdenProduccionIdAndNumeroTandaIgnoreCaseAndSkuIdAndRangoBatchesIgnoreCase(
+                        request.idOrdenProduccion(),
+                        numeroTanda,
+                        request.idSku(),
+                        rangoBatches)
+                : pesoRepository
+                        .existsByOrdenProduccionIdAndNumeroTandaIgnoreCaseAndSkuIdAndRangoBatchesIgnoreCaseAndIdNot(
+                                request.idOrdenProduccion(),
+                                numeroTanda,
+                                request.idSku(),
+                                rangoBatches,
+                                idActual);
+
+        if (duplicado) {
+            throw new ReglaNegocioException(
+                    "Ya existe un control de peso para esta misma tanda, presentacion/SKU y rango de batches. Use editar si necesita corregirlo.");
         }
     }
 

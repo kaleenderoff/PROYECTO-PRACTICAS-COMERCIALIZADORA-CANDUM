@@ -31,6 +31,11 @@ interface MarcaCatalogo {
   activo?: boolean;
 }
 
+interface GrupoPesoProducto {
+  tanda: string;
+  controles: ControlPesoProductoResponse[];
+}
+
 @Component({
   selector: 'app-mediciones-calidad-lactea',
   imports: [CommonModule, FormsModule],
@@ -51,6 +56,7 @@ export class MedicionesCalidadLactea implements OnInit {
   guardando = false;
   cerrandoTandas = false;
   reabriendoTandas = false;
+  resumenWhatsappVisible = false;
   error = '';
 
   idMedicionEditando: number | null = null;
@@ -226,7 +232,6 @@ export class MedicionesCalidadLactea implements OnInit {
           this.reiniciarProcesoFormConSiguienteBatch();
           this.pesoForm = this.crearPesoForm();
           this.autocompletarPesoDesdeOrden();
-
           this.autocompletarReferencia();
 
           this.cargando = false;
@@ -250,6 +255,7 @@ export class MedicionesCalidadLactea implements OnInit {
     this.idMedicionEditando = null;
     this.idProcesoEditando = null;
     this.idPesoEditando = null;
+    this.resumenWhatsappVisible = false;
 
     this.procesoForm = this.crearProcesoForm();
     this.pesoForm = this.crearPesoForm();
@@ -292,7 +298,7 @@ export class MedicionesCalidadLactea implements OnInit {
     }
 
     if (this.procesoForm.liberado) {
-      this.notification.warning('La evaluación visual tiene una novedad. Revise si el producto debe quedar Retenido en lugar de Liberado.');
+      this.notification.warning('La evaluación visual tiene una novedad. Revise si el producto debe quedar retenido en lugar de liberado.');
     }
   }
 
@@ -650,6 +656,11 @@ export class MedicionesCalidadLactea implements OnInit {
     this.pesoForm.lote = this.generarLotePesoAutomatico();
 
     if (!this.validarFormularioPeso()) return;
+
+    if (this.controlPesoDuplicadoLocal()) {
+      this.notification.warning('Ya existe un control de peso para esta misma tanda, presentación/SKU y rango de batches. Use editar si necesita corregirlo.');
+      return;
+    }
 
     const muestras = this.pesoForm.muestras
       .filter(m => m.pesoNeto !== null && m.pesoNeto !== undefined && Number(m.pesoNeto) > 0)
@@ -1085,6 +1096,65 @@ export class MedicionesCalidadLactea implements OnInit {
     return this.unicos(opciones);
   }
 
+  get controlesPesoAgrupados(): GrupoPesoProducto[] {
+    const grupos = new Map<string, ControlPesoProductoResponse[]>();
+
+    this.controlesPeso.forEach(control => {
+      const llave = control.numeroTanda || 'Sin tanda';
+      const controles = grupos.get(llave) || [];
+      controles.push(control);
+      grupos.set(llave, controles);
+    });
+
+    return Array.from(grupos.entries()).map(([tanda, controles]) => ({
+      tanda,
+      controles: controles.sort((a, b) =>
+        String(a.presentacion || '').localeCompare(String(b.presentacion || ''))
+      )
+    }));
+  }
+
+  get resumenWhatsappCalidad(): string {
+    const orden = this.obtenerOrdenSeleccionada();
+    const producto = orden?.nombreProducto || 'Producto';
+
+    const lineas: string[] = [];
+    lineas.push(producto);
+    lineas.push('');
+
+    if (this.medicionesBatch.length) {
+      lineas.push('Batches:');
+      this.medicionesBatch.forEach(medicion => {
+        lineas.push(`${medicion.referencia}: Brix ${medicion.brix ?? '-'}${medicion.ph ? ` - pH ${medicion.ph}` : ''}`);
+      });
+      lineas.push('');
+    }
+
+    if (this.medicionMezcla) {
+      lineas.push(`Mezcla: Brix ${this.medicionMezcla.brix ?? '-'}${this.medicionMezcla.ph ? ` - pH ${this.medicionMezcla.ph}` : ''}`);
+      lineas.push('');
+    }
+
+    if (this.medicionesTanda.length) {
+      lineas.push('Tandas:');
+      this.medicionesTanda.forEach(tanda => {
+        lineas.push(`${tanda.referencia}: Brix ${tanda.brix ?? '-'}${tanda.ph ? ` - pH ${tanda.ph}` : ''}`);
+      });
+      lineas.push('');
+    }
+
+    if (this.controlesPeso.length) {
+      lineas.push('Peso producto terminado:');
+      this.controlesPeso.forEach(control => {
+        lineas.push(
+          `${control.numeroTanda || '-'} | ${control.marca || '-'} ${control.presentacion || '-'} | ${control.rangoBatches || '-'} | Prom. ${control.pesoNetoPromedio ?? '-'} | ${control.liberado ? 'Liberado' : 'Retenido'}`
+        );
+      });
+    }
+
+    return lineas.join('\n').trim();
+  }
+
   batchYaMedido(idBatch: number): boolean {
     return this.medicionesRapidasBatch.some(m =>
       Number(m.idEjecucionBatch) === Number(idBatch) &&
@@ -1124,6 +1194,23 @@ export class MedicionesCalidadLactea implements OnInit {
     if (!valores.length) return 0;
 
     return valores.reduce((sum, valor) => sum + valor, 0) / valores.length;
+  }
+
+  async copiarResumenWhatsapp(): Promise<void> {
+    const texto = this.resumenWhatsappCalidad;
+
+    if (!texto) {
+      this.notification.warning('No hay información suficiente para generar el resumen.');
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(texto);
+      this.notification.toast('Resumen copiado para WhatsApp.');
+    } catch {
+      this.notification.warning('No se pudo copiar automáticamente. Seleccione el texto y cópielo manualmente.');
+      this.resumenWhatsappVisible = true;
+    }
   }
 
   private validarBase(idUsuario: number): boolean {
@@ -1203,11 +1290,7 @@ export class MedicionesCalidadLactea implements OnInit {
       return false;
     }
 
-    if (
-      !this.idMedicionEditando &&
-      this.formulario.tipoMedicion === 'MEZCLA' &&
-      this.mezclaRegistrada
-    ) {
+    if (!this.idMedicionEditando && this.formulario.tipoMedicion === 'MEZCLA' && this.mezclaRegistrada) {
       this.notification.warning('Esta orden ya tiene medición de mezcla registrada. Use editar si necesita corregirla.');
       return false;
     }
@@ -1436,6 +1519,11 @@ export class MedicionesCalidadLactea implements OnInit {
 
     if (!this.pesoForm.marca?.trim()) {
       this.notification.warning('No se pudo identificar la marca desde el SKU seleccionado.');
+      return false;
+    }
+
+    if (!this.pesoForm.idSku) {
+      this.notification.warning('Debe seleccionar la presentación / SKU.');
       return false;
     }
 
@@ -1681,6 +1769,23 @@ export class MedicionesCalidadLactea implements OnInit {
     ].map(valor => this.normalizarTexto(valor));
 
     return valores.some(valor => this.valoresEvaluacionNoConforme.includes(valor));
+  }
+
+  private controlPesoDuplicadoLocal(): boolean {
+    if (!this.pesoForm.numeroTanda || !this.pesoForm.idSku || !this.pesoForm.rangoBatches) {
+      return false;
+    }
+
+    const tanda = this.normalizarTexto(this.pesoForm.numeroTanda);
+    const rango = this.normalizarTexto(this.pesoForm.rangoBatches);
+    const idSku = Number(this.pesoForm.idSku);
+
+    return this.controlesPeso.some(control =>
+      Number(control.id) !== Number(this.idPesoEditando) &&
+      this.normalizarTexto(control.numeroTanda || '') === tanda &&
+      Number(control.idSku) === idSku &&
+      this.normalizarTexto(control.rangoBatches || '') === rango
+    );
   }
 
   private autocompletarReferencia(): void {
