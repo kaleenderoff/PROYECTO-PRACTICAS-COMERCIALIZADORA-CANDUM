@@ -37,6 +37,7 @@ export class MedicionesCalidadLactea implements OnInit {
   cargando = false;
   guardando = false;
   error = '';
+
   idMedicionEditando: number | null = null;
   idProcesoEditando: number | null = null;
   idPesoEditando: number | null = null;
@@ -137,9 +138,12 @@ export class MedicionesCalidadLactea implements OnInit {
           this.mediciones = [...mediciones];
           this.controlesProceso = [...controlesProceso];
           this.controlesPeso = [...controlesPeso];
+
           this.procesoForm = this.crearProcesoForm();
           this.pesoForm = this.crearPesoForm();
+
           this.autocompletarReferencia();
+
           this.cargando = false;
           this.cdr.detectChanges();
         });
@@ -154,11 +158,17 @@ export class MedicionesCalidadLactea implements OnInit {
   onCambioOrden(): void {
     this.formulario.idEjecucionBatch = 0;
     this.formulario.referencia = '';
+    this.formulario.brix = null;
+    this.formulario.ph = null;
+    this.formulario.observaciones = '';
+
     this.idMedicionEditando = null;
     this.idProcesoEditando = null;
     this.idPesoEditando = null;
+
     this.procesoForm = this.crearProcesoForm();
     this.pesoForm = this.crearPesoForm();
+
     this.cargarDatosOrden();
   }
 
@@ -396,7 +406,10 @@ export class MedicionesCalidadLactea implements OnInit {
     if (!this.authService.canWriteCalidad()) return;
 
     const idRealizadoPor = this.authService.getIdUsuario();
+
     if (!this.validarBase(idRealizadoPor)) return;
+
+    this.procesoForm.lote = this.generarLoteProcesoAutomatico();
 
     if (!this.validarFormularioProceso()) return;
 
@@ -424,6 +437,7 @@ export class MedicionesCalidadLactea implements OnInit {
             ? 'Control de proceso actualizado.'
             : 'Control de proceso registrado.'
         );
+
         this.idProcesoEditando = null;
         this.procesoForm = this.crearProcesoForm();
         this.cargarDatosOrden();
@@ -440,7 +454,12 @@ export class MedicionesCalidadLactea implements OnInit {
     if (!this.authService.canWriteCalidad()) return;
 
     const idRealizadoPor = this.authService.getIdUsuario();
+
     if (!this.validarBase(idRealizadoPor)) return;
+
+    if (!this.pesoForm.lote?.trim()) {
+      this.pesoForm.lote = this.generarLotePesoAutomatico();
+    }
 
     if (!this.validarFormularioPeso()) return;
 
@@ -477,6 +496,7 @@ export class MedicionesCalidadLactea implements OnInit {
             ? 'Control de peso actualizado.'
             : 'Control de peso registrado.'
         );
+
         this.idPesoEditando = null;
         this.pesoForm = this.crearPesoForm();
         this.cargarDatosOrden();
@@ -491,7 +511,9 @@ export class MedicionesCalidadLactea implements OnInit {
 
   onCambioBatchProceso(): void {
     const batch = this.obtenerBatch(this.procesoForm.idEjecucionBatch);
+
     this.procesoForm.numeroMarmita = batch?.numeroBatch || null;
+    this.procesoForm.lote = this.generarLoteProcesoAutomatico();
   }
 
   editarProceso(control: ControlCalidadProcesoResponse): void {
@@ -602,6 +624,7 @@ export class MedicionesCalidadLactea implements OnInit {
       observaciones: control.observaciones || '',
       muestras: Array.from({ length: 10 }, (_, index) => {
         const muestra = control.muestras?.[index];
+
         return {
           numeroMuestra: index + 1,
           pesoBruto: muestra?.pesoBruto ?? null,
@@ -746,7 +769,7 @@ export class MedicionesCalidadLactea implements OnInit {
     }
 
     if (!this.procesoForm.lote?.trim()) {
-      this.notification.warning('Debe registrar el lote.');
+      this.notification.warning('No se pudo generar el lote del proceso. Revise la orden y el batch seleccionados.');
       return false;
     }
 
@@ -1047,5 +1070,61 @@ export class MedicionesCalidadLactea implements OnInit {
         this.formulario.referencia = `Tanda ${cantidadTandas + 1}`;
       }
     }
+  }
+
+  private generarLoteProcesoAutomatico(): string {
+    const orden = this.obtenerOrdenSeleccionada();
+    const batch = this.obtenerBatch(this.procesoForm.idEjecucionBatch);
+
+    if (!orden || !batch) {
+      return '';
+    }
+
+    const numeroOrden = this.obtenerNumeroOrdenLegible(orden);
+    return `${numeroOrden}-B${batch.numeroBatch}`;
+  }
+
+  private generarLotePesoAutomatico(): string {
+    const orden = this.obtenerOrdenSeleccionada();
+
+    if (!orden) {
+      return '';
+    }
+
+    const numeroOrden = this.obtenerNumeroOrdenLegible(orden);
+
+    if (this.pesoForm.numeroTanda?.trim()) {
+      return `${numeroOrden}-${this.normalizarSegmentoLote(this.pesoForm.numeroTanda)}`;
+    }
+
+    if (this.pesoForm.rangoBatches?.trim()) {
+      return `${numeroOrden}-${this.normalizarSegmentoLote(this.pesoForm.rangoBatches)}`;
+    }
+
+    return `${numeroOrden}-PT`;
+  }
+
+  private obtenerNumeroOrdenLegible(orden: OrdenProduccionResponse): string {
+    const posibleNumeroOrden = (orden as any).numeroOrden;
+
+    if (posibleNumeroOrden && String(posibleNumeroOrden).trim()) {
+      return this.normalizarSegmentoLote(String(posibleNumeroOrden).trim());
+    }
+
+    const fecha = orden.fechaProduccion
+      ? orden.fechaProduccion.replaceAll('-', '')
+      : new Date().toISOString().slice(0, 10).replaceAll('-', '');
+
+    return `OP-${fecha}-${orden.id}`;
+  }
+
+  private normalizarSegmentoLote(valor: string): string {
+    return String(valor)
+      .trim()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/[^A-Za-z0-9.-]/g, '')
+      .toUpperCase();
   }
 }
