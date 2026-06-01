@@ -398,24 +398,31 @@ export class MedicionesCalidadLactea implements OnInit {
     });
   }
 
-  async cerrarRegistroTandas(): Promise<void> {
-    if (!this.authService.canWriteCalidad()) return;
+  async alternarEstadoTandas(): Promise<void> {
+    if (!this.authService.canWriteCalidad()) {
+      this.notification.warning('No tiene permisos para gestionar el cierre de tandas.');
+      return;
+    }
 
     if (!this.idOrdenSeleccionada) {
       this.notification.warning('Debe seleccionar una orden de producción.');
       return;
     }
 
-    if (this.tandasCerradas) {
-      this.notification.warning('Las tandas de esta orden ya están cerradas.');
-      return;
-    }
-
-    if (this.medicionesTanda.length === 0) {
+    if (this.totalTandasRegistradas === 0) {
       this.notification.warning('Debe registrar al menos una tanda antes de cerrar el registro de tandas.');
       return;
     }
 
+    if (this.tandasCerradas) {
+      await this.confirmarReaperturaTandas();
+      return;
+    }
+
+    await this.confirmarCierreTandas();
+  }
+
+  private async confirmarCierreTandas(): Promise<void> {
     const confirmado = await this.notification.confirm({
       title: 'Cerrar registro de tandas',
       text: 'Después de cerrar, no se podrán agregar, editar ni eliminar tandas, salvo que se reabra el registro. ¿Desea continuar?',
@@ -461,19 +468,7 @@ export class MedicionesCalidadLactea implements OnInit {
     });
   }
 
-  async reabrirRegistroTandas(): Promise<void> {
-    if (!this.authService.canWriteCalidad()) return;
-
-    if (!this.idOrdenSeleccionada) {
-      this.notification.warning('Debe seleccionar una orden de producción.');
-      return;
-    }
-
-    if (!this.tandasCerradas) {
-      this.notification.warning('Las tandas de esta orden ya están abiertas.');
-      return;
-    }
-
+  private async confirmarReaperturaTandas(): Promise<void> {
     const confirmado = await this.notification.confirm({
       title: 'Reabrir registro de tandas',
       text: 'Al reabrir, se podrán agregar, editar o eliminar tandas nuevamente. ¿Desea continuar?',
@@ -871,17 +866,29 @@ export class MedicionesCalidadLactea implements OnInit {
     return this.tandasCerradas ? 'Tandas cerradas' : 'Tandas abiertas';
   }
 
-  get puedeCerrarTandas(): boolean {
+  get puedeGestionarEstadoTandas(): boolean {
     return this.authService.canWriteCalidad()
-      && !this.tandasCerradas
       && this.totalTandasRegistradas > 0
-      && !this.cerrandoTandas;
+      && !this.cerrandoTandas
+      && !this.reabriendoTandas;
   }
 
-  get puedeReabrirTandas(): boolean {
-    return this.authService.canWriteCalidad()
-      && this.tandasCerradas
-      && !this.reabriendoTandas;
+  get textoBotonEstadoTandas(): string {
+    if (this.cerrandoTandas) {
+      return 'Cerrando tandas...';
+    }
+
+    if (this.reabriendoTandas) {
+      return 'Reabriendo tandas...';
+    }
+
+    return this.tandasCerradas ? 'Reabrir tandas' : 'Cerrar registro de tandas';
+  }
+
+  get claseBotonEstadoTandas(): string {
+    return this.tandasCerradas
+      ? 'bg-amber-500 hover:bg-amber-600'
+      : 'bg-emerald-600 hover:bg-emerald-700';
   }
 
   batchYaMedido(idBatch: number): boolean {
