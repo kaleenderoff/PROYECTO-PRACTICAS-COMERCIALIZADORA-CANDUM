@@ -194,82 +194,13 @@ export class MedicionesCalidadLactea implements OnInit {
 
     const idUsuarioCalidad = this.authService.getIdUsuario();
 
-    if (!this.idOrdenSeleccionada) {
-      this.notification.warning('Debe seleccionar una orden de producción.');
-      return;
-    }
-
-    if (!idUsuarioCalidad) {
-      this.notification.warning('No se pudo identificar el usuario autenticado.');
+    if (!this.validarMedicionRapidaBase(idUsuarioCalidad)) {
       return;
     }
 
     this.autocompletarReferencia();
 
-    if (this.formulario.tipoMedicion === 'BACHE' && !this.formulario.idEjecucionBatch) {
-      this.notification.warning('Debe seleccionar un batch.');
-      return;
-    }
-
-    if (!this.formulario.referencia.trim()) {
-      this.notification.warning('La referencia de la medición es obligatoria.');
-      return;
-    }
-
-    if (this.formulario.tipoMedicion === 'BACHE') {
-      if (this.formulario.brix === null || this.formulario.brix === undefined) {
-        this.notification.warning('Debe registrar el Brix del batch.');
-        return;
-      }
-
-      if (this.formulario.ph === null || this.formulario.ph === undefined) {
-        this.notification.warning('Debe registrar el pH del batch.');
-        return;
-      }
-    } else {
-      if (
-        (this.formulario.brix === null || this.formulario.brix === undefined) &&
-        (this.formulario.ph === null || this.formulario.ph === undefined)
-      ) {
-        this.notification.warning('Debe registrar Brix, pH o ambos.');
-        return;
-      }
-    }
-
-    if (
-      this.formulario.brix !== null &&
-      this.formulario.brix !== undefined &&
-      Number(this.formulario.brix) < 0
-    ) {
-      this.notification.warning('El Brix no puede ser negativo.');
-      return;
-    }
-
-    if (
-      this.formulario.ph !== null &&
-      this.formulario.ph !== undefined &&
-      Number(this.formulario.ph) < 0
-    ) {
-      this.notification.warning('El pH no puede ser negativo.');
-      return;
-    }
-
-    if (
-      this.formulario.ph !== null &&
-      this.formulario.ph !== undefined &&
-      Number(this.formulario.ph) > 14
-    ) {
-      this.notification.warning('El pH no debería ser mayor a 14. Revise el valor digitado.');
-      return;
-    }
-
-    if (
-      !this.idMedicionEditando &&
-      this.formulario.tipoMedicion === 'BACHE' &&
-      this.formulario.idEjecucionBatch &&
-      this.batchYaMedido(this.formulario.idEjecucionBatch)
-    ) {
-      this.notification.warning('Este batch ya tiene medición registrada. Use editar si necesita corregirla.');
+    if (!this.validarMedicionRapidaFormulario()) {
       return;
     }
 
@@ -757,6 +688,130 @@ export class MedicionesCalidadLactea implements OnInit {
     return true;
   }
 
+  private validarMedicionRapidaBase(idUsuarioCalidad: number): boolean {
+    if (!this.idOrdenSeleccionada) {
+      this.notification.warning('Debe seleccionar una orden de producción.');
+      return false;
+    }
+
+    if (!idUsuarioCalidad) {
+      this.notification.warning('No se pudo identificar el usuario autenticado.');
+      return false;
+    }
+
+    if (!this.formulario.tipoMedicion) {
+      this.notification.warning('Debe seleccionar el tipo de medición.');
+      return false;
+    }
+
+    return true;
+  }
+
+  private validarMedicionRapidaFormulario(): boolean {
+    if (this.formulario.tipoMedicion === 'BACHE') {
+      if (!this.formulario.idEjecucionBatch) {
+        this.notification.warning('Debe seleccionar un batch.');
+        return false;
+      }
+
+      const batch = this.obtenerBatch(this.formulario.idEjecucionBatch);
+
+      if (!batch) {
+        this.notification.warning('El batch seleccionado no existe o no pertenece a la orden actual.');
+        return false;
+      }
+    }
+
+    if (this.formulario.tipoMedicion !== 'BACHE' && this.formulario.idEjecucionBatch) {
+      this.formulario.idEjecucionBatch = 0;
+    }
+
+    if (!this.formulario.referencia?.trim()) {
+      this.notification.warning('No se pudo generar la referencia automática de la medición.');
+      return false;
+    }
+
+    if (this.formulario.tipoMedicion === 'BACHE') {
+      if (!this.formulario.referencia.startsWith('B.')) {
+        this.notification.warning('La referencia automática del batch no es válida.');
+        return false;
+      }
+
+      if (this.formulario.brix === null || this.formulario.brix === undefined) {
+        this.notification.warning('Debe registrar el Brix del batch.');
+        return false;
+      }
+
+      if (this.formulario.ph === null || this.formulario.ph === undefined) {
+        this.notification.warning('Debe registrar el pH del batch.');
+        return false;
+      }
+    }
+
+    if (this.formulario.tipoMedicion === 'MEZCLA') {
+      if (this.formulario.referencia !== 'Mezcla') {
+        this.notification.warning('La referencia automática de mezcla no es válida.');
+        return false;
+      }
+    }
+
+    if (this.formulario.tipoMedicion === 'TANDA') {
+      if (!this.formulario.referencia.startsWith('Tanda ')) {
+        this.notification.warning('La referencia automática de tanda no es válida.');
+        return false;
+      }
+    }
+
+    if (this.formulario.tipoMedicion !== 'BACHE') {
+      if (
+        (this.formulario.brix === null || this.formulario.brix === undefined) &&
+        (this.formulario.ph === null || this.formulario.ph === undefined)
+      ) {
+        this.notification.warning('Debe registrar Brix, pH o ambos.');
+        return false;
+      }
+    }
+
+    if (
+      this.formulario.brix !== null &&
+      this.formulario.brix !== undefined &&
+      Number(this.formulario.brix) < 0
+    ) {
+      this.notification.warning('El Brix no puede ser negativo.');
+      return false;
+    }
+
+    if (
+      this.formulario.ph !== null &&
+      this.formulario.ph !== undefined &&
+      Number(this.formulario.ph) < 0
+    ) {
+      this.notification.warning('El pH no puede ser negativo.');
+      return false;
+    }
+
+    if (
+      this.formulario.ph !== null &&
+      this.formulario.ph !== undefined &&
+      Number(this.formulario.ph) > 14
+    ) {
+      this.notification.warning('El pH no debería ser mayor a 14. Revise el valor digitado.');
+      return false;
+    }
+
+    if (
+      !this.idMedicionEditando &&
+      this.formulario.tipoMedicion === 'BACHE' &&
+      this.formulario.idEjecucionBatch &&
+      this.batchYaMedido(this.formulario.idEjecucionBatch)
+    ) {
+      this.notification.warning('Este batch ya tiene medición registrada. Use editar si necesita corregirla.');
+      return false;
+    }
+
+    return true;
+  }
+
   private validarFormularioProceso(): boolean {
     if (!this.procesoForm.idEjecucionBatch) {
       this.notification.warning('Debe seleccionar el batch / marmita.');
@@ -1047,25 +1102,16 @@ export class MedicionesCalidadLactea implements OnInit {
 
     if (this.formulario.tipoMedicion === 'MEZCLA') {
       this.formulario.idEjecucionBatch = 0;
-
-      if (
-        !this.formulario.referencia.trim() ||
-        this.formulario.referencia.startsWith('B.')
-      ) {
-        this.formulario.referencia = 'Mezcla';
-      }
-
+      this.formulario.referencia = 'Mezcla';
       return;
     }
 
     if (this.formulario.tipoMedicion === 'TANDA') {
       this.formulario.idEjecucionBatch = 0;
 
-      if (
-        !this.formulario.referencia.trim() ||
-        this.formulario.referencia === 'Mezcla' ||
-        this.formulario.referencia.startsWith('B.')
-      ) {
+      const referenciaActual = this.formulario.referencia?.trim() || '';
+
+      if (!referenciaActual || !referenciaActual.startsWith('Tanda ')) {
         const cantidadTandas = this.mediciones.filter(m => m.tipoMedicion === 'TANDA').length;
         this.formulario.referencia = `Tanda ${cantidadTandas + 1}`;
       }

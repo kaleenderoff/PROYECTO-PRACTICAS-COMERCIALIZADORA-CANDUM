@@ -104,9 +104,9 @@
                     </p>
                 </div>
 
-                <input type="text" [(ngModel)]="formulario.referencia"
-                    class="w-full px-4 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-violet-500 font-bold text-slate-700"
-                    placeholder="Referencia: B.1, Mezcla, Tanda 1">
+                <input type="text" [(ngModel)]="formulario.referencia" readonly
+                    class="w-full px-4 py-4 bg-slate-100 border-none rounded-2xl font-bold text-slate-700 cursor-not-allowed"
+                    placeholder="Referencia automática">
 
                 <div class="grid grid-cols-2 gap-4">
                     <input type="number" step="0.01" [(ngModel)]="formulario.brix"
