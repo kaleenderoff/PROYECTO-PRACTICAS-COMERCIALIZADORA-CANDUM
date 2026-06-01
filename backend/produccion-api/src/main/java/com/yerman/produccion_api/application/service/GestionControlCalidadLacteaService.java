@@ -28,12 +28,22 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 @Service
 public class GestionControlCalidadLacteaService {
+
+    private static final BigDecimal CERO = BigDecimal.ZERO;
+    private static final BigDecimal PH_MAXIMO = new BigDecimal("14.00");
+    private static final BigDecimal BRIX_MAXIMO = new BigDecimal("100.00");
+    private static final BigDecimal TEMPERATURA_MAXIMA_REFERENCIAL = new BigDecimal("150.00");
+    private static final BigDecimal DENSIDAD_MAXIMA_REFERENCIAL = new BigDecimal("2.0000");
+    private static final BigDecimal PORCENTAJE_MAXIMO = new BigDecimal("100.00");
 
     private final ControlCalidadProcesoJpaRepository procesoRepository;
     private final ControlPesoProductoJpaRepository pesoRepository;
@@ -70,6 +80,8 @@ public class GestionControlCalidadLacteaService {
             throw new ReglaNegocioException("La recepcion ya tiene control de calidad registrado.");
         }
 
+        validarCalidadRecepcion(request);
+
         CalidadRecepcionLecheEntity entity = new CalidadRecepcionLecheEntity();
         entity.setRecepcionLeche(recepcion);
         entity.setFechaControl(request.fechaControl() != null ? request.fechaControl() : java.time.LocalDateTime.now());
@@ -94,6 +106,8 @@ public class GestionControlCalidadLacteaService {
         CalidadRecepcionLecheEntity entity = calidadRecepcionRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "No existe un control de calidad de recepcion con ID: " + id));
+
+        validarCalidadRecepcion(request);
 
         entity.setFechaControl(request.fechaControl() != null ? request.fechaControl() : entity.getFechaControl());
         entity.setPruebaAlcoholOk(request.pruebaAlcoholOk());
@@ -169,6 +183,7 @@ public class GestionControlCalidadLacteaService {
         if (idOrdenProduccion == null) {
             throw new ReglaNegocioException("La orden de produccion es obligatoria.");
         }
+
         return procesoRepository.findByOrdenProduccionIdOrderByFechaProduccionDescIdDesc(idOrdenProduccion)
                 .stream()
                 .map(this::toResponse)
@@ -212,6 +227,7 @@ public class GestionControlCalidadLacteaService {
         if (idOrdenProduccion == null) {
             throw new ReglaNegocioException("La orden de produccion es obligatoria.");
         }
+
         return pesoRepository.findByOrdenProduccionIdOrderByFechaControlDescIdDesc(idOrdenProduccion)
                 .stream()
                 .map(this::toResponse)
@@ -326,9 +342,30 @@ public class GestionControlCalidadLacteaService {
         }
     }
 
+    private void validarCalidadRecepcion(CalidadRecepcionLecheRequest request) {
+        if (request.idRealizadoPor() == null) {
+            throw new ReglaNegocioException("El usuario que realiza el control es obligatorio.");
+        }
+
+        validarRangoOpcional(request.ph(), "pH", CERO, PH_MAXIMO);
+        validarNumeroNoNegativoOpcional(request.acidez(), "Acidez");
+        validarRangoOpcional(request.densidad(), "Densidad", CERO, DENSIDAD_MAXIMA_REFERENCIAL);
+        validarRangoOpcional(request.grasa(), "Grasa", CERO, PORCENTAJE_MAXIMO);
+        validarRangoOpcional(request.aguaPct(), "Porcentaje de agua", CERO, PORCENTAJE_MAXIMO);
+        validarRangoOpcional(request.temperatura(), "Temperatura", CERO, TEMPERATURA_MAXIMA_REFERENCIAL);
+
+        if (Boolean.TRUE.equals(request.aprobado()) && Boolean.TRUE.equals(request.retenido())) {
+            throw new ReglaNegocioException("La recepcion no puede quedar aprobada y retenida al mismo tiempo.");
+        }
+    }
+
     private void validarControlProceso(ControlCalidadProcesoRequest request) {
         if (request.fechaProduccion() == null) {
             throw new ReglaNegocioException("La fecha de produccion es obligatoria.");
+        }
+
+        if (request.fechaProduccion().isAfter(LocalDate.now().plusDays(1))) {
+            throw new ReglaNegocioException("La fecha de produccion no puede ser una fecha futura lejana.");
         }
 
         if (request.idEjecucionBatch() == null) {
@@ -338,26 +375,28 @@ public class GestionControlCalidadLacteaService {
         validarTexto(request.producto(), "Debe registrar el producto.");
         validarTexto(request.lote(), "Debe registrar el lote.");
 
-        validarNumero(request.phLeche(), "Debe registrar el pH de la leche.");
-        validarNumero(request.acidezLeche(), "Debe registrar la acidez de la leche.");
-        validarNumero(request.densidadLeche(), "Debe registrar la densidad de la leche.");
-        validarNumero(request.grasaLeche(), "Debe registrar la grasa de la leche.");
+        validarPh(request.phLeche(), "pH de la leche");
+        validarNumeroPositivo(request.acidezLeche(), "Acidez de la leche");
+        validarRango(request.densidadLeche(), "Densidad de la leche", CERO, DENSIDAD_MAXIMA_REFERENCIAL);
+        validarRango(request.grasaLeche(), "Grasa de la leche", CERO, PORCENTAJE_MAXIMO);
 
-        if (request.horaInicioHidrolisis() == null) {
-            throw new ReglaNegocioException("Debe registrar la hora de inicio de hidrolisis.");
-        }
+        validarHora(request.horaInicioHidrolisis(), "Debe registrar la hora de inicio de hidrolisis.");
+        validarPh(request.phInicial(), "pH inicial");
+        validarHora(request.horaFinHidrolisis(), "Debe registrar la hora de fin de hidrolisis.");
+        validarHoraFinPosterior(request.horaInicioHidrolisis(), request.horaFinHidrolisis());
 
-        validarNumero(request.phInicial(), "Debe registrar el pH inicial.");
+        validarPh(request.phFinal(), "pH final");
+        validarBrix(request.brixInicial(), "Brix inicial");
+        validarBrix(request.brixFinal(), "Brix final");
 
-        if (request.horaFinHidrolisis() == null) {
-            throw new ReglaNegocioException("Debe registrar la hora de fin de hidrolisis.");
-        }
+        validarTemperatura(request.temperaturaCoccion(), "Temperatura de coccion");
+        validarTemperatura(request.temperaturaEnvasado(), "Temperatura de envasado");
 
-        validarNumero(request.phFinal(), "Debe registrar el pH final.");
-        validarNumero(request.brixInicial(), "Debe registrar el Brix inicial.");
-        validarNumero(request.brixFinal(), "Debe registrar el Brix final.");
-        validarNumero(request.temperaturaCoccion(), "Debe registrar la temperatura de coccion.");
-        validarNumero(request.temperaturaEnvasado(), "Debe registrar la temperatura de envasado.");
+        validarNumeroNoNegativoOpcional(request.temperaturaInicial(), "Temperatura inicial");
+        validarNumeroNoNegativoOpcional(request.temperaturaFinal(), "Temperatura final");
+        validarNumeroNoNegativoOpcional(request.acidezInicial(), "Acidez inicial");
+        validarNumeroNoNegativoOpcional(request.acidezFinal(), "Acidez final");
+        validarNumeroNoNegativoOpcional(request.presion(), "Presion");
 
         validarTexto(request.colorVisual(), "Debe registrar el color visual.");
         validarTexto(request.saborVisual(), "Debe registrar el sabor.");
@@ -365,6 +404,10 @@ public class GestionControlCalidadLacteaService {
 
         if (request.fechaVencimiento() == null) {
             throw new ReglaNegocioException("Debe registrar la fecha de vencimiento.");
+        }
+
+        if (!request.fechaVencimiento().isAfter(request.fechaProduccion())) {
+            throw new ReglaNegocioException("La fecha de vencimiento debe ser posterior a la fecha de produccion.");
         }
 
         validarTexto(request.presentacionEnvasado(), "Debe registrar la presentacion de envasado.");
@@ -376,6 +419,10 @@ public class GestionControlCalidadLacteaService {
             throw new ReglaNegocioException("La fecha de control es obligatoria.");
         }
 
+        if (request.fechaControl().isAfter(LocalDate.now().plusDays(1))) {
+            throw new ReglaNegocioException("La fecha de control no puede ser una fecha futura lejana.");
+        }
+
         validarTexto(request.producto(), "Debe registrar el producto.");
         validarTexto(request.marca(), "Debe registrar la marca.");
         validarTexto(request.lote(), "Debe registrar el lote.");
@@ -384,24 +431,27 @@ public class GestionControlCalidadLacteaService {
             throw new ReglaNegocioException("Debe registrar la fecha de vencimiento.");
         }
 
+        if (!request.fechaVencimiento().isAfter(request.fechaControl())) {
+            throw new ReglaNegocioException("La fecha de vencimiento debe ser posterior a la fecha de control.");
+        }
+
         validarTexto(request.presentacion(), "Debe registrar la presentacion.");
         validarTexto(request.numeroTanda(), "Debe registrar el numero de tanda.");
         validarTexto(request.rangoBatches(), "Debe registrar el rango de batches.");
 
-        if (request.muestras() == null || request.muestras().size() < 10) {
-            throw new ReglaNegocioException("Debe registrar el peso neto de las 10 muestras.");
+        validarNumeroNoNegativoOpcional(request.pesoBrutoPromedio(), "Peso bruto promedio");
+        validarNumeroNoNegativoOpcional(request.taraPromedio(), "Tara promedio");
+
+        if (request.muestras() == null || request.muestras().size() != 10) {
+            throw new ReglaNegocioException("Debe registrar exactamente las 10 muestras de peso.");
         }
 
         for (ControlPesoMuestraRequest muestra : request.muestras()) {
-            if (muestra.numeroMuestra() == null) {
-                throw new ReglaNegocioException("Cada muestra debe tener numero de muestra.");
-            }
-
-            validarNumero(muestra.pesoNeto(), "Debe registrar el peso neto de todas las muestras.");
+            validarMuestraPeso(muestra);
         }
 
         BigDecimal promedio = resolvePesoNetoPromedio(request);
-        validarNumero(promedio, "Debe registrar el promedio de peso neto.");
+        validarNumeroPositivo(promedio, "Promedio de peso neto");
 
         if (request.cantidadPorCaja() == null || request.cantidadPorCaja() <= 0) {
             throw new ReglaNegocioException("Debe registrar la cantidad por caja.");
@@ -415,6 +465,33 @@ public class GestionControlCalidadLacteaService {
                         || Boolean.FALSE.equals(request.tapadoOk()))) {
             throw new ReglaNegocioException(
                     "No puede liberar producto terminado si apariencia, etiquetado o tapado no estan conformes.");
+        }
+    }
+
+    private void validarMuestraPeso(ControlPesoMuestraRequest muestra) {
+        if (muestra.numeroMuestra() == null || muestra.numeroMuestra() < 1 || muestra.numeroMuestra() > 10) {
+            throw new ReglaNegocioException("Cada muestra debe tener un numero entre 1 y 10.");
+        }
+
+        validarNumeroPositivo(muestra.pesoNeto(), "Peso neto de la muestra " + muestra.numeroMuestra());
+        validarNumeroNoNegativoOpcional(muestra.pesoBruto(), "Peso bruto de la muestra " + muestra.numeroMuestra());
+        validarNumeroNoNegativoOpcional(muestra.tara(), "Tara de la muestra " + muestra.numeroMuestra());
+
+        if (muestra.pesoBruto() != null && muestra.tara() != null) {
+            BigDecimal pesoCalculado = muestra.pesoBruto().subtract(muestra.tara());
+
+            if (pesoCalculado.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new ReglaNegocioException(
+                        "El peso bruto debe ser mayor que la tara en la muestra " + muestra.numeroMuestra() + ".");
+            }
+
+            BigDecimal diferencia = pesoCalculado.subtract(muestra.pesoNeto()).abs();
+
+            if (diferencia.compareTo(new BigDecimal("0.020")) > 0) {
+                throw new ReglaNegocioException(
+                        "El peso neto de la muestra " + muestra.numeroMuestra()
+                                + " no coincide con peso bruto menos tara. Revise los valores.");
+            }
         }
     }
 
@@ -437,10 +514,64 @@ public class GestionControlCalidadLacteaService {
         }
     }
 
-    private void validarNumero(BigDecimal valor, String mensaje) {
-        if (valor == null || valor.compareTo(BigDecimal.ZERO) <= 0) {
+    private void validarHora(LocalTime valor, String mensaje) {
+        if (valor == null) {
             throw new ReglaNegocioException(mensaje);
         }
+    }
+
+    private void validarHoraFinPosterior(LocalTime inicio, LocalTime fin) {
+        if (inicio != null && fin != null && !fin.isAfter(inicio)) {
+            throw new ReglaNegocioException("La hora de fin de hidrolisis debe ser posterior a la hora de inicio.");
+        }
+    }
+
+    private void validarNumeroPositivo(BigDecimal valor, String nombreCampo) {
+        if (valor == null || valor.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ReglaNegocioException(nombreCampo + " debe ser mayor a cero.");
+        }
+    }
+
+    private void validarNumeroNoNegativoOpcional(BigDecimal valor, String nombreCampo) {
+        if (valor != null && valor.compareTo(BigDecimal.ZERO) < 0) {
+            throw new ReglaNegocioException(nombreCampo + " no puede ser negativo.");
+        }
+    }
+
+    private void validarRango(BigDecimal valor, String nombreCampo, BigDecimal minimo, BigDecimal maximo) {
+        if (valor == null) {
+            throw new ReglaNegocioException(nombreCampo + " es obligatorio.");
+        }
+
+        if (valor.compareTo(minimo) < 0 || valor.compareTo(maximo) > 0) {
+            throw new ReglaNegocioException(
+                    nombreCampo + " debe estar entre " + minimo.stripTrailingZeros().toPlainString()
+                            + " y " + maximo.stripTrailingZeros().toPlainString() + ".");
+        }
+    }
+
+    private void validarRangoOpcional(BigDecimal valor, String nombreCampo, BigDecimal minimo, BigDecimal maximo) {
+        if (valor == null) {
+            return;
+        }
+
+        if (valor.compareTo(minimo) < 0 || valor.compareTo(maximo) > 0) {
+            throw new ReglaNegocioException(
+                    nombreCampo + " debe estar entre " + minimo.stripTrailingZeros().toPlainString()
+                            + " y " + maximo.stripTrailingZeros().toPlainString() + ".");
+        }
+    }
+
+    private void validarPh(BigDecimal valor, String nombreCampo) {
+        validarRango(valor, nombreCampo, CERO, PH_MAXIMO);
+    }
+
+    private void validarBrix(BigDecimal valor, String nombreCampo) {
+        validarRango(valor, nombreCampo, CERO, BRIX_MAXIMO);
+    }
+
+    private void validarTemperatura(BigDecimal valor, String nombreCampo) {
+        validarRango(valor, nombreCampo, CERO, TEMPERATURA_MAXIMA_REFERENCIAL);
     }
 
     private BigDecimal resolvePesoNetoPromedio(ControlPesoProductoRequest request) {
@@ -456,7 +587,7 @@ public class GestionControlCalidadLacteaService {
                 .map(muestra -> muestra.pesoNeto() == null ? BigDecimal.ZERO : muestra.pesoNeto())
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        return total.divide(BigDecimal.valueOf(request.muestras().size()), 3, java.math.RoundingMode.HALF_UP);
+        return total.divide(BigDecimal.valueOf(request.muestras().size()), 3, RoundingMode.HALF_UP);
     }
 
     private ControlCalidadProcesoResponse toResponse(ControlCalidadProcesoEntity entity) {

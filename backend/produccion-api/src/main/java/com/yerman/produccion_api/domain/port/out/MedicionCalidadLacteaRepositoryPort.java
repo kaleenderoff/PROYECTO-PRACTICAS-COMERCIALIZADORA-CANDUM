@@ -10,16 +10,20 @@ public interface MedicionCalidadLacteaRepositoryPort {
 
     MedicionCalidadLactea guardar(MedicionCalidadLactea medicion);
 
-    void eliminar(Long id);
-
     Optional<MedicionCalidadLactea> obtenerPorId(Long id);
 
     List<MedicionCalidadLactea> listarPorProduccion(Long idProduccionLactea);
 
     List<MedicionCalidadLactea> listarPorOrden(Long idOrdenProduccion);
 
+    void eliminar(Long id);
+
     boolean existeMedicionPorOrdenBatchYTipo(
             Long idOrdenProduccion,
             Long idEjecucionBatch,
+            TipoMedicionCalidadLactea tipoMedicion);
+
+    boolean existeMedicionPorOrdenYTipo(
+            Long idOrdenProduccion,
             TipoMedicionCalidadLactea tipoMedicion);
 }

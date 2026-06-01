@@ -80,6 +80,20 @@ public class MedicionCalidadLacteaJpaAdapter implements MedicionCalidadLacteaRep
                 tipoMedicion);
     }
 
+    @Override
+    public boolean existeMedicionPorOrdenYTipo(
+            Long idOrdenProduccion,
+            TipoMedicionCalidadLactea tipoMedicion) {
+
+        if (idOrdenProduccion == null || tipoMedicion == null) {
+            return false;
+        }
+
+        return repository.existsByOrdenProduccionIdAndTipoMedicion(
+                idOrdenProduccion,
+                tipoMedicion);
+    }
+
     private MedicionCalidadLacteaEntity toEntity(MedicionCalidadLactea medicion) {
         MedicionCalidadLacteaEntity entity = new MedicionCalidadLacteaEntity();
 

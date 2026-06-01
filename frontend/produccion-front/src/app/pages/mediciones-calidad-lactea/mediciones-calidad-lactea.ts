@@ -633,6 +633,38 @@ export class MedicionesCalidadLactea implements OnInit {
     );
   }
 
+  get medicionesBatch(): MedicionCalidadLacteaResponse[] {
+    return this.mediciones
+      .filter(m => m.tipoMedicion === 'BACHE')
+      .sort((a, b) => this.extraerNumeroReferencia(a.referencia, 'B.') - this.extraerNumeroReferencia(b.referencia, 'B.'));
+  }
+
+  get medicionMezcla(): MedicionCalidadLacteaResponse | null {
+    return this.mediciones.find(m => m.tipoMedicion === 'MEZCLA') || null;
+  }
+
+  get medicionesTanda(): MedicionCalidadLacteaResponse[] {
+    return this.mediciones
+      .filter(m => m.tipoMedicion === 'TANDA')
+      .sort((a, b) => this.extraerNumeroReferencia(a.referencia, 'Tanda ') - this.extraerNumeroReferencia(b.referencia, 'Tanda '));
+  }
+
+  get totalBatches(): number {
+    return this.batches.length;
+  }
+
+  get totalBatchesMedidos(): number {
+    return this.medicionesBatch.length;
+  }
+
+  get mezclaRegistrada(): boolean {
+    return this.medicionMezcla !== null;
+  }
+
+  get totalTandasRegistradas(): number {
+    return this.medicionesTanda.length;
+  }
+
   batchYaMedido(idBatch: number): boolean {
     return this.medicionesRapidasBatch.some(m =>
       Number(m.idEjecucionBatch) === Number(idBatch) &&
@@ -731,71 +763,67 @@ export class MedicionesCalidadLactea implements OnInit {
       return false;
     }
 
-    if (this.formulario.tipoMedicion === 'BACHE') {
-      if (!this.formulario.referencia.startsWith('B.')) {
-        this.notification.warning('La referencia automática del batch no es válida.');
-        return false;
-      }
-
-      if (this.formulario.brix === null || this.formulario.brix === undefined) {
-        this.notification.warning('Debe registrar el Brix del batch.');
-        return false;
-      }
-
-      if (this.formulario.ph === null || this.formulario.ph === undefined) {
-        this.notification.warning('Debe registrar el pH del batch.');
-        return false;
-      }
+    if (this.formulario.tipoMedicion === 'BACHE' && !this.formulario.referencia.startsWith('B.')) {
+      this.notification.warning('La referencia automática del batch no es válida.');
+      return false;
     }
 
-    if (this.formulario.tipoMedicion === 'MEZCLA') {
-      if (this.formulario.referencia !== 'Mezcla') {
-        this.notification.warning('La referencia automática de mezcla no es válida.');
-        return false;
-      }
+    if (this.formulario.tipoMedicion === 'MEZCLA' && this.formulario.referencia !== 'Mezcla') {
+      this.notification.warning('La referencia automática de mezcla no es válida.');
+      return false;
     }
 
-    if (this.formulario.tipoMedicion === 'TANDA') {
-      if (!this.formulario.referencia.startsWith('Tanda ')) {
-        this.notification.warning('La referencia automática de tanda no es válida.');
-        return false;
-      }
-    }
-
-    if (this.formulario.tipoMedicion !== 'BACHE') {
-      if (
-        (this.formulario.brix === null || this.formulario.brix === undefined) &&
-        (this.formulario.ph === null || this.formulario.ph === undefined)
-      ) {
-        this.notification.warning('Debe registrar Brix, pH o ambos.');
-        return false;
-      }
+    if (this.formulario.tipoMedicion === 'TANDA' && !this.formulario.referencia.startsWith('Tanda ')) {
+      this.notification.warning('La referencia automática de tanda no es válida.');
+      return false;
     }
 
     if (
-      this.formulario.brix !== null &&
-      this.formulario.brix !== undefined &&
-      Number(this.formulario.brix) < 0
+      !this.idMedicionEditando &&
+      this.formulario.tipoMedicion === 'MEZCLA' &&
+      this.mezclaRegistrada
     ) {
+      this.notification.warning('Esta orden ya tiene medición de mezcla registrada. Use editar si necesita corregirla.');
+      return false;
+    }
+
+    if (this.formulario.brix === null || this.formulario.brix === undefined) {
+      this.notification.warning(`Debe registrar el Brix de ${this.obtenerNombreTipoMedicion()}.`);
+      return false;
+    }
+
+    if (this.formulario.ph === null || this.formulario.ph === undefined) {
+      this.notification.warning(`Debe registrar el pH de ${this.obtenerNombreTipoMedicion()}.`);
+      return false;
+    }
+
+    if (Number.isNaN(Number(this.formulario.brix))) {
+      this.notification.warning('El Brix debe ser un valor numérico válido.');
+      return false;
+    }
+
+    if (Number.isNaN(Number(this.formulario.ph))) {
+      this.notification.warning('El pH debe ser un valor numérico válido.');
+      return false;
+    }
+
+    if (Number(this.formulario.brix) < 0) {
       this.notification.warning('El Brix no puede ser negativo.');
       return false;
     }
 
-    if (
-      this.formulario.ph !== null &&
-      this.formulario.ph !== undefined &&
-      Number(this.formulario.ph) < 0
-    ) {
+    if (Number(this.formulario.brix) > 100) {
+      this.notification.warning('El Brix no puede ser mayor a 100. Revise el valor digitado.');
+      return false;
+    }
+
+    if (Number(this.formulario.ph) < 0) {
       this.notification.warning('El pH no puede ser negativo.');
       return false;
     }
 
-    if (
-      this.formulario.ph !== null &&
-      this.formulario.ph !== undefined &&
-      Number(this.formulario.ph) > 14
-    ) {
-      this.notification.warning('El pH no debería ser mayor a 14. Revise el valor digitado.');
+    if (Number(this.formulario.ph) > 14) {
+      this.notification.warning('El pH no puede ser mayor a 14. Revise el valor digitado.');
       return false;
     }
 
@@ -810,6 +838,22 @@ export class MedicionesCalidadLactea implements OnInit {
     }
 
     return true;
+  }
+
+  private obtenerNombreTipoMedicion(): string {
+    if (this.formulario.tipoMedicion === 'BACHE') {
+      return 'batch';
+    }
+
+    if (this.formulario.tipoMedicion === 'MEZCLA') {
+      return 'la mezcla';
+    }
+
+    if (this.formulario.tipoMedicion === 'TANDA') {
+      return 'la tanda';
+    }
+
+    return 'la medición';
   }
 
   private validarFormularioProceso(): boolean {
@@ -1172,5 +1216,10 @@ export class MedicionesCalidadLactea implements OnInit {
       .replace(/\s+/g, '-')
       .replace(/[^A-Za-z0-9.-]/g, '')
       .toUpperCase();
+  }
+
+  private extraerNumeroReferencia(referencia: string, prefijo: string): number {
+    const numero = Number(String(referencia || '').replace(prefijo, '').trim());
+    return Number.isNaN(numero) ? 999999 : numero;
   }
 }

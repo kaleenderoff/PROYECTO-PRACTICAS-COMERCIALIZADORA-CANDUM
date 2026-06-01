@@ -16,4 +16,8 @@ public interface MedicionCalidadLacteaJpaRepository extends JpaRepository<Medici
             Long idOrdenProduccion,
             Long idEjecucionBatch,
             TipoMedicionCalidadLactea tipoMedicion);
+
+    boolean existsByOrdenProduccionIdAndTipoMedicion(
+            Long idOrdenProduccion,
+            TipoMedicionCalidadLactea tipoMedicion);
 }
