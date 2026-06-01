@@ -64,6 +64,19 @@
                 Está corrigiendo una medición existente.
             </p>
 
+            <div class="mb-5 p-4 rounded-2xl"
+                [ngClass]="productoSeleccionadoEsLecheCondensada ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'">
+                <p class="text-[10px] font-black uppercase tracking-widest mb-1">
+                    Regla de medición
+                </p>
+                <p class="text-xs font-bold">
+                    {{ etiquetaRequisitoPhRapido }}.
+                </p>
+                <p *ngIf="productoSeleccionadoEsLecheCondensada" class="text-xs font-medium mt-1">
+                    Para leche condensada se puede registrar Brix sin pH, según el flujo real reportado por calidad.
+                </p>
+            </div>
+
             <div class="space-y-5">
                 <div class="grid grid-cols-3 gap-2">
                     <button type="button" (click)="formulario.tipoMedicion = 'BACHE'; onCambioTipo()"
@@ -109,13 +122,24 @@
                     placeholder="Referencia automática">
 
                 <div class="grid grid-cols-2 gap-4">
-                    <input type="number" step="0.01" [(ngModel)]="formulario.brix"
-                        class="w-full px-4 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-violet-500 font-black text-slate-700"
-                        placeholder="Brix">
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">
+                            Brix obligatorio
+                        </label>
+                        <input type="number" step="0.01" [(ngModel)]="formulario.brix"
+                            class="w-full px-4 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-violet-500 font-black text-slate-700"
+                            placeholder="Brix">
+                    </div>
 
-                    <input type="number" step="0.01" [(ngModel)]="formulario.ph"
-                        class="w-full px-4 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-violet-500 font-black text-slate-700"
-                        placeholder="pH">
+                    <div>
+                        <label class="text-[10px] font-black uppercase tracking-widest block mb-2 px-1"
+                            [ngClass]="productoSeleccionadoEsLecheCondensada ? 'text-blue-500' : 'text-slate-400'">
+                            {{ productoSeleccionadoEsLecheCondensada ? 'pH opcional' : 'pH obligatorio' }}
+                        </label>
+                        <input type="number" step="0.01" [(ngModel)]="formulario.ph"
+                            class="w-full px-4 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-violet-500 font-black text-slate-700"
+                            [placeholder]="productoSeleccionadoEsLecheCondensada ? 'pH opcional' : 'pH'">
+                    </div>
                 </div>
 
                 <textarea [(ngModel)]="formulario.observaciones" rows="3"
@@ -196,18 +220,10 @@
                         <table class="w-full text-left">
                             <thead class="bg-slate-50">
                                 <tr>
-                                    <th class="px-4 py-3 text-[10px] uppercase text-slate-400">
-                                        Fecha
-                                    </th>
-                                    <th class="px-4 py-3 text-[10px] uppercase text-slate-400">
-                                        Ref.
-                                    </th>
-                                    <th class="px-4 py-3 text-[10px] uppercase text-slate-400 text-right">
-                                        Brix
-                                    </th>
-                                    <th class="px-4 py-3 text-[10px] uppercase text-slate-400 text-right">
-                                        pH
-                                    </th>
+                                    <th class="px-4 py-3 text-[10px] uppercase text-slate-400">Fecha</th>
+                                    <th class="px-4 py-3 text-[10px] uppercase text-slate-400">Ref.</th>
+                                    <th class="px-4 py-3 text-[10px] uppercase text-slate-400 text-right">Brix</th>
+                                    <th class="px-4 py-3 text-[10px] uppercase text-slate-400 text-right">pH</th>
                                     <th *ngIf="authService.canWriteCalidad()"
                                         class="px-4 py-3 text-[10px] uppercase text-slate-400 text-right">
                                         Acciones
@@ -227,7 +243,7 @@
                                         {{ medicion.brix }}
                                     </td>
                                     <td class="px-4 py-3 text-right font-black">
-                                        {{ medicion.ph }}
+                                        {{ medicion.ph ?? '-' }}
                                     </td>
                                     <td *ngIf="authService.canWriteCalidad()" class="px-4 py-3">
                                         <div class="flex justify-end gap-2">
@@ -285,7 +301,7 @@
                                     pH
                                 </p>
                                 <p class="font-black text-slate-900">
-                                    {{ mezcla.ph }}
+                                    {{ mezcla.ph ?? '-' }}
                                 </p>
                             </div>
                         </div>
@@ -323,18 +339,10 @@
                         <table class="w-full text-left">
                             <thead class="bg-slate-50">
                                 <tr>
-                                    <th class="px-4 py-3 text-[10px] uppercase text-slate-400">
-                                        Fecha
-                                    </th>
-                                    <th class="px-4 py-3 text-[10px] uppercase text-slate-400">
-                                        Ref.
-                                    </th>
-                                    <th class="px-4 py-3 text-[10px] uppercase text-slate-400 text-right">
-                                        Brix
-                                    </th>
-                                    <th class="px-4 py-3 text-[10px] uppercase text-slate-400 text-right">
-                                        pH
-                                    </th>
+                                    <th class="px-4 py-3 text-[10px] uppercase text-slate-400">Fecha</th>
+                                    <th class="px-4 py-3 text-[10px] uppercase text-slate-400">Ref.</th>
+                                    <th class="px-4 py-3 text-[10px] uppercase text-slate-400 text-right">Brix</th>
+                                    <th class="px-4 py-3 text-[10px] uppercase text-slate-400 text-right">pH</th>
                                     <th *ngIf="authService.canWriteCalidad()"
                                         class="px-4 py-3 text-[10px] uppercase text-slate-400 text-right">
                                         Acciones
@@ -354,7 +362,7 @@
                                         {{ medicion.brix }}
                                     </td>
                                     <td class="px-4 py-3 text-right font-black">
-                                        {{ medicion.ph }}
+                                        {{ medicion.ph ?? '-' }}
                                     </td>
                                     <td *ngIf="authService.canWriteCalidad()" class="px-4 py-3">
                                         <div class="flex justify-end gap-2">
@@ -568,18 +576,10 @@
                 <table class="w-full text-left">
                     <thead>
                         <tr>
-                            <th class="py-3 text-xs text-slate-400 uppercase">
-                                Muestra
-                            </th>
-                            <th class="py-3 text-xs text-slate-400 uppercase">
-                                Peso bruto
-                            </th>
-                            <th class="py-3 text-xs text-slate-400 uppercase">
-                                Tara
-                            </th>
-                            <th class="py-3 text-xs text-slate-400 uppercase">
-                                Peso neto
-                            </th>
+                            <th class="py-3 text-xs text-slate-400 uppercase">Muestra</th>
+                            <th class="py-3 text-xs text-slate-400 uppercase">Peso bruto</th>
+                            <th class="py-3 text-xs text-slate-400 uppercase">Tara</th>
+                            <th class="py-3 text-xs text-slate-400 uppercase">Peso neto</th>
                         </tr>
                     </thead>
 

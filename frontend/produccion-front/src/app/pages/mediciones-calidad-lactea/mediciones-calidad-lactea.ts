@@ -665,6 +665,16 @@ export class MedicionesCalidadLactea implements OnInit {
     return this.medicionesTanda.length;
   }
 
+  get productoSeleccionadoEsLecheCondensada(): boolean {
+    return this.esLecheCondensada(this.obtenerNombreProductoOrdenSeleccionada());
+  }
+
+  get etiquetaRequisitoPhRapido(): string {
+    return this.medicionRapidaRequierePh()
+      ? 'pH obligatorio'
+      : 'pH opcional para leche condensada';
+  }
+
   batchYaMedido(idBatch: number): boolean {
     return this.medicionesRapidasBatch.some(m =>
       Number(m.idEjecucionBatch) === Number(idBatch) &&
@@ -792,18 +802,8 @@ export class MedicionesCalidadLactea implements OnInit {
       return false;
     }
 
-    if (this.formulario.ph === null || this.formulario.ph === undefined) {
-      this.notification.warning(`Debe registrar el pH de ${this.obtenerNombreTipoMedicion()}.`);
-      return false;
-    }
-
     if (Number.isNaN(Number(this.formulario.brix))) {
       this.notification.warning('El Brix debe ser un valor numérico válido.');
-      return false;
-    }
-
-    if (Number.isNaN(Number(this.formulario.ph))) {
-      this.notification.warning('El pH debe ser un valor numérico válido.');
       return false;
     }
 
@@ -817,14 +817,28 @@ export class MedicionesCalidadLactea implements OnInit {
       return false;
     }
 
-    if (Number(this.formulario.ph) < 0) {
-      this.notification.warning('El pH no puede ser negativo.');
-      return false;
+    if (this.medicionRapidaRequierePh()) {
+      if (this.formulario.ph === null || this.formulario.ph === undefined) {
+        this.notification.warning(`Debe registrar el pH de ${this.obtenerNombreTipoMedicion()}.`);
+        return false;
+      }
     }
 
-    if (Number(this.formulario.ph) > 14) {
-      this.notification.warning('El pH no puede ser mayor a 14. Revise el valor digitado.');
-      return false;
+    if (this.formulario.ph !== null && this.formulario.ph !== undefined) {
+      if (Number.isNaN(Number(this.formulario.ph))) {
+        this.notification.warning('El pH debe ser un valor numérico válido.');
+        return false;
+      }
+
+      if (Number(this.formulario.ph) < 0) {
+        this.notification.warning('El pH no puede ser negativo.');
+        return false;
+      }
+
+      if (Number(this.formulario.ph) > 14) {
+        this.notification.warning('El pH no puede ser mayor a 14. Revise el valor digitado.');
+        return false;
+      }
     }
 
     if (
@@ -854,6 +868,19 @@ export class MedicionesCalidadLactea implements OnInit {
     }
 
     return 'la medición';
+  }
+
+  private medicionRapidaRequierePh(): boolean {
+    return !this.esLecheCondensada(this.obtenerNombreProductoOrdenSeleccionada());
+  }
+
+  private obtenerNombreProductoOrdenSeleccionada(): string {
+    const orden = this.obtenerOrdenSeleccionada();
+    return orden?.nombreProducto || '';
+  }
+
+  private esLecheCondensada(nombreProducto: string): boolean {
+    return this.normalizarTexto(nombreProducto).includes('LECHE CONDENSADA');
   }
 
   private validarFormularioProceso(): boolean {
@@ -1156,10 +1183,22 @@ export class MedicionesCalidadLactea implements OnInit {
       const referenciaActual = this.formulario.referencia?.trim() || '';
 
       if (!referenciaActual || !referenciaActual.startsWith('Tanda ')) {
-        const cantidadTandas = this.mediciones.filter(m => m.tipoMedicion === 'TANDA').length;
-        this.formulario.referencia = `Tanda ${cantidadTandas + 1}`;
+        this.formulario.referencia = `Tanda ${this.siguienteNumeroTanda()}`;
       }
     }
+  }
+
+  private siguienteNumeroTanda(): number {
+    const numeros = this.mediciones
+      .filter(m => m.tipoMedicion === 'TANDA')
+      .map(m => this.extraerNumeroReferencia(m.referencia, 'Tanda '))
+      .filter(numero => !Number.isNaN(numero) && numero !== 999999);
+
+    if (!numeros.length) {
+      return 1;
+    }
+
+    return Math.max(...numeros) + 1;
   }
 
   private generarLoteProcesoAutomatico(): string {
@@ -1215,6 +1254,15 @@ export class MedicionesCalidadLactea implements OnInit {
       .replace(/[\u0300-\u036f]/g, '')
       .replace(/\s+/g, '-')
       .replace(/[^A-Za-z0-9.-]/g, '')
+      .toUpperCase();
+  }
+
+  private normalizarTexto(valor: string): string {
+    return String(valor || '')
+      .trim()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, ' ')
       .toUpperCase();
   }
 

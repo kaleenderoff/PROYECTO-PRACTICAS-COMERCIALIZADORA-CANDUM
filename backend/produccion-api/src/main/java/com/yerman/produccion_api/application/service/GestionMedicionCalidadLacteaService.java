@@ -14,8 +14,10 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.text.Normalizer;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class GestionMedicionCalidadLacteaService implements GestionMedicionCalidadLacteaUseCase {
@@ -122,6 +124,7 @@ public class GestionMedicionCalidadLacteaService implements GestionMedicionCalid
 
         boolean tieneProduccionLactea = medicion.getIdProduccionLactea() != null;
         boolean tieneOrdenProduccion = medicion.getIdOrdenProduccion() != null;
+        String nombreProductoOrden = null;
 
         if (!tieneProduccionLactea && !tieneOrdenProduccion) {
             throw new ReglaNegocioException(
@@ -140,9 +143,11 @@ public class GestionMedicionCalidadLacteaService implements GestionMedicionCalid
         }
 
         if (tieneOrdenProduccion) {
-            ordenRepositoryPort.obtenerPorId(medicion.getIdOrdenProduccion())
+            var orden = ordenRepositoryPort.obtenerPorId(medicion.getIdOrdenProduccion())
                     .orElseThrow(() -> new RecursoNoEncontradoException(
                             "No existe una orden de produccion con ID: " + medicion.getIdOrdenProduccion()));
+
+            nombreProductoOrden = orden.getNombreProducto();
 
             validacionGuardService.validarOrdenNoAprobada(medicion.getIdOrdenProduccion());
         }
@@ -157,7 +162,7 @@ public class GestionMedicionCalidadLacteaService implements GestionMedicionCalid
 
         validarBatchSiAplica(medicion, tieneOrdenProduccion);
         validarConsistenciaTipoReferenciaYBatch(medicion);
-        validarBrixYPhObligatorios(medicion);
+        validarBrixYPhSegunProducto(medicion, nombreProductoOrden);
         validarValorNoNegativo(medicion.getBrix(), "Brix");
         validarValorNoNegativo(medicion.getPh(), "pH");
         validarRangoBrix(medicion.getBrix());
@@ -227,16 +232,29 @@ public class GestionMedicionCalidadLacteaService implements GestionMedicionCalid
         }
     }
 
-    private void validarBrixYPhObligatorios(MedicionCalidadLactea medicion) {
+    private void validarBrixYPhSegunProducto(
+            MedicionCalidadLactea medicion,
+            String nombreProductoOrden) {
+
         String nombreTipo = obtenerNombreTipoMedicion(medicion.getTipoMedicion());
 
         if (medicion.getBrix() == null) {
             throw new ReglaNegocioException("Debe registrar el Brix de " + nombreTipo + ".");
         }
 
-        if (medicion.getPh() == null) {
+        if (productoRequierePh(nombreProductoOrden) && medicion.getPh() == null) {
             throw new ReglaNegocioException("Debe registrar el pH de " + nombreTipo + ".");
         }
+    }
+
+    private boolean productoRequierePh(String nombreProducto) {
+        String productoNormalizado = normalizarTexto(nombreProducto);
+
+        if (productoNormalizado.contains("LECHE CONDENSADA")) {
+            return false;
+        }
+
+        return true;
     }
 
     private String obtenerNombreTipoMedicion(TipoMedicionCalidadLactea tipoMedicion) {
@@ -347,5 +365,19 @@ public class GestionMedicionCalidadLacteaService implements GestionMedicionCalid
         if (ph != null && ph.compareTo(PH_MAXIMO) > 0) {
             throw new ReglaNegocioException("El pH no puede ser mayor a 14.");
         }
+    }
+
+    private String normalizarTexto(String valor) {
+        if (valor == null) {
+            return "";
+        }
+
+        String sinAcentos = Normalizer.normalize(valor, Normalizer.Form.NFD)
+                .replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
+
+        return sinAcentos
+                .trim()
+                .replaceAll("\\s+", " ")
+                .toUpperCase(Locale.ROOT);
     }
 }
