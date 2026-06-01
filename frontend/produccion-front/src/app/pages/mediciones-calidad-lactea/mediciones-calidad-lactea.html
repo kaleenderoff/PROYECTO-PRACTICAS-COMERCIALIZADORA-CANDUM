@@ -674,6 +674,16 @@
                             </p>
                         </div>
 
+                        <div class="mb-5 p-4 bg-violet-50 border border-violet-100 rounded-2xl">
+                            <p class="text-xs font-black text-violet-600 uppercase tracking-widest mb-1">
+                                Control completo de proceso
+                            </p>
+                            <p class="text-sm font-bold text-violet-700">
+                                Campos basados en la planilla física de calidad: variables de leche, hidrólisis,
+                                Brix, pH, acidez, temperatura, presentación, liberación y verificación.
+                            </p>
+                        </div>
+
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <input type="date" [(ngModel)]="procesoForm.fechaProduccion"
                                 class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
@@ -688,12 +698,25 @@
                                 </option>
                             </select>
 
-                            <input type="text" [(ngModel)]="procesoForm.producto"
-                                class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Producto">
+                            <input type="text" [(ngModel)]="procesoForm.numeroMarmita" readonly
+                                class="px-4 py-3 bg-slate-100 rounded-2xl font-bold text-slate-700 cursor-not-allowed"
+                                placeholder="N° marmita automático">
 
                             <input type="text" [(ngModel)]="procesoForm.lote" readonly
                                 class="px-4 py-3 bg-slate-100 rounded-2xl font-bold text-slate-700 cursor-not-allowed"
                                 placeholder="Lote automático">
+
+                            <input type="text" [(ngModel)]="procesoForm.tipoProducto"
+                                class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Tipo producto">
+
+                            <input type="text" [(ngModel)]="procesoForm.producto"
+                                class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Producto">
+
+                            <input type="text" [(ngModel)]="procesoForm.productoEnProceso"
+                                class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Producto en proceso">
+
+                            <input type="date" [(ngModel)]="procesoForm.fechaVencimiento"
+                                class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
 
                             <input type="number" step="0.01" [(ngModel)]="procesoForm.phLeche"
                                 class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="pH leche">
@@ -702,10 +725,10 @@
                                 class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Acidez leche">
 
                             <input type="number" step="0.0001" [(ngModel)]="procesoForm.densidadLeche"
-                                class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Densidad">
+                                class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Densidad leche">
 
                             <input type="number" step="0.0001" [(ngModel)]="procesoForm.grasaLeche"
-                                class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Grasa">
+                                class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Grasa leche">
 
                             <input type="time" [(ngModel)]="procesoForm.horaInicioHidrolisis"
                                 class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
@@ -713,17 +736,32 @@
                             <input type="number" step="0.01" [(ngModel)]="procesoForm.phInicial"
                                 class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="pH inicial">
 
+                            <input type="number" step="0.01" [(ngModel)]="procesoForm.temperaturaInicial"
+                                class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Temp. inicial">
+
+                            <input type="number" step="0.0001" [(ngModel)]="procesoForm.acidezInicial"
+                                class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Acidez inicial">
+
                             <input type="time" [(ngModel)]="procesoForm.horaFinHidrolisis"
                                 class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
 
                             <input type="number" step="0.01" [(ngModel)]="procesoForm.phFinal"
                                 class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="pH final">
 
+                            <input type="number" step="0.01" [(ngModel)]="procesoForm.temperaturaFinal"
+                                class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Temp. final">
+
+                            <input type="number" step="0.0001" [(ngModel)]="procesoForm.acidezFinal"
+                                class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Acidez final">
+
                             <input type="number" step="0.01" [(ngModel)]="procesoForm.brixInicial"
                                 class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Brix inicial">
 
                             <input type="number" step="0.01" [(ngModel)]="procesoForm.brixFinal"
                                 class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Brix final">
+
+                            <input type="number" step="0.01" [(ngModel)]="procesoForm.presion"
+                                class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Presión">
 
                             <input type="number" step="0.01" [(ngModel)]="procesoForm.temperaturaCoccion"
                                 class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Temp. cocción">
@@ -756,8 +794,8 @@
                                 </option>
                             </select>
 
-                            <input type="date" [(ngModel)]="procesoForm.fechaVencimiento"
-                                class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
+                            <input type="number" [(ngModel)]="procesoForm.idVerificadoPor"
+                                class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="ID verificado por">
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
@@ -813,6 +851,11 @@
 
                                 <p class="text-xs text-slate-500">
                                     Brix final {{ control.brixFinal || '-' }} - pH final {{ control.phFinal || '-' }}
+                                </p>
+
+                                <p class="text-xs text-slate-500">
+                                    Acidez final {{ control.acidezFinal || '-' }} - Temp. envasado {{
+                                    control.temperaturaEnvasado || '-' }}
                                 </p>
 
                                 <div *ngIf="authService.canWriteCalidad()" class="flex gap-2 mt-3">
