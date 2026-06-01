@@ -168,6 +168,10 @@ export class MedicionesCalidadLactea implements OnInit {
     }
 
     this.formulario.referencia = '';
+    this.formulario.brix = null;
+    this.formulario.ph = null;
+    this.formulario.observaciones = '';
+
     this.autocompletarReferencia();
   }
 
@@ -190,6 +194,8 @@ export class MedicionesCalidadLactea implements OnInit {
       return;
     }
 
+    this.autocompletarReferencia();
+
     if (this.formulario.tipoMedicion === 'BACHE' && !this.formulario.idEjecucionBatch) {
       this.notification.warning('Debe seleccionar un batch.');
       return;
@@ -211,10 +217,40 @@ export class MedicionesCalidadLactea implements OnInit {
         return;
       }
     } else {
-      if (this.formulario.brix === null && this.formulario.ph === null) {
+      if (
+        (this.formulario.brix === null || this.formulario.brix === undefined) &&
+        (this.formulario.ph === null || this.formulario.ph === undefined)
+      ) {
         this.notification.warning('Debe registrar Brix, pH o ambos.');
         return;
       }
+    }
+
+    if (
+      this.formulario.brix !== null &&
+      this.formulario.brix !== undefined &&
+      Number(this.formulario.brix) < 0
+    ) {
+      this.notification.warning('El Brix no puede ser negativo.');
+      return;
+    }
+
+    if (
+      this.formulario.ph !== null &&
+      this.formulario.ph !== undefined &&
+      Number(this.formulario.ph) < 0
+    ) {
+      this.notification.warning('El pH no puede ser negativo.');
+      return;
+    }
+
+    if (
+      this.formulario.ph !== null &&
+      this.formulario.ph !== undefined &&
+      Number(this.formulario.ph) > 14
+    ) {
+      this.notification.warning('El pH no debería ser mayor a 14. Revise el valor digitado.');
+      return;
     }
 
     if (
@@ -231,7 +267,9 @@ export class MedicionesCalidadLactea implements OnInit {
 
     const request = {
       idOrdenProduccion: this.idOrdenSeleccionada,
-      idEjecucionBatch: this.formulario.idEjecucionBatch || null,
+      idEjecucionBatch: this.formulario.tipoMedicion === 'BACHE'
+        ? this.formulario.idEjecucionBatch
+        : null,
       tipoMedicion: this.formulario.tipoMedicion,
       referencia: this.formulario.referencia.trim(),
       brix: this.formulario.brix,
@@ -254,7 +292,7 @@ export class MedicionesCalidadLactea implements OnInit {
 
             this.notification.toast('Medición de calidad actualizada.');
           } else {
-            this.mediciones = [...this.mediciones, medicionGuardada];
+            this.mediciones = [medicionGuardada, ...this.mediciones];
             this.notification.toast('Medición de calidad registrada.');
           }
 
@@ -274,10 +312,12 @@ export class MedicionesCalidadLactea implements OnInit {
   }
 
   limpiarFormulario(): void {
+    const tipoActual = this.formulario.tipoMedicion;
+
     this.idMedicionEditando = null;
 
     this.formulario = {
-      tipoMedicion: 'BACHE',
+      tipoMedicion: tipoActual,
       idEjecucionBatch: 0,
       referencia: '',
       brix: null,
@@ -305,7 +345,9 @@ export class MedicionesCalidadLactea implements OnInit {
 
     this.formulario = {
       tipoMedicion: medicion.tipoMedicion,
-      idEjecucionBatch: medicion.idEjecucionBatch || 0,
+      idEjecucionBatch: medicion.tipoMedicion === 'BACHE'
+        ? (medicion.idEjecucionBatch || 0)
+        : 0,
       referencia: medicion.referencia,
       brix: medicion.brix ?? null,
       ph: medicion.ph ?? null,
@@ -858,12 +900,20 @@ export class MedicionesCalidadLactea implements OnInit {
       return false;
     }
 
-    if (this.pesoForm.pesoNetoPromedio === null || this.pesoForm.pesoNetoPromedio === undefined || Number(this.pesoForm.pesoNetoPromedio) <= 0) {
+    if (
+      this.pesoForm.pesoNetoPromedio === null ||
+      this.pesoForm.pesoNetoPromedio === undefined ||
+      Number(this.pesoForm.pesoNetoPromedio) <= 0
+    ) {
       this.notification.warning('Debe registrar el promedio de peso neto.');
       return false;
     }
 
-    if (this.pesoForm.cantidadPorCaja === null || this.pesoForm.cantidadPorCaja === undefined || Number(this.pesoForm.cantidadPorCaja) <= 0) {
+    if (
+      this.pesoForm.cantidadPorCaja === null ||
+      this.pesoForm.cantidadPorCaja === undefined ||
+      Number(this.pesoForm.cantidadPorCaja) <= 0
+    ) {
       this.notification.warning('Debe registrar la cantidad por caja.');
       return false;
     }
@@ -973,12 +1023,29 @@ export class MedicionesCalidadLactea implements OnInit {
     }
 
     if (this.formulario.tipoMedicion === 'MEZCLA') {
-      this.formulario.referencia = 'Mezcla';
+      this.formulario.idEjecucionBatch = 0;
+
+      if (
+        !this.formulario.referencia.trim() ||
+        this.formulario.referencia.startsWith('B.')
+      ) {
+        this.formulario.referencia = 'Mezcla';
+      }
+
       return;
     }
 
-    if (this.formulario.tipoMedicion === 'TANDA' && !this.formulario.referencia.trim()) {
-      this.formulario.referencia = 'Tanda';
+    if (this.formulario.tipoMedicion === 'TANDA') {
+      this.formulario.idEjecucionBatch = 0;
+
+      if (
+        !this.formulario.referencia.trim() ||
+        this.formulario.referencia === 'Mezcla' ||
+        this.formulario.referencia.startsWith('B.')
+      ) {
+        const cantidadTandas = this.mediciones.filter(m => m.tipoMedicion === 'TANDA').length;
+        this.formulario.referencia = `Tanda ${cantidadTandas + 1}`;
+      }
     }
   }
 }
