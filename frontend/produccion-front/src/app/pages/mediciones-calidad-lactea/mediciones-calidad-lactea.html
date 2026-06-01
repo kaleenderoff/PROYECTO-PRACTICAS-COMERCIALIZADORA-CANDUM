@@ -793,7 +793,6 @@
                                     {{ opcion }}
                                 </option>
                             </select>
-
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
@@ -843,26 +842,44 @@
 
                         <div class="space-y-3">
                             <div *ngFor="let control of controlesProceso" class="p-4 bg-slate-50 rounded-2xl">
-                                <p class="font-black text-slate-900">
-                                    {{ control.producto || 'Producto' }} - {{ control.lote || 'Sin lote' }}
-                                </p>
+                                <div class="flex items-start justify-between gap-3">
+                                    <div>
+                                        <p class="font-black text-slate-900">
+                                            {{ control.producto || 'Producto' }} - {{ control.lote || 'Sin lote' }}
+                                        </p>
 
-                                <p class="text-xs text-slate-500">
-                                    Brix final {{ control.brixFinal || '-' }} - pH final {{ control.phFinal || '-' }}
-                                </p>
+                                        <p class="text-xs text-slate-500 mt-1">
+                                            Brix final {{ control.brixFinal || '-' }} - pH final {{ control.phFinal ||
+                                            '-' }}
+                                        </p>
 
-                                <p class="text-xs text-slate-500">
-                                    Acidez final {{ control.acidezFinal || '-' }} - Temp. envasado {{
-                                    control.temperaturaEnvasado || '-' }}
-                                </p>
+                                        <p class="text-xs text-slate-500">
+                                            Acidez final {{ control.acidezFinal || '-' }} - Temp. envasado {{
+                                            control.temperaturaEnvasado || '-' }}
+                                        </p>
+                                    </div>
 
-                                <div *ngIf="authService.canWriteCalidad()" class="flex gap-2 mt-3">
-                                    <button type="button" (click)="editarProceso(control)"
+                                    <span
+                                        class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest"
+                                        [ngClass]="control.liberado ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'">
+                                        {{ control.liberado ? 'Liberado' : 'Retenido' }}
+                                    </span>
+                                </div>
+
+                                <div class="flex flex-wrap gap-2 mt-3">
+                                    <button type="button" (click)="abrirDetalleProceso(control)"
+                                        class="px-3 py-2 rounded-xl bg-violet-50 text-violet-700 text-xs font-black hover:bg-violet-100">
+                                        Ver detalle
+                                    </button>
+
+                                    <button *ngIf="authService.canWriteCalidad()" type="button"
+                                        (click)="editarProceso(control)"
                                         class="px-3 py-2 rounded-xl bg-blue-50 text-blue-700 text-xs font-black hover:bg-blue-100">
                                         Editar
                                     </button>
 
-                                    <button type="button" (click)="eliminarProceso(control)"
+                                    <button *ngIf="authService.canWriteCalidad()" type="button"
+                                        (click)="eliminarProceso(control)"
                                         class="px-3 py-2 rounded-xl bg-red-50 text-red-700 text-xs font-black hover:bg-red-100">
                                         Eliminar
                                     </button>
@@ -1194,5 +1211,271 @@
 
             </div>
         </div>
+
+        <div *ngIf="controlProcesoDetalle"
+            class="fixed inset-0 z-[60] bg-slate-950/60 backdrop-blur-sm flex items-start justify-center p-4 md:p-8 overflow-y-auto">
+
+            <div class="w-full max-w-6xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden my-4">
+                <div class="p-6 md:p-8 border-b border-slate-100 bg-slate-50/50">
+                    <div class="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-5">
+                        <div>
+                            <p class="text-xs font-black text-violet-600 uppercase tracking-[0.25em] mb-2">
+                                Detalle del control de proceso
+                            </p>
+
+                            <h3 class="text-2xl md:text-3xl font-black text-slate-900">
+                                {{ controlProcesoDetalle.producto || 'Producto' }}
+                            </h3>
+
+                            <p class="text-sm text-slate-500 font-bold mt-2">
+                                Lote: {{ controlProcesoDetalle.lote || '-' }}
+                                · Batch: B.{{ controlProcesoDetalle.numeroMarmita ||
+                                controlProcesoDetalle.idEjecucionBatch || '-' }}
+                                · Fecha: {{ controlProcesoDetalle.fechaProduccion || '-' }}
+                            </p>
+                        </div>
+
+                        <div class="flex flex-wrap gap-3">
+                            <span class="px-4 py-3 rounded-2xl text-xs font-black uppercase tracking-widest"
+                                [ngClass]="controlProcesoDetalle.liberado ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'">
+                                {{ controlProcesoDetalle.liberado ? 'Liberado' : 'Retenido' }}
+                            </span>
+
+                            <button type="button" (click)="cerrarDetalleProceso()"
+                                class="px-5 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-black text-sm transition-all">
+                                Cerrar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6 md:p-8 space-y-6">
+                    <section>
+                        <h4 class="text-sm font-black text-slate-900 uppercase tracking-widest mb-4">
+                            Información general
+                        </h4>
+
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="p-4 bg-slate-50 rounded-2xl">
+                                <p class="text-[10px] uppercase font-black text-slate-400">Fecha producción</p>
+                                <p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.fechaProduccion ||
+                                    '-' }}</p>
+                            </div>
+
+                            <div class="p-4 bg-slate-50 rounded-2xl">
+                                <p class="text-[10px] uppercase font-black text-slate-400">Tipo producto</p>
+                                <p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.tipoProducto || '-'
+                                    }}</p>
+                            </div>
+
+                            <div class="p-4 bg-slate-50 rounded-2xl">
+                                <p class="text-[10px] uppercase font-black text-slate-400">Producto en proceso</p>
+                                <p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.productoEnProceso ||
+                                    '-' }}</p>
+                            </div>
+
+                            <div class="p-4 bg-slate-50 rounded-2xl">
+                                <p class="text-[10px] uppercase font-black text-slate-400">Marmita</p>
+                                <p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.numeroMarmita || '-'
+                                    }}</p>
+                            </div>
+
+                            <div class="p-4 bg-slate-50 rounded-2xl">
+                                <p class="text-[10px] uppercase font-black text-slate-400">Lote</p>
+                                <p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.lote || '-' }}</p>
+                            </div>
+
+                            <div class="p-4 bg-slate-50 rounded-2xl">
+                                <p class="text-[10px] uppercase font-black text-slate-400">Fecha vencimiento</p>
+                                <p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.fechaVencimiento ||
+                                    '-' }}</p>
+                            </div>
+
+                            <div class="p-4 bg-slate-50 rounded-2xl">
+                                <p class="text-[10px] uppercase font-black text-slate-400">Presentación envasado</p>
+                                <p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.presentacionEnvasado
+                                    || '-' }}</p>
+                            </div>
+
+                            <div class="p-4 bg-slate-50 rounded-2xl">
+                                <p class="text-[10px] uppercase font-black text-slate-400">Estado</p>
+                                <p class="font-black mt-1"
+                                    [ngClass]="controlProcesoDetalle.liberado ? 'text-emerald-700' : 'text-amber-700'">
+                                    {{ controlProcesoDetalle.liberado ? 'Liberado' : 'Retenido' }}
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section>
+                        <h4 class="text-sm font-black text-slate-900 uppercase tracking-widest mb-4">
+                            Variables de leche
+                        </h4>
+
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="p-4 bg-blue-50 rounded-2xl">
+                                <p class="text-[10px] uppercase font-black text-blue-500">pH leche</p>
+                                <p class="text-xl font-black text-slate-900 mt-1">{{ controlProcesoDetalle.phLeche ??
+                                    '-' }}</p>
+                            </div>
+
+                            <div class="p-4 bg-blue-50 rounded-2xl">
+                                <p class="text-[10px] uppercase font-black text-blue-500">Acidez leche</p>
+                                <p class="text-xl font-black text-slate-900 mt-1">{{ controlProcesoDetalle.acidezLeche
+                                    ?? '-' }}</p>
+                            </div>
+
+                            <div class="p-4 bg-blue-50 rounded-2xl">
+                                <p class="text-[10px] uppercase font-black text-blue-500">Densidad leche</p>
+                                <p class="text-xl font-black text-slate-900 mt-1">{{ controlProcesoDetalle.densidadLeche
+                                    ?? '-' }}</p>
+                            </div>
+
+                            <div class="p-4 bg-blue-50 rounded-2xl">
+                                <p class="text-[10px] uppercase font-black text-blue-500">Grasa leche</p>
+                                <p class="text-xl font-black text-slate-900 mt-1">{{ controlProcesoDetalle.grasaLeche ??
+                                    '-' }}</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section>
+                        <h4 class="text-sm font-black text-slate-900 uppercase tracking-widest mb-4">
+                            Hidrólisis y variables de proceso
+                        </h4>
+
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="p-4 bg-slate-50 rounded-2xl">
+                                <p class="text-[10px] uppercase font-black text-slate-400">Hora inicio hidrólisis</p>
+                                <p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.horaInicioHidrolisis
+                                    || '-' }}</p>
+                            </div>
+
+                            <div class="p-4 bg-slate-50 rounded-2xl">
+                                <p class="text-[10px] uppercase font-black text-slate-400">Hora fin hidrólisis</p>
+                                <p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.horaFinHidrolisis ||
+                                    '-' }}</p>
+                            </div>
+
+                            <div class="p-4 bg-slate-50 rounded-2xl">
+                                <p class="text-[10px] uppercase font-black text-slate-400">pH inicial</p>
+                                <p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.phInicial ?? '-' }}
+                                </p>
+                            </div>
+
+                            <div class="p-4 bg-slate-50 rounded-2xl">
+                                <p class="text-[10px] uppercase font-black text-slate-400">pH final</p>
+                                <p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.phFinal ?? '-' }}</p>
+                            </div>
+
+                            <div class="p-4 bg-slate-50 rounded-2xl">
+                                <p class="text-[10px] uppercase font-black text-slate-400">Acidez inicial</p>
+                                <p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.acidezInicial ?? '-'
+                                    }}</p>
+                            </div>
+
+                            <div class="p-4 bg-slate-50 rounded-2xl">
+                                <p class="text-[10px] uppercase font-black text-slate-400">Acidez final</p>
+                                <p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.acidezFinal ?? '-' }}
+                                </p>
+                            </div>
+
+                            <div class="p-4 bg-slate-50 rounded-2xl">
+                                <p class="text-[10px] uppercase font-black text-slate-400">Brix inicial</p>
+                                <p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.brixInicial ?? '-' }}
+                                </p>
+                            </div>
+
+                            <div class="p-4 bg-slate-50 rounded-2xl">
+                                <p class="text-[10px] uppercase font-black text-slate-400">Brix final</p>
+                                <p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.brixFinal ?? '-' }}
+                                </p>
+                            </div>
+
+                            <div class="p-4 bg-slate-50 rounded-2xl">
+                                <p class="text-[10px] uppercase font-black text-slate-400">Temperatura inicial</p>
+                                <p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.temperaturaInicial ??
+                                    '-' }}</p>
+                            </div>
+
+                            <div class="p-4 bg-slate-50 rounded-2xl">
+                                <p class="text-[10px] uppercase font-black text-slate-400">Temperatura final</p>
+                                <p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.temperaturaFinal ??
+                                    '-' }}</p>
+                            </div>
+
+                            <div class="p-4 bg-slate-50 rounded-2xl">
+                                <p class="text-[10px] uppercase font-black text-slate-400">Presión</p>
+                                <p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.presion ?? '-' }}</p>
+                            </div>
+
+                            <div class="p-4 bg-slate-50 rounded-2xl">
+                                <p class="text-[10px] uppercase font-black text-slate-400">Temp. cocción</p>
+                                <p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.temperaturaCoccion ??
+                                    '-' }}</p>
+                            </div>
+
+                            <div class="p-4 bg-slate-50 rounded-2xl">
+                                <p class="text-[10px] uppercase font-black text-slate-400">Temp. envasado</p>
+                                <p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.temperaturaEnvasado
+                                    ?? '-' }}</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section>
+                        <h4 class="text-sm font-black text-slate-900 uppercase tracking-widest mb-4">
+                            Evaluación visual
+                        </h4>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="p-4 bg-violet-50 rounded-2xl">
+                                <p class="text-[10px] uppercase font-black text-violet-500">Color visual</p>
+                                <p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.colorVisual || '-' }}
+                                </p>
+                            </div>
+
+                            <div class="p-4 bg-violet-50 rounded-2xl">
+                                <p class="text-[10px] uppercase font-black text-violet-500">Sabor</p>
+                                <p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.saborVisual || '-' }}
+                                </p>
+                            </div>
+
+                            <div class="p-4 bg-violet-50 rounded-2xl">
+                                <p class="text-[10px] uppercase font-black text-violet-500">Textura</p>
+                                <p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.texturaVisual || '-'
+                                    }}</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section>
+                        <h4 class="text-sm font-black text-slate-900 uppercase tracking-widest mb-4">
+                            Observaciones
+                        </h4>
+
+                        <div class="p-5 bg-slate-50 rounded-2xl min-h-[90px]">
+                            <p class="text-sm font-medium text-slate-600 whitespace-pre-line">
+                                {{ controlProcesoDetalle.observaciones || 'Sin observaciones registradas.' }}
+                            </p>
+                        </div>
+                    </section>
+
+                    <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                        <button type="button" (click)="editarProceso(controlProcesoDetalle)"
+                            *ngIf="authService.canWriteCalidad()"
+                            class="px-5 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-sm transition-all">
+                            Editar este control
+                        </button>
+
+                        <button type="button" (click)="cerrarDetalleProceso()"
+                            class="px-5 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-black text-sm transition-all">
+                            Cerrar detalle
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>

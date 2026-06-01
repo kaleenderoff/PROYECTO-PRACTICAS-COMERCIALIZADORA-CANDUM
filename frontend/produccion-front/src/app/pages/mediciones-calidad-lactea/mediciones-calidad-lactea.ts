@@ -71,6 +71,8 @@ export class MedicionesCalidadLactea implements OnInit {
   idProcesoEditando: number | null = null;
   idPesoEditando: number | null = null;
 
+  controlProcesoDetalle: ControlCalidadProcesoResponse | null = null;
+
   readonly presentacionesEnvasado = [
     'Bolsa',
     'Taza',
@@ -180,6 +182,7 @@ export class MedicionesCalidadLactea implements OnInit {
       this.mediciones = [];
       this.controlesProceso = [];
       this.controlesPeso = [];
+      this.controlProcesoDetalle = null;
       this.cargando = false;
       return;
     }
@@ -242,6 +245,7 @@ export class MedicionesCalidadLactea implements OnInit {
           this.controlesPeso = [...controlesPeso];
           this.marcas = [...marcas];
 
+          this.controlProcesoDetalle = null;
           this.reiniciarProcesoFormConSiguienteBatch();
           this.pesoForm = this.crearPesoForm();
           this.autocompletarPesoDesdeOrden();
@@ -262,6 +266,7 @@ export class MedicionesCalidadLactea implements OnInit {
     this.idOrdenSeleccionada = orden.id;
     this.pestanaActiva = 'rapida';
     this.resumenWhatsappVisible = false;
+    this.controlProcesoDetalle = null;
     this.idMedicionEditando = null;
     this.idProcesoEditando = null;
     this.idPesoEditando = null;
@@ -286,6 +291,7 @@ export class MedicionesCalidadLactea implements OnInit {
     this.idMedicionEditando = null;
     this.idProcesoEditando = null;
     this.idPesoEditando = null;
+    this.controlProcesoDetalle = null;
     this.resumenWhatsappVisible = false;
   }
 
@@ -299,6 +305,7 @@ export class MedicionesCalidadLactea implements OnInit {
     this.idMedicionEditando = null;
     this.idProcesoEditando = null;
     this.idPesoEditando = null;
+    this.controlProcesoDetalle = null;
     this.resumenWhatsappVisible = false;
 
     this.procesoForm = this.crearProcesoForm();
@@ -311,6 +318,16 @@ export class MedicionesCalidadLactea implements OnInit {
     this.busquedaOrdenCalidad = '';
     this.filtroEstadoCalidad = 'TODOS';
     this.filtroFechaCalidad = '';
+  }
+
+  abrirDetalleProceso(control: ControlCalidadProcesoResponse): void {
+    this.controlProcesoDetalle = control;
+    this.cdr.detectChanges();
+  }
+
+  cerrarDetalleProceso(): void {
+    this.controlProcesoDetalle = null;
+    this.cdr.detectChanges();
   }
 
   onCambioTipo(): void {
@@ -686,6 +703,7 @@ export class MedicionesCalidadLactea implements OnInit {
         );
 
         this.idProcesoEditando = null;
+        this.controlProcesoDetalle = null;
         this.cargarDatosOrden(false);
       },
       error: err => {
@@ -798,6 +816,7 @@ export class MedicionesCalidadLactea implements OnInit {
   editarProceso(control: ControlCalidadProcesoResponse): void {
     if (!this.authService.canWriteCalidad()) return;
 
+    this.controlProcesoDetalle = null;
     this.idProcesoEditando = control.id;
 
     this.procesoForm = {
@@ -867,6 +886,10 @@ export class MedicionesCalidadLactea implements OnInit {
 
           if (this.idProcesoEditando === control.id) {
             this.cancelarEdicionProceso();
+          }
+
+          if (this.controlProcesoDetalle?.id === control.id) {
+            this.controlProcesoDetalle = null;
           }
 
           this.notification.toast('Control de proceso eliminado.');
