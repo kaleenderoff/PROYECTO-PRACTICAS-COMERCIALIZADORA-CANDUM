@@ -497,14 +497,23 @@
                 Está corrigiendo un control de proceso existente.
             </p>
 
+            <div *ngIf="procesoTodosBatchesRegistrados && !idProcesoEditando"
+                class="mb-5 p-4 bg-emerald-50 border border-emerald-100 rounded-2xl">
+                <p class="text-sm font-bold text-emerald-700">
+                    Todos los batches de esta orden ya tienen control de proceso registrado.
+                    No se pueden agregar más controles, solo editar o eliminar los existentes.
+                </p>
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <input type="date" [(ngModel)]="procesoForm.fechaProduccion"
                     class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
 
-                <select [(ngModel)]="procesoForm.idEjecucionBatch" (ngModelChange)="onCambioBatchProceso()"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
+                <select [(ngModel)]="procesoForm.idEjecucionBatch" (ngModelChange)="onCambioBatchProceso($event)"
+                    [disabled]="!idProcesoEditando && procesoTodosBatchesRegistrados"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold disabled:opacity-50 disabled:cursor-not-allowed">
                     <option [ngValue]="0">Batch / marmita</option>
-                    <option *ngFor="let batch of batches" [ngValue]="batch.id">
+                    <option *ngFor="let batch of batchesDisponiblesParaProceso" [ngValue]="batch.id">
                         B.{{ batch.numeroBatch }} - {{ batch.nombreMarmita || 'Marmita' }}
                     </option>
                 </select>
@@ -576,15 +585,21 @@
                     Retenido
                 </label>
 
-                <input type="text" [(ngModel)]="procesoForm.presentacionEnvasado"
-                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold" placeholder="Presentación envasado">
+                <select [(ngModel)]="procesoForm.presentacionEnvasado"
+                    class="px-4 py-3 bg-slate-50 rounded-2xl font-bold">
+                    <option value="">Presentación envasado</option>
+                    <option *ngFor="let presentacion of presentacionesEnvasado" [value]="presentacion">
+                        {{ presentacion }}
+                    </option>
+                </select>
             </div>
 
             <textarea [(ngModel)]="procesoForm.observaciones" rows="3"
                 class="mt-4 w-full p-4 bg-slate-50 rounded-2xl font-medium" placeholder="Observaciones"></textarea>
 
             <div class="mt-6 flex flex-col sm:flex-row gap-3">
-                <button type="button" (click)="registrarProceso()" [disabled]="guardando"
+                <button type="button" (click)="registrarProceso()"
+                    [disabled]="guardando || (!idProcesoEditando && procesoTodosBatchesRegistrados)"
                     class="px-8 py-4 bg-violet-600 hover:bg-violet-700 disabled:bg-slate-200 text-white rounded-2xl font-black transition-all">
                     {{ idProcesoEditando ? 'ACTUALIZAR CONTROL DE PROCESO' : 'GUARDAR CONTROL DE PROCESO' }}
                 </button>
@@ -600,6 +615,10 @@
             <h3 class="font-black text-slate-900 mb-4">
                 Registros de proceso
             </h3>
+
+            <p class="mb-4 text-xs font-black text-slate-400 uppercase tracking-widest">
+                {{ totalBatchesConControlProceso }} de {{ totalBatches }} batches con control
+            </p>
 
             <div class="space-y-3">
                 <div *ngFor="let control of controlesProceso" class="p-4 bg-slate-50 rounded-2xl">

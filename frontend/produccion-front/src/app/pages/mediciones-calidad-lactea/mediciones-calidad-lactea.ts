@@ -44,6 +44,18 @@ export class MedicionesCalidadLactea implements OnInit {
   idProcesoEditando: number | null = null;
   idPesoEditando: number | null = null;
 
+  readonly presentacionesEnvasado = [
+    'Bolsa',
+    'Taza',
+    'Tetero',
+    'Dispensador',
+    'Doypack',
+    'Garrafa',
+    'Balde',
+    'Bipack',
+    'Otro'
+  ];
+
   formulario = {
     tipoMedicion: 'BACHE' as TipoMedicionCalidadLactea,
     idEjecucionBatch: 0,
@@ -151,7 +163,7 @@ export class MedicionesCalidadLactea implements OnInit {
           this.controlesProceso = [...controlesProceso];
           this.controlesPeso = [...controlesPeso];
 
-          this.reiniciarProcesoFormConPrimerBatch();
+          this.reiniciarProcesoFormConSiguienteBatch();
           this.pesoForm = this.crearPesoForm();
 
           this.autocompletarReferencia();
@@ -322,7 +334,7 @@ export class MedicionesCalidadLactea implements OnInit {
 
   cancelarEdicionProceso(): void {
     this.idProcesoEditando = null;
-    this.reiniciarProcesoFormConPrimerBatch();
+    this.reiniciarProcesoFormConSiguienteBatch();
   }
 
   cancelarEdicionPeso(): void {
@@ -505,6 +517,11 @@ export class MedicionesCalidadLactea implements OnInit {
 
     if (!this.validarBase(idRealizadoPor)) return;
 
+    if (!this.idProcesoEditando && this.procesoTodosBatchesRegistrados) {
+      this.notification.warning('Todos los batches de esta orden ya tienen control de proceso registrado.');
+      return;
+    }
+
     this.sincronizarDatosBatchProceso();
 
     if (!this.validarFormularioProceso()) return;
@@ -535,7 +552,6 @@ export class MedicionesCalidadLactea implements OnInit {
         );
 
         this.idProcesoEditando = null;
-        this.reiniciarProcesoFormConPrimerBatch();
         this.cargarDatosOrden();
       },
       error: err => {
@@ -690,6 +706,7 @@ export class MedicionesCalidadLactea implements OnInit {
           }
 
           this.notification.toast('Control de proceso eliminado.');
+          this.reiniciarProcesoFormConSiguienteBatch();
           this.cdr.detectChanges();
         });
       },
@@ -894,6 +911,31 @@ export class MedicionesCalidadLactea implements OnInit {
     return this.tandasCerradas
       ? 'bg-amber-500 hover:bg-amber-600'
       : 'bg-emerald-600 hover:bg-emerald-700';
+  }
+
+  get idsBatchesConControlProceso(): Set<number> {
+    return new Set(
+      this.controlesProceso
+        .map(control => Number(control.idEjecucionBatch))
+        .filter(id => !Number.isNaN(id) && id > 0)
+    );
+  }
+
+  get batchesDisponiblesParaProceso(): EjecucionBatch[] {
+    if (this.idProcesoEditando) {
+      return this.batches;
+    }
+
+    const idsRegistrados = this.idsBatchesConControlProceso;
+    return this.batches.filter(batch => !idsRegistrados.has(Number(batch.id)));
+  }
+
+  get totalBatchesConControlProceso(): number {
+    return this.idsBatchesConControlProceso.size;
+  }
+
+  get procesoTodosBatchesRegistrados(): boolean {
+    return this.batches.length > 0 && this.batchesDisponiblesParaProceso.length === 0;
   }
 
   batchYaMedido(idBatch: number): boolean {
@@ -1112,6 +1154,12 @@ export class MedicionesCalidadLactea implements OnInit {
   private validarFormularioProceso(): boolean {
     if (!this.procesoForm.idEjecucionBatch) {
       this.notification.warning('Debe seleccionar el batch / marmita.');
+      return false;
+    }
+
+    if (!this.idProcesoEditando && this.batchProcesoYaRegistrado(this.procesoForm.idEjecucionBatch)) {
+      this.notification.warning('Este batch ya tiene control de proceso registrado. El sistema seleccionará el siguiente batch pendiente.');
+      this.reiniciarProcesoFormConSiguienteBatch();
       return false;
     }
 
@@ -1399,15 +1447,20 @@ export class MedicionesCalidadLactea implements OnInit {
     };
   }
 
-  private reiniciarProcesoFormConPrimerBatch(): void {
+  private reiniciarProcesoFormConSiguienteBatch(): void {
     this.procesoForm = this.crearProcesoForm();
 
-    const primerBatch = this.batches[0];
+    const siguienteBatch = this.batchesDisponiblesParaProceso[0];
 
-    if (primerBatch) {
-      this.procesoForm.idEjecucionBatch = Number(primerBatch.id);
+    if (siguienteBatch) {
+      this.procesoForm.idEjecucionBatch = Number(siguienteBatch.id);
       this.sincronizarDatosBatchProceso();
+      return;
     }
+
+    this.procesoForm.idEjecucionBatch = 0;
+    this.procesoForm.lote = '';
+    this.procesoForm.numeroMarmita = null;
   }
 
   private sincronizarDatosBatchProceso(): void {
@@ -1436,6 +1489,13 @@ export class MedicionesCalidadLactea implements OnInit {
     }
 
     return batch.numeroBatch ?? null;
+  }
+
+  private batchProcesoYaRegistrado(idBatch: number): boolean {
+    return this.controlesProceso.some(control =>
+      Number(control.idEjecucionBatch) === Number(idBatch) &&
+      Number(control.id) !== Number(this.idProcesoEditando)
+    );
   }
 
   private autocompletarReferencia(): void {
