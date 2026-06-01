@@ -177,6 +177,7 @@ export class MedicionesCalidadLactea implements OnInit {
       this.formulario.idEjecucionBatch = 0;
     }
 
+    this.idMedicionEditando = null;
     this.formulario.referencia = '';
     this.formulario.brix = null;
     this.formulario.ph = null;
@@ -187,6 +188,22 @@ export class MedicionesCalidadLactea implements OnInit {
 
   onCambioBatch(): void {
     this.autocompletarReferencia();
+  }
+
+  prepararNuevaTanda(): void {
+    this.pestanaActiva = 'rapida';
+    this.idMedicionEditando = null;
+
+    this.formulario = {
+      tipoMedicion: 'TANDA',
+      idEjecucionBatch: 0,
+      referencia: `Tanda ${this.siguienteNumeroTanda()}`,
+      brix: null,
+      ph: null,
+      observaciones: ''
+    };
+
+    this.cdr.detectChanges();
   }
 
   registrar(): void {
@@ -226,6 +243,8 @@ export class MedicionesCalidadLactea implements OnInit {
     operacion.subscribe({
       next: (medicionGuardada) => {
         this.ngZone.run(() => {
+          const eraTanda = this.formulario.tipoMedicion === 'TANDA';
+
           if (this.idMedicionEditando) {
             this.mediciones = this.mediciones.map(m =>
               Number(m.id) === Number(medicionGuardada.id) ? medicionGuardada : m
@@ -234,10 +253,20 @@ export class MedicionesCalidadLactea implements OnInit {
             this.notification.toast('Medición de calidad actualizada.');
           } else {
             this.mediciones = [medicionGuardada, ...this.mediciones];
-            this.notification.toast('Medición de calidad registrada.');
+
+            if (eraTanda) {
+              this.notification.toast(`${medicionGuardada.referencia} registrada. Puede agregar otra tanda si lo necesita.`);
+            } else {
+              this.notification.toast('Medición de calidad registrada.');
+            }
           }
 
-          this.limpiarFormulario();
+          if (eraTanda && !this.idMedicionEditando) {
+            this.prepararNuevaTanda();
+          } else {
+            this.limpiarFormulario();
+          }
+
           this.guardando = false;
           this.cdr.detectChanges();
         });
@@ -321,6 +350,10 @@ export class MedicionesCalidadLactea implements OnInit {
 
           if (this.idMedicionEditando === medicion.id) {
             this.limpiarFormulario();
+          }
+
+          if (medicion.tipoMedicion === 'TANDA' && this.formulario.tipoMedicion === 'TANDA') {
+            this.prepararNuevaTanda();
           }
 
           this.notification.toast('Medición eliminada.');
@@ -675,6 +708,22 @@ export class MedicionesCalidadLactea implements OnInit {
     return this.medicionRapidaRequierePh()
       ? 'pH obligatorio'
       : 'pH opcional para leche condensada';
+  }
+
+  get referenciaActualEsTanda(): boolean {
+    return this.formulario.tipoMedicion === 'TANDA';
+  }
+
+  get textoBotonMedicionRapida(): string {
+    if (this.idMedicionEditando) {
+      return 'ACTUALIZAR MEDICIÓN';
+    }
+
+    if (this.formulario.tipoMedicion === 'TANDA') {
+      return 'REGISTRAR TANDA';
+    }
+
+    return 'REGISTRAR MEDICIÓN';
   }
 
   batchYaMedido(idBatch: number): boolean {
@@ -1176,6 +1225,10 @@ export class MedicionesCalidadLactea implements OnInit {
   }
 
   private autocompletarReferencia(): void {
+    if (this.idMedicionEditando) {
+      return;
+    }
+
     if (this.formulario.tipoMedicion === 'BACHE') {
       const batch = this.obtenerBatch(this.formulario.idEjecucionBatch);
       this.formulario.referencia = batch ? `B.${batch.numeroBatch}` : '';
@@ -1190,12 +1243,7 @@ export class MedicionesCalidadLactea implements OnInit {
 
     if (this.formulario.tipoMedicion === 'TANDA') {
       this.formulario.idEjecucionBatch = 0;
-
-      const referenciaActual = this.formulario.referencia?.trim() || '';
-
-      if (!referenciaActual || !referenciaActual.startsWith('Tanda ')) {
-        this.formulario.referencia = `Tanda ${this.siguienteNumeroTanda()}`;
-      }
+      this.formulario.referencia = `Tanda ${this.siguienteNumeroTanda()}`;
     }
   }
 
