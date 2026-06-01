@@ -151,7 +151,7 @@ export class MedicionesCalidadLactea implements OnInit {
           this.controlesProceso = [...controlesProceso];
           this.controlesPeso = [...controlesPeso];
 
-          this.procesoForm = this.crearProcesoForm();
+          this.reiniciarProcesoFormConPrimerBatch();
           this.pesoForm = this.crearPesoForm();
 
           this.autocompletarReferencia();
@@ -322,7 +322,7 @@ export class MedicionesCalidadLactea implements OnInit {
 
   cancelarEdicionProceso(): void {
     this.idProcesoEditando = null;
-    this.procesoForm = this.crearProcesoForm();
+    this.reiniciarProcesoFormConPrimerBatch();
   }
 
   cancelarEdicionPeso(): void {
@@ -505,7 +505,7 @@ export class MedicionesCalidadLactea implements OnInit {
 
     if (!this.validarBase(idRealizadoPor)) return;
 
-    this.procesoForm.lote = this.generarLoteProcesoAutomatico();
+    this.sincronizarDatosBatchProceso();
 
     if (!this.validarFormularioProceso()) return;
 
@@ -535,7 +535,7 @@ export class MedicionesCalidadLactea implements OnInit {
         );
 
         this.idProcesoEditando = null;
-        this.procesoForm = this.crearProcesoForm();
+        this.reiniciarProcesoFormConPrimerBatch();
         this.cargarDatosOrden();
       },
       error: err => {
@@ -603,11 +603,12 @@ export class MedicionesCalidadLactea implements OnInit {
     });
   }
 
-  onCambioBatchProceso(): void {
-    const batch = this.obtenerBatch(this.procesoForm.idEjecucionBatch);
+  onCambioBatchProceso(idBatch?: number): void {
+    if (idBatch !== undefined && idBatch !== null) {
+      this.procesoForm.idEjecucionBatch = Number(idBatch);
+    }
 
-    this.procesoForm.numeroMarmita = batch?.numeroBatch || null;
-    this.procesoForm.lote = this.generarLoteProcesoAutomatico();
+    this.sincronizarDatosBatchProceso();
   }
 
   onCambioTandaPeso(): void {
@@ -655,6 +656,10 @@ export class MedicionesCalidadLactea implements OnInit {
       idVerificadoPor: control.idVerificadoPor || null,
       observaciones: control.observaciones || ''
     };
+
+    if (!this.procesoForm.lote?.trim()) {
+      this.sincronizarDatosBatchProceso();
+    }
 
     this.pestanaActiva = 'proceso';
     this.cdr.detectChanges();
@@ -1392,6 +1397,45 @@ export class MedicionesCalidadLactea implements OnInit {
         pesoNeto: null as number | null
       }))
     };
+  }
+
+  private reiniciarProcesoFormConPrimerBatch(): void {
+    this.procesoForm = this.crearProcesoForm();
+
+    const primerBatch = this.batches[0];
+
+    if (primerBatch) {
+      this.procesoForm.idEjecucionBatch = Number(primerBatch.id);
+      this.sincronizarDatosBatchProceso();
+    }
+  }
+
+  private sincronizarDatosBatchProceso(): void {
+    const batch = this.obtenerBatch(this.procesoForm.idEjecucionBatch);
+
+    if (!batch) {
+      this.procesoForm.numeroMarmita = null;
+      this.procesoForm.lote = '';
+      return;
+    }
+
+    this.procesoForm.numeroMarmita = this.obtenerNumeroMarmita(batch);
+    this.procesoForm.lote = this.generarLoteProcesoAutomatico();
+  }
+
+  private obtenerNumeroMarmita(batch: EjecucionBatch): number | null {
+    const nombreMarmita = String(batch.nombreMarmita || '');
+    const numeroDesdeNombre = Number(nombreMarmita.replace(/\D/g, ''));
+
+    if (!Number.isNaN(numeroDesdeNombre) && numeroDesdeNombre > 0) {
+      return numeroDesdeNombre;
+    }
+
+    if (batch.idMarmita !== null && batch.idMarmita !== undefined) {
+      return Number(batch.idMarmita);
+    }
+
+    return batch.numeroBatch ?? null;
   }
 
   private autocompletarReferencia(): void {
