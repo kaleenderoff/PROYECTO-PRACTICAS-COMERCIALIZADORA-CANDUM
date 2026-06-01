@@ -181,6 +181,15 @@ public class SecurityConfig {
                                                                 ROL_JEFE_LINEA,
                                                                 ROL_AUXILIAR_CALIDAD)
 
+                                                // CIERRE / REAPERTURA DE TANDAS DE CALIDAD
+                                                // Aunque cuelga de ordenes-produccion, pertenece al flujo de calidad.
+                                                .requestMatchers(HttpMethod.PATCH,
+                                                                "/ordenes-produccion/*/cerrar-tandas",
+                                                                "/ordenes-produccion/*/reabrir-tandas")
+                                                .hasAnyRole(
+                                                                ROL_ADMIN,
+                                                                ROL_AUXILIAR_CALIDAD)
+
                                                 // ORDENES Y EJECUCION
                                                 .requestMatchers("/ordenes-produccion/**", "/ejecucion-batch/**",
                                                                 "/producciones-lactea/**")
@@ -189,9 +198,6 @@ public class SecurityConfig {
                                                                 ROL_JEFE_LINEA)
 
                                                 // CALIDAD
-                                                // JEFE_LINEA puede consultar calidad para saber si una recepcion esta
-                                                // aprobada,
-                                                // retenida o no aprobada antes de usarla en descremado o produccion.
                                                 .requestMatchers(HttpMethod.GET, "/mediciones-calidad-lactea/**",
                                                                 "/controles-calidad-lactea/**")
                                                 .hasAnyRole(
@@ -202,8 +208,6 @@ public class SecurityConfig {
                                                                 ROL_JEFE_LINEA,
                                                                 ROL_AUXILIAR_CALIDAD)
 
-                                                // Solo ADMIN y AUXILIAR_CALIDAD pueden crear, editar o eliminar
-                                                // controles de calidad.
                                                 .requestMatchers("/mediciones-calidad-lactea/**",
                                                                 "/controles-calidad-lactea/**")
                                                 .hasAnyRole(

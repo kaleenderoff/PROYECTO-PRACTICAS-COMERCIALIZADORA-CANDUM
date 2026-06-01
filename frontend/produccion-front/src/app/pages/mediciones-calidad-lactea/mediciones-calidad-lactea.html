@@ -390,7 +390,7 @@
                                 + Agregar otra tanda
                             </button>
 
-                            <button *ngIf="puedeGestionarEstadoTandas" type="button" (click)="alternarEstadoTandas()"
+                            <button *ngIf="totalTandasRegistradas > 0" type="button" (click)="alternarEstadoTandas()"
                                 [ngClass]="claseBotonEstadoTandas"
                                 class="px-4 py-3 rounded-2xl text-white text-xs font-black transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                 [disabled]="cerrandoTandas || reabriendoTandas">
