@@ -285,9 +285,8 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
         OrdenProduccion orden = buscarOrden(idOrden);
         validacionGuardService.validarOrdenNoAprobada(idOrden);
 
-        if (orden.getEstado() == EstadoOrdenProduccion.FINALIZADA
-                || orden.getEstado() == EstadoOrdenProduccion.CANCELADA) {
-            throw new ReglaNegocioException("No se pueden cerrar tandas en una orden finalizada o cancelada.");
+        if (orden.getEstado() == EstadoOrdenProduccion.CANCELADA) {
+            throw new ReglaNegocioException("No se pueden cerrar tandas en una orden cancelada.");
         }
 
         if (Boolean.TRUE.equals(orden.getTandasCerradas())) {
@@ -312,9 +311,8 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
         OrdenProduccion orden = buscarOrden(idOrden);
         validacionGuardService.validarOrdenNoAprobada(idOrden);
 
-        if (orden.getEstado() == EstadoOrdenProduccion.FINALIZADA
-                || orden.getEstado() == EstadoOrdenProduccion.CANCELADA) {
-            throw new ReglaNegocioException("No se pueden reabrir tandas en una orden finalizada o cancelada.");
+        if (orden.getEstado() == EstadoOrdenProduccion.CANCELADA) {
+            throw new ReglaNegocioException("No se pueden reabrir tandas en una orden cancelada.");
         }
 
         if (!Boolean.TRUE.equals(orden.getTandasCerradas())) {
