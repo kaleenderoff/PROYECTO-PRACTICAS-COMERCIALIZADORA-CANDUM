@@ -137,7 +137,11 @@ export class AuthService {
   }
 
   canViewAuditoria(): boolean {
-    return this.hasAnyRole(['ADMIN', 'JEFE_PLANTA', 'DUENO_EMPRESA']);
+    return this.hasAnyRole(['ADMIN', 'JEFE_PLANTA']);
+  }
+
+  canViewDetalleTecnicoAuditoria(): boolean {
+    return this.isAdmin();
   }
 
   canManageProgramacion(): boolean {

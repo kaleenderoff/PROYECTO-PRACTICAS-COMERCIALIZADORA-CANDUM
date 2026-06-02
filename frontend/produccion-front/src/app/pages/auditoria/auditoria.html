@@ -127,7 +127,7 @@
             <div class="grid grid-cols-1 md:grid-cols-6 gap-3 mt-6">
                 <input type="text" [(ngModel)]="filtroTexto"
                     class="md:col-span-2 px-4 py-3 bg-white border border-slate-100 rounded-2xl text-slate-700 text-sm font-bold focus:ring-2 focus:ring-blue-500"
-                    placeholder="Buscar por orden, módulo, endpoint o detalle...">
+                    placeholder="Buscar por usuario, módulo, acción o registro...">
 
                 <select [(ngModel)]="filtroModulo"
                     class="px-4 py-3 bg-white border border-slate-100 rounded-2xl text-slate-700 text-sm font-bold focus:ring-2 focus:ring-blue-500">
@@ -171,7 +171,7 @@
                     Movimientos del sistema
                 </h2>
                 <p class="text-xs text-slate-400 font-bold mt-1">
-                    Vista operativa con resumen amigable. El detalle técnico queda disponible dentro del modal.
+                    Vista operativa con resumen amigable.
                 </p>
             </div>
 
@@ -267,7 +267,9 @@
                             <p class="text-sm font-bold text-slate-700 max-w-xl">
                                 {{ resumenAmigable(item) }}
                             </p>
-                            <p class="text-xs text-slate-400 font-medium mt-1 truncate max-w-xl">
+
+                            <p *ngIf="puedeVerDetalleTecnico()"
+                                class="text-xs text-slate-400 font-medium mt-1 truncate max-w-xl">
                                 {{ detalleTecnico(item) }}
                             </p>
                         </td>
@@ -408,7 +410,7 @@
                     </div>
                 </section>
 
-                <section>
+                <section *ngIf="puedeVerDetalleTecnico()">
                     <h4 class="text-sm font-black text-slate-900 uppercase tracking-widest mb-4">
                         Detalle técnico
                     </h4>
@@ -468,17 +470,11 @@
                     <div class="p-5 bg-amber-50 border border-amber-100 rounded-2xl">
                         <p class="text-sm font-bold text-amber-800">
                             Actualmente este registro de auditoría no almacena valores “antes” y “después”.
-                            Esta sección queda preparada para una mejora posterior del backend.
+                            Solo registra usuario, acción, módulo, registro afectado, fecha y resumen operativo.
                         </p>
                     </div>
                 </section>
 
-                <div class="flex justify-end pt-2">
-                    <button type="button" (click)="cerrarDetalle()"
-                        class="px-5 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-black text-sm transition-all">
-                        Cerrar detalle
-                    </button>
-                </div>
             </div>
         </div>
     </div>

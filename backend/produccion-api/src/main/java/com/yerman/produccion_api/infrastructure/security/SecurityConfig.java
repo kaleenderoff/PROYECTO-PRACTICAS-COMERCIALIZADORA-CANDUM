@@ -182,7 +182,6 @@ public class SecurityConfig {
                                                                 ROL_AUXILIAR_CALIDAD)
 
                                                 // CIERRE / REAPERTURA DE TANDAS DE CALIDAD
-                                                // Aunque cuelga de ordenes-produccion, pertenece al flujo de calidad.
                                                 .requestMatchers(HttpMethod.PATCH,
                                                                 "/ordenes-produccion/*/cerrar-tandas",
                                                                 "/ordenes-produccion/*/reabrir-tandas")
@@ -255,10 +254,11 @@ public class SecurityConfig {
                                                                 ROL_JEFE_PRODUCCION)
 
                                                 // AUDITORIA
+                                                // ADMIN ve auditoría completa.
+                                                // JEFE_PLANTA ve auditoría operativa, pero el backend no le envía detalle técnico.
                                                 .requestMatchers(HttpMethod.GET, "/auditoria/**")
                                                 .hasAnyRole(
                                                                 ROL_ADMIN,
-                                                                ROL_DUENO_EMPRESA,
                                                                 ROL_JEFE_PLANTA)
 
                                                 // TODO LO DEMAS

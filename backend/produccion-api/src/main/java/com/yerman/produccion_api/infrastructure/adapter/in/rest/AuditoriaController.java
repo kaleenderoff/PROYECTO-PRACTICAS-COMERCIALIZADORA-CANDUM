@@ -5,6 +5,7 @@ import com.yerman.produccion_api.infrastructure.repository.LogAuditoriaJpaReposi
 import com.yerman.produccion_api.infrastructure.repository.UsuarioJpaRepository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -16,6 +17,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/auditoria")
 public class AuditoriaController {
+
+    private static final String ROLE_ADMIN = "ROLE_ADMIN";
 
     private final LogAuditoriaJpaRepository repository;
     private final UsuarioJpaRepository usuarioRepository;
@@ -29,9 +32,11 @@ public class AuditoriaController {
 
     @GetMapping
     public List<AuditoriaResponse> listarUltimos(
-            @RequestParam(defaultValue = "100") int limite) {
+            @RequestParam(defaultValue = "100") int limite,
+            Authentication authentication) {
 
         int limiteSeguro = Math.max(1, Math.min(limite, 500));
+        boolean puedeVerDetalleTecnico = esAdmin(authentication);
 
         return repository.findAll(
                         PageRequest.of(
@@ -39,11 +44,14 @@ public class AuditoriaController {
                                 limiteSeguro,
                                 Sort.by(Sort.Direction.DESC, "fechaHora")))
                 .stream()
-                .map(this::toResponse)
+                .map(entity -> toResponse(entity, puedeVerDetalleTecnico))
                 .toList();
     }
 
-    private AuditoriaResponse toResponse(LogAuditoriaEntity entity) {
+    private AuditoriaResponse toResponse(
+            LogAuditoriaEntity entity,
+            boolean puedeVerDetalleTecnico) {
+
         return new AuditoriaResponse(
                 entity.getId(),
                 entity.getIdUsuario(),
@@ -51,8 +59,18 @@ public class AuditoriaController {
                 entity.getAccion(),
                 entity.getEntidadAfectada(),
                 entity.getIdRegistroAfectado(),
-                entity.getDetalle(),
+                puedeVerDetalleTecnico ? entity.getDetalle() : null,
                 entity.getFechaHora());
+    }
+
+    private boolean esAdmin(Authentication authentication) {
+        if (authentication == null || authentication.getAuthorities() == null) {
+            return false;
+        }
+
+        return authentication.getAuthorities()
+                .stream()
+                .anyMatch(authority -> ROLE_ADMIN.equals(authority.getAuthority()));
     }
 
     private String nombreUsuario(Long idUsuario) {

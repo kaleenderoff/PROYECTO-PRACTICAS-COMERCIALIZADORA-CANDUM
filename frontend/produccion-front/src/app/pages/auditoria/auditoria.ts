@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { AuditoriaResponse, AuditoriaService } from '../../core/services/auditoria';
+import { AuthService } from '../../core/services/auth';
 
 type FiltroAccionAuditoria = 'TODAS' | 'CREAR' | 'ACTUALIZAR' | 'ELIMINAR' | 'CAMBIAR_ESTADO';
 type FiltroModuloAuditoria =
@@ -38,7 +39,10 @@ export class Auditoria implements OnInit {
   filtroFechaDesde = '';
   filtroFechaHasta = '';
 
-  constructor(private auditoriaService: AuditoriaService) { }
+  constructor(
+    private auditoriaService: AuditoriaService,
+    private authService: AuthService
+  ) { }
 
   ngOnInit(): void {
     this.cargar();
@@ -78,6 +82,10 @@ export class Auditoria implements OnInit {
     this.registroDetalle = null;
   }
 
+  puedeVerDetalleTecnico(): boolean {
+    return this.authService.canViewDetalleTecnicoAuditoria();
+  }
+
   get registrosFiltrados(): AuditoriaResponse[] {
     const texto = this.normalizarTexto(this.filtroTexto);
     const usuario = this.normalizarTexto(this.filtroUsuario);
@@ -89,7 +97,7 @@ export class Auditoria implements OnInit {
         item.accion,
         item.entidadAfectada,
         item.idRegistroAfectado,
-        item.detalle,
+        this.puedeVerDetalleTecnico() ? item.detalle : '',
         item.nombreUsuario,
         this.moduloAmigable(item),
         this.resumenAmigable(item),
