@@ -1,80 +1,485 @@
-<div class="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-    <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div class="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+
+    <div
+        class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-8 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
         <div class="flex items-center gap-4">
-            <div class="w-14 h-14 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-lg shadow-slate-200">
-                <i class="bi bi-shield-lock text-xl"></i>
+            <div
+                class="w-16 h-16 rounded-3xl bg-slate-900 text-white flex items-center justify-center shadow-lg shadow-slate-200">
+                <i class="bi bi-shield-lock text-2xl"></i>
             </div>
+
             <div>
-                <h1 class="text-2xl font-black text-slate-900 tracking-tight">Auditoria</h1>
-                <p class="text-slate-500 text-sm font-medium">Historial de cambios operativos del sistema</p>
+                <p class="text-xs font-black text-blue-600 uppercase tracking-[0.25em] mb-1">
+                    Control y trazabilidad
+                </p>
+                <h1 class="text-3xl font-black text-slate-900 tracking-tight">
+                    Bitácora de actividad del sistema
+                </h1>
+                <p class="text-slate-500 text-sm font-medium mt-1">
+                    Historial operativo de movimientos, cambios de estado, creaciones, ediciones y eliminaciones.
+                </p>
             </div>
         </div>
-        <button (click)="cargar()"
-                class="px-5 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl text-sm font-black hover:border-blue-200 hover:text-blue-600 transition-all flex items-center gap-2">
-            <i class="bi bi-arrow-clockwise"></i>
-            Actualizar
-        </button>
+
+        <div class="flex flex-col sm:flex-row gap-3">
+            <select [(ngModel)]="limite"
+                class="px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-slate-700 text-sm font-black focus:ring-2 focus:ring-blue-500">
+                <option [ngValue]="100">Últimos 100</option>
+                <option [ngValue]="300">Últimos 300</option>
+                <option [ngValue]="500">Últimos 500</option>
+            </select>
+
+            <button type="button" (click)="cargar()"
+                class="px-5 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl text-sm font-black hover:border-blue-200 hover:text-blue-600 transition-all flex items-center justify-center gap-2">
+                <i class="bi bi-arrow-clockwise"></i>
+                Actualizar
+            </button>
+        </div>
     </div>
 
-    <div *ngIf="error" class="p-6 bg-red-50 text-red-700 rounded-[2rem] border border-red-100 shadow-sm flex items-center gap-4 font-bold">
+    <div *ngIf="error"
+        class="p-6 bg-red-50 text-red-700 rounded-[2rem] border border-red-100 shadow-sm flex items-center gap-4 font-bold">
         <i class="bi bi-exclamation-octagon-fill text-xl"></i>
         {{ error }}
     </div>
 
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div class="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                Eventos cargados
+            </p>
+            <p class="text-3xl font-black text-slate-900 mt-2">
+                {{ totalEventos }}
+            </p>
+            <p class="text-xs text-slate-400 font-bold mt-1">
+                Según límite seleccionado
+            </p>
+        </div>
+
+        <div class="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                Filtrados
+            </p>
+            <p class="text-3xl font-black text-blue-700 mt-2">
+                {{ totalFiltrados }}
+            </p>
+            <p class="text-xs text-slate-400 font-bold mt-1">
+                Coinciden con búsqueda
+            </p>
+        </div>
+
+        <div class="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                Creaciones
+            </p>
+            <p class="text-3xl font-black text-emerald-700 mt-2">
+                {{ totalCreaciones }}
+            </p>
+            <p class="text-xs text-slate-400 font-bold mt-1">
+                Registros nuevos
+            </p>
+        </div>
+
+        <div class="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                Cambios
+            </p>
+            <p class="text-3xl font-black text-amber-700 mt-2">
+                {{ totalActualizaciones }}
+            </p>
+            <p class="text-xs text-slate-400 font-bold mt-1">
+                Edición o cambio estado
+            </p>
+        </div>
+
+        <div class="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                Calidad
+            </p>
+            <p class="text-3xl font-black text-violet-700 mt-2">
+                {{ totalCalidad }}
+            </p>
+            <p class="text-xs text-slate-400 font-bold mt-1">
+                Eventos del módulo
+            </p>
+        </div>
+    </div>
+
     <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
-        <div class="px-8 py-6 border-b border-slate-50 flex items-center justify-between">
-            <h2 class="text-sm font-black text-slate-900 flex items-center gap-2">
-                <i class="bi bi-list-check text-blue-600"></i>
-                Ultimos movimientos
-            </h2>
+        <div class="p-6 border-b border-slate-100 bg-slate-50/40">
+            <div class="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-5">
+                <div>
+                    <h2 class="text-xl font-black text-slate-900 flex items-center gap-2">
+                        <i class="bi bi-funnel text-blue-600"></i>
+                        Filtros de auditoría
+                    </h2>
+                    <p class="text-sm text-slate-500 font-medium mt-1">
+                        Busque movimientos por módulo, acción, usuario, fecha o detalle operativo.
+                    </p>
+                </div>
+
+                <button type="button" (click)="limpiarFiltros()"
+                    class="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl text-xs font-black transition-all">
+                    Limpiar filtros
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-6 gap-3 mt-6">
+                <input type="text" [(ngModel)]="filtroTexto"
+                    class="md:col-span-2 px-4 py-3 bg-white border border-slate-100 rounded-2xl text-slate-700 text-sm font-bold focus:ring-2 focus:ring-blue-500"
+                    placeholder="Buscar por orden, módulo, endpoint o detalle...">
+
+                <select [(ngModel)]="filtroModulo"
+                    class="px-4 py-3 bg-white border border-slate-100 rounded-2xl text-slate-700 text-sm font-bold focus:ring-2 focus:ring-blue-500">
+                    <option value="TODOS">Todos los módulos</option>
+                    <option value="CALIDAD">Calidad láctea</option>
+                    <option value="ORDENES">Órdenes</option>
+                    <option value="RECEPCION">Recepción leche</option>
+                    <option value="DESCREMADO">Descremado</option>
+                    <option value="PRODUCTO_TERMINADO">Producto terminado</option>
+                    <option value="USUARIOS">Usuarios</option>
+                    <option value="OTROS">Otros</option>
+                </select>
+
+                <select [(ngModel)]="filtroAccion"
+                    class="px-4 py-3 bg-white border border-slate-100 rounded-2xl text-slate-700 text-sm font-bold focus:ring-2 focus:ring-blue-500">
+                    <option value="TODAS">Todas las acciones</option>
+                    <option value="CREAR">Crear</option>
+                    <option value="ACTUALIZAR">Actualizar</option>
+                    <option value="CAMBIAR_ESTADO">Cambiar estado</option>
+                    <option value="ELIMINAR">Eliminar</option>
+                </select>
+
+                <input type="text" [(ngModel)]="filtroUsuario"
+                    class="px-4 py-3 bg-white border border-slate-100 rounded-2xl text-slate-700 text-sm font-bold focus:ring-2 focus:ring-blue-500"
+                    placeholder="Usuario">
+
+                <div class="grid grid-cols-2 gap-3 md:col-span-6">
+                    <input type="date" [(ngModel)]="filtroFechaDesde"
+                        class="px-4 py-3 bg-white border border-slate-100 rounded-2xl text-slate-700 text-sm font-bold focus:ring-2 focus:ring-blue-500">
+
+                    <input type="date" [(ngModel)]="filtroFechaHasta"
+                        class="px-4 py-3 bg-white border border-slate-100 rounded-2xl text-slate-700 text-sm font-bold focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+        </div>
+
+        <div class="px-8 py-6 border-b border-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div>
+                <h2 class="text-sm font-black text-slate-900 flex items-center gap-2">
+                    <i class="bi bi-list-check text-blue-600"></i>
+                    Movimientos del sistema
+                </h2>
+                <p class="text-xs text-slate-400 font-bold mt-1">
+                    Vista operativa con resumen amigable. El detalle técnico queda disponible dentro del modal.
+                </p>
+            </div>
+
             <span class="px-3 py-1 bg-slate-100 text-slate-600 rounded-lg text-[10px] font-black uppercase">
-                {{ registros.length }} eventos
+                {{ totalFiltrados }} de {{ totalEventos }} eventos
             </span>
         </div>
 
-        <div *ngIf="cargando" class="p-10 text-sm font-bold text-slate-400">
-            Cargando auditoria...
+        <div *ngIf="cargando" class="p-10 text-sm font-bold text-slate-400 flex items-center gap-3">
+            <i class="bi bi-arrow-repeat animate-spin"></i>
+            Cargando auditoría...
         </div>
 
-        <div *ngIf="!cargando && registros.length === 0" class="p-10 text-sm font-bold text-slate-400">
-            Aun no hay movimientos registrados.
+        <div *ngIf="!cargando && registrosFiltrados.length === 0" class="p-10 text-sm font-bold text-slate-400">
+            No hay movimientos que coincidan con los filtros seleccionados.
         </div>
 
-        <div *ngIf="!cargando && registros.length > 0" class="overflow-x-auto">
+        <div *ngIf="!cargando && registrosFiltrados.length > 0" class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-slate-50/70">
-                        <th class="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Fecha</th>
-                        <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Accion</th>
-                        <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Entidad</th>
-                        <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Usuario</th>
-                        <th class="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Detalle</th>
+                        <th class="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            Fecha
+                        </th>
+                        <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            Acción
+                        </th>
+                        <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            Módulo
+                        </th>
+                        <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            Registro
+                        </th>
+                        <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            Usuario
+                        </th>
+                        <th class="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            Resumen
+                        </th>
+                        <th
+                            class="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">
+                            Acción
+                        </th>
                     </tr>
                 </thead>
+
                 <tbody class="divide-y divide-slate-50">
-                    <tr *ngFor="let item of registros" class="hover:bg-slate-50/50 transition-colors">
-                        <td class="px-8 py-5 whitespace-nowrap text-sm font-bold text-slate-700">
-                            {{ item.fechaHora | date:'dd/MM/yyyy HH:mm:ss' }}
+                    <tr *ngFor="let item of registrosFiltrados" class="hover:bg-slate-50/50 transition-colors">
+                        <td class="px-8 py-5 whitespace-nowrap">
+                            <p class="text-sm font-black text-slate-700">
+                                {{ item.fechaHora | date:'dd/MM/yyyy' }}
+                            </p>
+                            <p class="text-xs font-bold text-slate-400">
+                                {{ item.fechaHora | date:'HH:mm:ss' }}
+                            </p>
                         </td>
+
                         <td class="px-6 py-5">
-                            <span class="px-3 py-1 rounded-xl border text-[10px] font-black uppercase tracking-widest"
-                                  [ngClass]="claseAccion(item.accion)">
-                                {{ item.accion }}
+                            <span
+                                class="inline-flex items-center gap-2 px-3 py-1 rounded-xl border text-[10px] font-black uppercase tracking-widest"
+                                [ngClass]="claseAccion(item.accion)">
+                                <i class="bi" [ngClass]="iconoAccion(item.accion)"></i>
+                                {{ accionAmigable(item.accion) }}
                             </span>
                         </td>
-                        <td class="px-6 py-5 text-sm font-black text-slate-900">
-                            {{ item.entidadAfectada }}
-                            <span *ngIf="item.idRegistroAfectado" class="text-xs text-slate-400">#{{ item.idRegistroAfectado }}</span>
+
+                        <td class="px-6 py-5">
+                            <span class="px-3 py-1 rounded-xl border text-[10px] font-black uppercase tracking-widest"
+                                [ngClass]="claseModulo(item)">
+                                {{ moduloAmigable(item) }}
+                            </span>
                         </td>
-                        <td class="px-6 py-5 text-sm font-bold text-slate-600">
-                            {{ item.nombreUsuario || ('Usuario #' + item.idUsuario) }}
+
+                        <td class="px-6 py-5">
+                            <p class="text-sm font-black text-slate-900">
+                                {{ referenciaRegistro(item) }}
+                            </p>
+                            <p class="text-xs text-slate-400 font-bold">
+                                {{ item.entidadAfectada || 'Entidad no registrada' }}
+                            </p>
                         </td>
-                        <td class="px-8 py-5 text-xs font-medium text-slate-500 max-w-xl">
-                            {{ item.detalle || '-' }}
+
+                        <td class="px-6 py-5">
+                            <p class="text-sm font-bold text-slate-700">
+                                {{ usuarioNombre(item) }}
+                            </p>
+                            <p class="text-xs text-slate-400 font-bold">
+                                Usuario #{{ item.idUsuario }}
+                            </p>
+                        </td>
+
+                        <td class="px-8 py-5">
+                            <p class="text-sm font-bold text-slate-700 max-w-xl">
+                                {{ resumenAmigable(item) }}
+                            </p>
+                            <p class="text-xs text-slate-400 font-medium mt-1 truncate max-w-xl">
+                                {{ detalleTecnico(item) }}
+                            </p>
+                        </td>
+
+                        <td class="px-8 py-5 text-right">
+                            <button type="button" (click)="abrirDetalle(item)"
+                                class="px-4 py-2 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs font-black transition-all">
+                                Ver detalle
+                            </button>
                         </td>
                     </tr>
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    <div *ngIf="registroDetalle"
+        class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-start justify-center p-4 md:p-8 overflow-y-auto">
+
+        <div class="w-full max-w-5xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden my-4">
+            <div class="p-6 md:p-8 border-b border-slate-100 bg-slate-50/60">
+                <div class="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-5">
+                    <div>
+                        <p class="text-xs font-black text-blue-600 uppercase tracking-[0.25em] mb-2">
+                            Detalle del movimiento
+                        </p>
+
+                        <h3 class="text-2xl md:text-3xl font-black text-slate-900">
+                            {{ resumenAmigable(registroDetalle) }}
+                        </h3>
+
+                        <p class="text-sm text-slate-500 font-bold mt-2">
+                            {{ registroDetalle.fechaHora | date:'dd/MM/yyyy HH:mm:ss' }}
+                            · {{ usuarioNombre(registroDetalle) }}
+                        </p>
+                    </div>
+
+                    <div class="flex flex-wrap gap-3">
+                        <span
+                            class="inline-flex items-center gap-2 px-4 py-3 rounded-2xl border text-xs font-black uppercase tracking-widest"
+                            [ngClass]="claseAccion(registroDetalle.accion)">
+                            <i class="bi" [ngClass]="iconoAccion(registroDetalle.accion)"></i>
+                            {{ accionAmigable(registroDetalle.accion) }}
+                        </span>
+
+                        <button type="button" (click)="cerrarDetalle()"
+                            class="px-5 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-black text-sm transition-all">
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 md:p-8 space-y-6">
+
+                <section>
+                    <h4 class="text-sm font-black text-slate-900 uppercase tracking-widest mb-4">
+                        Información operativa
+                    </h4>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="p-4 bg-slate-50 rounded-2xl">
+                            <p class="text-[10px] uppercase font-black text-slate-400">
+                                Usuario
+                            </p>
+                            <p class="font-black text-slate-900 mt-1">
+                                {{ usuarioNombre(registroDetalle) }}
+                            </p>
+                            <p class="text-xs text-slate-400 font-bold">
+                                ID: {{ registroDetalle.idUsuario }}
+                            </p>
+                        </div>
+
+                        <div class="p-4 bg-slate-50 rounded-2xl">
+                            <p class="text-[10px] uppercase font-black text-slate-400">
+                                Módulo
+                            </p>
+                            <p class="font-black text-slate-900 mt-1">
+                                {{ moduloAmigable(registroDetalle) }}
+                            </p>
+                            <span
+                                class="inline-block mt-2 px-3 py-1 rounded-xl border text-[10px] font-black uppercase tracking-widest"
+                                [ngClass]="claseModulo(registroDetalle)">
+                                {{ moduloTecnico(registroDetalle) }}
+                            </span>
+                        </div>
+
+                        <div class="p-4 bg-slate-50 rounded-2xl">
+                            <p class="text-[10px] uppercase font-black text-slate-400">
+                                Registro afectado
+                            </p>
+                            <p class="font-black text-slate-900 mt-1">
+                                {{ referenciaRegistro(registroDetalle) }}
+                            </p>
+                            <p class="text-xs text-slate-400 font-bold">
+                                ID registro: {{ registroDetalle.idRegistroAfectado || 'No registrado' }}
+                            </p>
+                        </div>
+
+                        <div class="p-4 bg-slate-50 rounded-2xl">
+                            <p class="text-[10px] uppercase font-black text-slate-400">
+                                Fecha
+                            </p>
+                            <p class="font-black text-slate-900 mt-1">
+                                {{ registroDetalle.fechaHora | date:'dd/MM/yyyy' }}
+                            </p>
+                        </div>
+
+                        <div class="p-4 bg-slate-50 rounded-2xl">
+                            <p class="text-[10px] uppercase font-black text-slate-400">
+                                Hora
+                            </p>
+                            <p class="font-black text-slate-900 mt-1">
+                                {{ registroDetalle.fechaHora | date:'HH:mm:ss' }}
+                            </p>
+                        </div>
+
+                        <div class="p-4 bg-slate-50 rounded-2xl">
+                            <p class="text-[10px] uppercase font-black text-slate-400">
+                                Acción
+                            </p>
+                            <p class="font-black text-slate-900 mt-1">
+                                {{ accionAmigable(registroDetalle.accion) }}
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h4 class="text-sm font-black text-slate-900 uppercase tracking-widest mb-4">
+                        Lectura para el usuario
+                    </h4>
+
+                    <div class="p-5 bg-blue-50 border border-blue-100 rounded-2xl">
+                        <p class="text-sm font-bold text-blue-900 leading-relaxed">
+                            {{ resumenAmigable(registroDetalle) }}
+                        </p>
+                    </div>
+                </section>
+
+                <section>
+                    <h4 class="text-sm font-black text-slate-900 uppercase tracking-widest mb-4">
+                        Detalle técnico
+                    </h4>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div class="p-4 bg-slate-50 rounded-2xl">
+                            <p class="text-[10px] uppercase font-black text-slate-400">
+                                Método
+                            </p>
+                            <p class="font-black text-slate-900 mt-1">
+                                {{ metodoHttp(registroDetalle) }}
+                            </p>
+                        </div>
+
+                        <div class="p-4 bg-slate-50 rounded-2xl md:col-span-2">
+                            <p class="text-[10px] uppercase font-black text-slate-400">
+                                Endpoint
+                            </p>
+                            <p class="font-black text-slate-900 mt-1 break-all">
+                                {{ endpoint(registroDetalle) }}
+                            </p>
+                        </div>
+
+                        <div class="p-4 bg-slate-50 rounded-2xl">
+                            <p class="text-[10px] uppercase font-black text-slate-400">
+                                Estado respuesta
+                            </p>
+                            <p class="font-black text-slate-900 mt-1">
+                                {{ estadoHttp(registroDetalle) }}
+                            </p>
+                        </div>
+
+                        <div class="p-4 bg-slate-50 rounded-2xl md:col-span-2">
+                            <p class="text-[10px] uppercase font-black text-slate-400">
+                                Entidad técnica
+                            </p>
+                            <p class="font-black text-slate-900 mt-1">
+                                {{ registroDetalle.entidadAfectada || '-' }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="p-5 bg-slate-900 rounded-2xl">
+                        <p class="text-[10px] uppercase font-black text-slate-400 mb-2">
+                            Detalle original del log
+                        </p>
+                        <pre
+                            class="text-xs text-slate-100 whitespace-pre-wrap break-words font-mono">{{ detalleTecnico(registroDetalle) }}</pre>
+                    </div>
+                </section>
+
+                <section>
+                    <h4 class="text-sm font-black text-slate-900 uppercase tracking-widest mb-4">
+                        Cambios antes / después
+                    </h4>
+
+                    <div class="p-5 bg-amber-50 border border-amber-100 rounded-2xl">
+                        <p class="text-sm font-bold text-amber-800">
+                            Actualmente este registro de auditoría no almacena valores “antes” y “después”.
+                            Esta sección queda preparada para una mejora posterior del backend.
+                        </p>
+                    </div>
+                </section>
+
+                <div class="flex justify-end pt-2">
+                    <button type="button" (click)="cerrarDetalle()"
+                        class="px-5 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-black text-sm transition-all">
+                        Cerrar detalle
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
