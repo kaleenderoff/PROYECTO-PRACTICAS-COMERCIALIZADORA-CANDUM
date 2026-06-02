@@ -10,7 +10,6 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   ActualizarUsuarioRequest,
   CrearUsuarioRequest,
-  Usuario,
   UsuarioService
 } from '../../core/services/usuario';
 import { NotificationService } from '../../core/services/notification';
@@ -38,7 +37,8 @@ export class UsuarioForm implements OnInit {
     { value: 'JEFE_PLANTA', label: 'Jefe de Planta' },
     { value: 'JEFE_PRODUCCION', label: 'Jefe de Producción' },
     { value: 'JEFE_LINEA', label: 'Jefe de Línea' },
-    { value: 'AUXILIAR_CALIDAD', label: 'Auxiliar de Calidad' }
+    { value: 'AUXILIAR_CALIDAD', label: 'Auxiliar de Calidad' },
+    { value: 'COORDINADOR_CALIDAD', label: 'Coordinador(a) de Calidad' }
   ];
 
   form;
@@ -66,6 +66,7 @@ export class UsuarioForm implements OnInit {
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
+
     if (id) {
       this.editando = true;
       this.usuarioId = Number(id);
@@ -75,6 +76,7 @@ export class UsuarioForm implements OnInit {
 
   cargarUsuario(id: number): void {
     this.cargando = true;
+
     this.usuarioService.obtenerPorId(id).subscribe({
       next: (usuario) => {
         this.form.patchValue({
@@ -86,6 +88,7 @@ export class UsuarioForm implements OnInit {
           rol: usuario.rol,
           activo: usuario.activo
         });
+
         this.cargando = false;
       },
       error: (err) => {
@@ -101,6 +104,11 @@ export class UsuarioForm implements OnInit {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       this.notification.warning('Por favor, completa todos los campos requeridos.');
+      return;
+    }
+
+    if (!this.editando && !this.form.value.password) {
+      this.notification.warning('Debe ingresar una contraseña inicial.');
       return;
     }
 

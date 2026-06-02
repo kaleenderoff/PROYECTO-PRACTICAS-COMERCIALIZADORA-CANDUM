@@ -68,19 +68,6 @@ export class AuthService {
     return this.getRol() === 'ADMIN';
   }
 
-  obtenerNombreRol(): string {
-    const rol = this.getRol();
-    const roles: { [key: string]: string } = {
-      'ADMIN': 'Administrador del Sistema',
-      'DUENO_EMPRESA': 'Dueño de Empresa',
-      'JEFE_PLANTA': 'Jefe de Planta',
-      'JEFE_PRODUCCION': 'Jefe de Producción',
-      'JEFE_LINEA': 'Jefe de Línea',
-      'AUXILIAR_CALIDAD': 'Auxiliar de Calidad'
-    };
-    return roles[rol] || rol.replace('_', ' ');
-  }
-
   isDuenoEmpresa(): boolean {
     return this.getRol() === 'DUENO_EMPRESA';
   }
@@ -99,6 +86,26 @@ export class AuthService {
 
   isAuxiliarCalidad(): boolean {
     return this.getRol() === 'AUXILIAR_CALIDAD';
+  }
+
+  isCoordinadorCalidad(): boolean {
+    return this.getRol() === 'COORDINADOR_CALIDAD';
+  }
+
+  obtenerNombreRol(): string {
+    const rol = this.getRol();
+
+    const roles: { [key: string]: string } = {
+      'ADMIN': 'Administrador del Sistema',
+      'DUENO_EMPRESA': 'Dueño de Empresa',
+      'JEFE_PLANTA': 'Jefe de Planta',
+      'JEFE_PRODUCCION': 'Jefe de Producción',
+      'JEFE_LINEA': 'Jefe de Línea',
+      'AUXILIAR_CALIDAD': 'Auxiliar de Calidad',
+      'COORDINADOR_CALIDAD': 'Coordinador(a) de Calidad'
+    };
+
+    return roles[rol] || rol.replaceAll('_', ' ');
   }
 
   isGerencia(): boolean {
@@ -121,7 +128,15 @@ export class AuthService {
   }
 
   canReadRecepcionLeche(): boolean {
-    return this.canReadOperaciones() || this.isAuxiliarCalidad();
+    return this.hasAnyRole([
+      'ADMIN',
+      'JEFE_LINEA',
+      'JEFE_PRODUCCION',
+      'JEFE_PLANTA',
+      'DUENO_EMPRESA',
+      'AUXILIAR_CALIDAD',
+      'COORDINADOR_CALIDAD'
+    ]);
   }
 
   canWriteOperaciones(): boolean {
@@ -137,7 +152,11 @@ export class AuthService {
   }
 
   canViewAuditoria(): boolean {
-    return this.hasAnyRole(['ADMIN', 'JEFE_PLANTA']);
+    return this.hasAnyRole([
+      'ADMIN',
+      'JEFE_PLANTA',
+      'COORDINADOR_CALIDAD'
+    ]);
   }
 
   canViewDetalleTecnicoAuditoria(): boolean {
@@ -174,6 +193,7 @@ export class AuthService {
     return this.hasAnyRole([
       'ADMIN',
       'AUXILIAR_CALIDAD',
+      'COORDINADOR_CALIDAD',
       'JEFE_PRODUCCION',
       'JEFE_PLANTA',
       'DUENO_EMPRESA',
@@ -182,7 +202,34 @@ export class AuthService {
   }
 
   canWriteCalidad(): boolean {
-    return this.isAuxiliarCalidad();
+    return this.hasAnyRole([
+      'ADMIN',
+      'AUXILIAR_CALIDAD',
+      'COORDINADOR_CALIDAD'
+    ]);
+  }
+
+  canManageCalidad(): boolean {
+    return this.hasAnyRole([
+      'ADMIN',
+      'COORDINADOR_CALIDAD',
+      'JEFE_PLANTA'
+    ]);
+  }
+
+  canVerifyCalidad(): boolean {
+    return this.hasAnyRole([
+      'ADMIN',
+      'COORDINADOR_CALIDAD',
+      'JEFE_PLANTA'
+    ]);
+  }
+
+  canCloseTandasCalidad(): boolean {
+    return this.hasAnyRole([
+      'ADMIN',
+      'COORDINADOR_CALIDAD'
+    ]);
   }
 
   logout(): void {

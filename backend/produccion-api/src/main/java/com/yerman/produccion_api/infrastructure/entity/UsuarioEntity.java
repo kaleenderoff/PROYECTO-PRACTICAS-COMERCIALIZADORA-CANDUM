@@ -51,7 +51,8 @@ public class UsuarioEntity {
         JEFE_PLANTA,
         JEFE_PRODUCCION,
         JEFE_LINEA,
-        AUXILIAR_CALIDAD
+        AUXILIAR_CALIDAD,
+        COORDINADOR_CALIDAD
     }
 
     @PrePersist

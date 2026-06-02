@@ -6,8 +6,8 @@ import jakarta.validation.constraints.Size;
 
 public class CreateUsuarioRequest {
 
-    @NotBlank(message = "La cédula es obligatoria")
-    @Pattern(regexp = "^[0-9]{6,20}$", message = "La cédula debe contener solo números y tener entre 6 y 20 dígitos")
+    @NotBlank(message = "La cedula es obligatoria")
+    @Pattern(regexp = "^[0-9]{6,20}$", message = "La cedula debe contener solo numeros y tener entre 6 y 20 digitos")
     private String cc;
 
     @NotBlank(message = "El primer nombre es obligatorio")
@@ -24,15 +24,13 @@ public class CreateUsuarioRequest {
     @Size(max = 100, message = "El segundo apellido no puede superar los 100 caracteres")
     private String segundoApellido;
 
-    @NotBlank(message = "La contraseña es obligatoria")
-    @Size(min = 6, max = 100, message = "La contraseña debe tener entre 6 y 100 caracteres")
+    @NotBlank(message = "La contrasena es obligatoria")
+    @Size(min = 6, max = 100, message = "La contrasena debe tener entre 6 y 100 caracteres")
     private String password;
 
     @NotBlank(message = "El rol es obligatorio")
-    @Pattern(regexp = "ADMIN|DUENO_EMPRESA|JEFE_PLANTA|JEFE_PRODUCCION|JEFE_LINEA|AUXILIAR_CALIDAD", message = "Rol invalido")
+    @Pattern(regexp = "ADMIN|DUENO_EMPRESA|JEFE_PLANTA|JEFE_PRODUCCION|JEFE_LINEA|AUXILIAR_CALIDAD|COORDINADOR_CALIDAD", message = "Rol invalido")
     private String rol;
-
-    // Getters y Setters
 
     public String getCc() {
         return cc;

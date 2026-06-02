@@ -34,6 +34,7 @@ public class SecurityConfig {
         private static final String ROL_JEFE_PRODUCCION = "JEFE_PRODUCCION";
         private static final String ROL_JEFE_LINEA = "JEFE_LINEA";
         private static final String ROL_AUXILIAR_CALIDAD = "AUXILIAR_CALIDAD";
+        private static final String ROL_COORDINADOR_CALIDAD = "COORDINADOR_CALIDAD";
 
         private final JwtAuthenticationFilter jwtAuthenticationFilter;
         private final AuditoriaHttpFilter auditoriaHttpFilter;
@@ -108,8 +109,7 @@ public class SecurityConfig {
                                                                 ROL_DUENO_EMPRESA,
                                                                 ROL_JEFE_PLANTA,
                                                                 ROL_JEFE_PRODUCCION,
-                                                                ROL_JEFE_LINEA,
-                                                                ROL_AUXILIAR_CALIDAD)
+                                                                ROL_JEFE_LINEA)
 
                                                 .requestMatchers("/formulas/**")
                                                 .hasAnyRole(
@@ -138,7 +138,8 @@ public class SecurityConfig {
                                                                 ROL_JEFE_PLANTA,
                                                                 ROL_JEFE_PRODUCCION,
                                                                 ROL_JEFE_LINEA,
-                                                                ROL_AUXILIAR_CALIDAD)
+                                                                ROL_AUXILIAR_CALIDAD,
+                                                                ROL_COORDINADOR_CALIDAD)
 
                                                 // DESCREMADO Y MOVIMIENTOS
                                                 .requestMatchers(HttpMethod.GET, "/descremados-recepcion/**",
@@ -149,7 +150,8 @@ public class SecurityConfig {
                                                                 ROL_JEFE_PLANTA,
                                                                 ROL_JEFE_PRODUCCION,
                                                                 ROL_JEFE_LINEA,
-                                                                ROL_AUXILIAR_CALIDAD)
+                                                                ROL_AUXILIAR_CALIDAD,
+                                                                ROL_COORDINADOR_CALIDAD)
 
                                                 .requestMatchers("/recepciones-leche/**", "/descremados-recepcion/**",
                                                                 "/movimientos-leche/**")
@@ -165,7 +167,8 @@ public class SecurityConfig {
                                                                 ROL_JEFE_PLANTA,
                                                                 ROL_JEFE_PRODUCCION,
                                                                 ROL_JEFE_LINEA,
-                                                                ROL_AUXILIAR_CALIDAD)
+                                                                ROL_AUXILIAR_CALIDAD,
+                                                                ROL_COORDINADOR_CALIDAD)
 
                                                 .requestMatchers("/tanques-leche/**")
                                                 .hasRole(ROL_ADMIN)
@@ -179,7 +182,8 @@ public class SecurityConfig {
                                                                 ROL_JEFE_PLANTA,
                                                                 ROL_JEFE_PRODUCCION,
                                                                 ROL_JEFE_LINEA,
-                                                                ROL_AUXILIAR_CALIDAD)
+                                                                ROL_AUXILIAR_CALIDAD,
+                                                                ROL_COORDINADOR_CALIDAD)
 
                                                 // CIERRE / REAPERTURA DE TANDAS DE CALIDAD
                                                 .requestMatchers(HttpMethod.PATCH,
@@ -187,7 +191,7 @@ public class SecurityConfig {
                                                                 "/ordenes-produccion/*/reabrir-tandas")
                                                 .hasAnyRole(
                                                                 ROL_ADMIN,
-                                                                ROL_AUXILIAR_CALIDAD)
+                                                                ROL_COORDINADOR_CALIDAD)
 
                                                 // ORDENES Y EJECUCION
                                                 .requestMatchers("/ordenes-produccion/**", "/ejecucion-batch/**",
@@ -205,13 +209,15 @@ public class SecurityConfig {
                                                                 ROL_JEFE_PLANTA,
                                                                 ROL_JEFE_PRODUCCION,
                                                                 ROL_JEFE_LINEA,
-                                                                ROL_AUXILIAR_CALIDAD)
+                                                                ROL_AUXILIAR_CALIDAD,
+                                                                ROL_COORDINADOR_CALIDAD)
 
                                                 .requestMatchers("/mediciones-calidad-lactea/**",
                                                                 "/controles-calidad-lactea/**")
                                                 .hasAnyRole(
                                                                 ROL_ADMIN,
-                                                                ROL_AUXILIAR_CALIDAD)
+                                                                ROL_AUXILIAR_CALIDAD,
+                                                                ROL_COORDINADOR_CALIDAD)
 
                                                 // EMPAQUE Y OTROS PROCESOS MES
                                                 .requestMatchers(HttpMethod.GET,
@@ -224,7 +230,8 @@ public class SecurityConfig {
                                                                 ROL_ADMIN,
                                                                 ROL_DUENO_EMPRESA,
                                                                 ROL_JEFE_PLANTA,
-                                                                ROL_JEFE_PRODUCCION)
+                                                                ROL_JEFE_PRODUCCION,
+                                                                ROL_COORDINADOR_CALIDAD)
 
                                                 .requestMatchers(
                                                                 "/empaques-lacteos/**",
@@ -254,12 +261,11 @@ public class SecurityConfig {
                                                                 ROL_JEFE_PRODUCCION)
 
                                                 // AUDITORIA
-                                                // ADMIN ve auditoría completa.
-                                                // JEFE_PLANTA ve auditoría operativa, pero el backend no le envía detalle técnico.
                                                 .requestMatchers(HttpMethod.GET, "/auditoria/**")
                                                 .hasAnyRole(
                                                                 ROL_ADMIN,
-                                                                ROL_JEFE_PLANTA)
+                                                                ROL_JEFE_PLANTA,
+                                                                ROL_COORDINADOR_CALIDAD)
 
                                                 // TODO LO DEMAS
                                                 .anyRequest().authenticated())

@@ -370,8 +370,13 @@ export class MedicionesCalidadLactea implements OnInit {
   }
 
   prepararNuevaTanda(): void {
+    if (!this.puedeRegistrarCalidad) {
+      this.notification.warning('No tiene permisos para registrar tandas.');
+      return;
+    }
+
     if (this.tandasCerradas) {
-      this.notification.warning('Las tandas de esta orden ya están cerradas. Reabra las tandas si necesita corregir o agregar una nueva.');
+      this.notification.warning('Las tandas de esta orden ya están cerradas. La coordinadora de calidad debe reabrirlas si se requiere una corrección.');
       return;
     }
 
@@ -391,7 +396,15 @@ export class MedicionesCalidadLactea implements OnInit {
   }
 
   registrar(): void {
-    if (!this.authService.canWriteCalidad()) return;
+    if (!this.puedeRegistrarCalidad) {
+      this.notification.warning('No tiene permisos para registrar mediciones de calidad.');
+      return;
+    }
+
+    if (this.idMedicionEditando && !this.puedeCorregirCalidad) {
+      this.notification.warning('Solo coordinación de calidad puede corregir mediciones ya registradas.');
+      return;
+    }
 
     const idUsuarioCalidad = this.authService.getIdUsuario();
 
@@ -494,7 +507,10 @@ export class MedicionesCalidadLactea implements OnInit {
   }
 
   editarMedicion(medicion: MedicionCalidadLacteaResponse): void {
-    if (!this.authService.canWriteCalidad()) return;
+    if (!this.puedeCorregirCalidad) {
+      this.notification.warning('Solo coordinación de calidad puede corregir mediciones registradas.');
+      return;
+    }
 
     if (medicion.tipoMedicion === 'TANDA' && this.tandasCerradas) {
       this.notification.warning('Las tandas están cerradas. Reabra las tandas si necesita corregir una tanda.');
@@ -519,7 +535,10 @@ export class MedicionesCalidadLactea implements OnInit {
   }
 
   async eliminarMedicion(medicion: MedicionCalidadLacteaResponse): Promise<void> {
-    if (!this.authService.canWriteCalidad()) return;
+    if (!this.puedeEliminarCalidad) {
+      this.notification.warning('Solo coordinación de calidad puede eliminar mediciones.');
+      return;
+    }
 
     if (medicion.tipoMedicion === 'TANDA' && this.tandasCerradas) {
       this.notification.warning('Las tandas están cerradas. Reabra las tandas si necesita eliminar una tanda.');
@@ -528,7 +547,7 @@ export class MedicionesCalidadLactea implements OnInit {
 
     const confirmado = await this.notification.confirm({
       title: 'Eliminar medición',
-      text: `¿Desea eliminar la medición ${medicion.referencia}? Esta acción no se puede deshacer.`,
+      text: `¿Desea eliminar la medición ${medicion.referencia}? Esta acción quedará en auditoría y no se puede deshacer.`,
       confirmText: 'Sí, eliminar',
       cancelText: 'Cancelar',
       icon: 'warning'
@@ -562,8 +581,8 @@ export class MedicionesCalidadLactea implements OnInit {
   }
 
   async alternarEstadoTandas(): Promise<void> {
-    if (!this.authService.canWriteCalidad()) {
-      this.notification.warning('No tiene permisos para gestionar el cierre de tandas.');
+    if (!this.puedeCerrarTandasCalidad) {
+      this.notification.warning('Solo coordinación de calidad puede cerrar o reabrir tandas.');
       return;
     }
 
@@ -588,7 +607,7 @@ export class MedicionesCalidadLactea implements OnInit {
   private async confirmarCierreTandas(): Promise<void> {
     const confirmado = await this.notification.confirm({
       title: 'Cerrar registro de tandas',
-      text: 'Después de cerrar, no se podrán agregar, editar ni eliminar tandas, salvo que se reabra el registro. ¿Desea continuar?',
+      text: 'Después de cerrar, las auxiliares no podrán agregar, editar ni eliminar tandas. Solo coordinación de calidad podrá reabrirlas. ¿Desea continuar?',
       confirmText: 'Sí, cerrar tandas',
       cancelText: 'Cancelar',
       icon: 'warning'
@@ -607,7 +626,7 @@ export class MedicionesCalidadLactea implements OnInit {
 
     this.ordenService.cerrarTandas(this.idOrdenSeleccionada, {
       idUsuarioCierre,
-      observaciones: `Registro cerrado con ${this.medicionesTanda.length} tanda(s) registradas.`
+      observaciones: `Registro cerrado por coordinación de calidad con ${this.medicionesTanda.length} tanda(s) registradas.`
     }).subscribe({
       next: (ordenActualizada) => {
         this.ngZone.run(() => {
@@ -634,7 +653,7 @@ export class MedicionesCalidadLactea implements OnInit {
   private async confirmarReaperturaTandas(): Promise<void> {
     const confirmado = await this.notification.confirm({
       title: 'Reabrir registro de tandas',
-      text: 'Al reabrir, se podrán agregar, editar o eliminar tandas nuevamente. ¿Desea continuar?',
+      text: 'Al reabrir, se podrán agregar, editar o eliminar tandas nuevamente. Esta acción debe usarse solo para correcciones autorizadas. ¿Desea continuar?',
       confirmText: 'Sí, reabrir',
       cancelText: 'Cancelar',
       icon: 'question'
@@ -662,7 +681,15 @@ export class MedicionesCalidadLactea implements OnInit {
   }
 
   registrarProceso(): void {
-    if (!this.authService.canWriteCalidad()) return;
+    if (!this.puedeRegistrarCalidad) {
+      this.notification.warning('No tiene permisos para registrar controles de proceso.');
+      return;
+    }
+
+    if (this.idProcesoEditando && !this.puedeCorregirCalidad) {
+      this.notification.warning('Solo coordinación de calidad puede corregir controles de proceso.');
+      return;
+    }
 
     const idRealizadoPor = this.authService.getIdUsuario();
 
@@ -715,7 +742,15 @@ export class MedicionesCalidadLactea implements OnInit {
   }
 
   registrarPeso(): void {
-    if (!this.authService.canWriteCalidad()) return;
+    if (!this.puedeRegistrarCalidad) {
+      this.notification.warning('No tiene permisos para registrar controles de peso.');
+      return;
+    }
+
+    if (this.idPesoEditando && !this.puedeCorregirCalidad) {
+      this.notification.warning('Solo coordinación de calidad puede corregir controles de peso.');
+      return;
+    }
 
     const idRealizadoPor = this.authService.getIdUsuario();
 
@@ -814,7 +849,10 @@ export class MedicionesCalidadLactea implements OnInit {
   }
 
   editarProceso(control: ControlCalidadProcesoResponse): void {
-    if (!this.authService.canWriteCalidad()) return;
+    if (!this.puedeCorregirCalidad) {
+      this.notification.warning('Solo coordinación de calidad puede corregir controles de proceso.');
+      return;
+    }
 
     this.controlProcesoDetalle = null;
     this.idProcesoEditando = control.id;
@@ -865,11 +903,14 @@ export class MedicionesCalidadLactea implements OnInit {
   }
 
   async eliminarProceso(control: ControlCalidadProcesoResponse): Promise<void> {
-    if (!this.authService.canWriteCalidad()) return;
+    if (!this.puedeEliminarCalidad) {
+      this.notification.warning('Solo coordinación de calidad puede eliminar controles de proceso.');
+      return;
+    }
 
     const confirmado = await this.notification.confirm({
       title: 'Eliminar control de proceso',
-      text: '¿Desea eliminar este control de proceso? Esta acción no se puede deshacer.',
+      text: '¿Desea eliminar este control de proceso? Esta acción quedará en auditoría y no se puede deshacer.',
       confirmText: 'Sí, eliminar',
       cancelText: 'Cancelar',
       icon: 'warning'
@@ -902,7 +943,10 @@ export class MedicionesCalidadLactea implements OnInit {
   }
 
   editarPeso(control: ControlPesoProductoResponse): void {
-    if (!this.authService.canWriteCalidad()) return;
+    if (!this.puedeCorregirCalidad) {
+      this.notification.warning('Solo coordinación de calidad puede corregir controles de peso.');
+      return;
+    }
 
     this.idPesoEditando = control.id;
 
@@ -953,11 +997,14 @@ export class MedicionesCalidadLactea implements OnInit {
   }
 
   async eliminarPeso(control: ControlPesoProductoResponse): Promise<void> {
-    if (!this.authService.canWriteCalidad()) return;
+    if (!this.puedeEliminarCalidad) {
+      this.notification.warning('Solo coordinación de calidad puede eliminar controles de peso.');
+      return;
+    }
 
     const confirmado = await this.notification.confirm({
       title: 'Eliminar control de peso',
-      text: '¿Desea eliminar este control de peso? Esta acción no se puede deshacer.',
+      text: '¿Desea eliminar este control de peso? Esta acción quedará en auditoría y no se puede deshacer.',
       confirmText: 'Sí, eliminar',
       cancelText: 'Cancelar',
       icon: 'warning'
@@ -1016,6 +1063,26 @@ export class MedicionesCalidadLactea implements OnInit {
     }
 
     return orden.skus.find(sku => Number(sku.idSku) === Number(idSku));
+  }
+
+  get puedeRegistrarCalidad(): boolean {
+    return this.authService.canWriteCalidad();
+  }
+
+  get puedeCorregirCalidad(): boolean {
+    return this.authService.isAdmin() || this.authService.isCoordinadorCalidad();
+  }
+
+  get puedeEliminarCalidad(): boolean {
+    return this.authService.isAdmin() || this.authService.isCoordinadorCalidad();
+  }
+
+  get puedeCerrarTandasCalidad(): boolean {
+    return this.authService.canCloseTandasCalidad();
+  }
+
+  get puedeVerificarCalidad(): boolean {
+    return this.authService.canVerifyCalidad();
   }
 
   get ordenesFiltradasCalidad(): OrdenProduccionResponse[] {
@@ -1139,7 +1206,7 @@ export class MedicionesCalidadLactea implements OnInit {
   }
 
   get puedeGestionarEstadoTandas(): boolean {
-    return this.authService.canWriteCalidad()
+    return this.puedeCerrarTandasCalidad
       && this.totalTandasRegistradas > 0
       && !this.cerrandoTandas
       && !this.reabriendoTandas;
