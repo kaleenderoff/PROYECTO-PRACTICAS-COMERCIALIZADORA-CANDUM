@@ -49,6 +49,8 @@ export class Login {
           this.router.navigate(['/programacion-produccion/nueva']);
         } else if (rol.includes('JEFE_LINEA')) {
           this.router.navigate(['/ordenes-produccion']);
+        } else if (rol.includes('COORDINADOR_CALIDAD')) {
+          this.router.navigate(['/mediciones-calidad-lactea']);
         } else if (rol.includes('AUXILIAR_CALIDAD')) {
           this.router.navigate(['/recepcion-leche']);
         } else {
@@ -66,27 +68,22 @@ export class Login {
     const status = err?.status;
     const mensaje = err?.error?.message;
 
-    // 404 → usuario no existe
     if (status === 404) {
       return 'No existe un usuario registrado con esa cédula.';
     }
 
-    // 401 → contraseña incorrecta
     if (status === 401) {
       return 'Contraseña incorrecta. Verifique sus credenciales.';
     }
 
-    // 403 → usuario inactivo
     if (status === 403) {
       return 'Su cuenta está inactiva. Contacte al administrador.';
     }
 
-    // 0 → sin conexión
     if (status === 0) {
       return 'No se pudo conectar con el servidor. Intente más tarde.';
     }
 
-    // Mensaje específico del backend como fallback
     if (mensaje) {
       return mensaje;
     }
