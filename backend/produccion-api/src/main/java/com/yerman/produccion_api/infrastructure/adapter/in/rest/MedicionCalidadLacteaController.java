@@ -6,6 +6,7 @@ import com.yerman.produccion_api.application.mapper.MedicionCalidadLacteaRestMap
 import com.yerman.produccion_api.domain.port.in.GestionMedicionCalidadLacteaUseCase;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,7 +23,7 @@ public class MedicionCalidadLacteaController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @org.springframework.security.access.prepost.PreAuthorize("hasRole('AUXILIAR_CALIDAD')")
+    @PreAuthorize("hasAnyRole('AUXILIAR_CALIDAD','COORDINADOR_CALIDAD')")
     public MedicionCalidadLacteaResponse registrar(@Valid @RequestBody MedicionCalidadLacteaRequest request) {
         return MedicionCalidadLacteaRestMapper.toResponse(
                 useCase.registrar(
@@ -30,7 +31,7 @@ public class MedicionCalidadLacteaController {
     }
 
     @PutMapping("/{id}")
-    @org.springframework.security.access.prepost.PreAuthorize("hasRole('AUXILIAR_CALIDAD')")
+    @PreAuthorize("hasAnyRole('AUXILIAR_CALIDAD','COORDINADOR_CALIDAD')")
     public MedicionCalidadLacteaResponse actualizar(
             @PathVariable Long id,
             @Valid @RequestBody MedicionCalidadLacteaRequest request) {
@@ -40,7 +41,7 @@ public class MedicionCalidadLacteaController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @org.springframework.security.access.prepost.PreAuthorize("hasRole('AUXILIAR_CALIDAD')")
+    @PreAuthorize("hasAnyRole('AUXILIAR_CALIDAD','COORDINADOR_CALIDAD')")
     public void eliminar(@PathVariable Long id) {
         useCase.eliminar(id);
     }
