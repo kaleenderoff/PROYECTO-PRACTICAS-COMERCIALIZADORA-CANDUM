@@ -3,7 +3,11 @@ import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { ProgramacionProduccionService } from '../../core/services/programacion-produccion';
-import { RecepcionLeche, RecepcionLecheService } from '../../core/services/recepcion-leche';
+import {
+  RecepcionLeche,
+  RecepcionLecheService,
+  SaldoTanqueLeche
+} from '../../core/services/recepcion-leche';
 import { NotificationService } from '../../core/services/notification';
 
 import {
@@ -40,6 +44,7 @@ export class ProgramacionProduccionForm implements OnInit {
   jefesLinea: Usuario[] = [];
 
   recepcionesFecha: RecepcionLeche[] = [];
+  saldosTanques: SaldoTanqueLeche[] = [];
   cargandoDisponibilidadLeche = false;
 
   idProducto: number | null = null;
@@ -93,22 +98,48 @@ export class ProgramacionProduccionForm implements OnInit {
   cargarDisponibilidadLeche(): void {
     if (!this.fechaProduccion) {
       this.recepcionesFecha = [];
+      this.saldosTanques = [];
       return;
     }
 
     this.cargandoDisponibilidadLeche = true;
+
+    let recepcionesCargadas = false;
+    let saldosCargados = false;
+
+    const finalizarCarga = () => {
+      if (recepcionesCargadas && saldosCargados) {
+        this.cargandoDisponibilidadLeche = false;
+      }
+    };
 
     this.recepcionLecheService.listarRecepciones().subscribe({
       next: recepciones => {
         this.recepcionesFecha = (recepciones || []).filter(
           recepcion => recepcion.fechaRecepcion === this.fechaProduccion
         );
-        this.cargandoDisponibilidadLeche = false;
+        recepcionesCargadas = true;
+        finalizarCarga();
       },
       error: error => {
-        console.error('Error cargando disponibilidad de leche', error);
+        console.error('Error cargando recepciones de leche', error);
         this.recepcionesFecha = [];
-        this.cargandoDisponibilidadLeche = false;
+        recepcionesCargadas = true;
+        finalizarCarga();
+      }
+    });
+
+    this.recepcionLecheService.listarSaldosTanques().subscribe({
+      next: saldos => {
+        this.saldosTanques = (saldos || []).filter(saldo => saldo.activo !== false);
+        saldosCargados = true;
+        finalizarCarga();
+      },
+      error: error => {
+        console.error('Error cargando saldos de tanques', error);
+        this.saldosTanques = [];
+        saldosCargados = true;
+        finalizarCarga();
       }
     });
   }
@@ -146,7 +177,6 @@ export class ProgramacionProduccionForm implements OnInit {
       next: formula => {
         this.formulaVigente = formula;
         this.cargandoFormula = false;
-        console.log('FORMULA VIGENTE PROGRAMACION:', formula);
       },
       error: error => {
         console.error('Error cargando fórmula vigente', error);
@@ -431,10 +461,10 @@ export class ProgramacionProduccionForm implements OnInit {
     );
   }
 
-  calcularLecheAprobadaLitros(): number {
+  calcularSaldoActualTanquesLitros(): number {
     return Number(
-      this.obtenerRecepcionesPorEstado(['APROBADA'])
-        .reduce((total, recepcion) => total + this.obtenerLitrosRecepcion(recepcion), 0)
+      this.saldosTanques
+        .reduce((total, tanque) => total + Number(tanque.saldoLitros || 0), 0)
         .toFixed(2)
     );
   }
@@ -455,7 +485,23 @@ export class ProgramacionProduccionForm implements OnInit {
     );
   }
 
+  calcularLecheAprobadaLitros(): number {
+    const saldoActual = this.calcularSaldoActualTanquesLitros();
+    const pendiente = this.calcularLechePendienteCalidadLitros();
+    const retenida = this.calcularLecheRetenidaLitros();
+
+    const disponible = saldoActual - pendiente - retenida;
+
+    return Number(Math.max(disponible, 0).toFixed(2));
+  }
+
   calcularLecheTotalFisicaLitros(): number {
+    const saldoActual = this.calcularSaldoActualTanquesLitros();
+
+    if (saldoActual > 0) {
+      return saldoActual;
+    }
+
     return Number(
       this.recepcionesFecha
         .reduce((total, recepcion) => total + this.obtenerLitrosRecepcion(recepcion), 0)
@@ -485,6 +531,7 @@ export class ProgramacionProduccionForm implements OnInit {
 
   programacionDependeDeLechePendiente(): boolean {
     const requerida = this.calcularLecheRequeridaLitros();
+
     return requerida > this.calcularLecheAprobadaLitros()
       && requerida <= this.calcularLecheTotalPotencialLitros();
   }
@@ -501,11 +548,11 @@ export class ProgramacionProduccionForm implements OnInit {
 
   obtenerMensajeDisponibilidadLeche(): string {
     if (this.cargandoDisponibilidadLeche) {
-      return 'Consultando recepciones y liberaciones de calidad...';
+      return 'Consultando recepciones, saldos de tanques y liberaciones de calidad...';
     }
 
-    if (this.recepcionesFecha.length === 0) {
-      return 'No hay recepciones de leche registradas para la fecha programada.';
+    if (this.calcularLecheTotalFisicaLitros() <= 0 && this.recepcionesFecha.length === 0) {
+      return 'No hay leche disponible ni recepciones registradas para la fecha programada.';
     }
 
     if (this.noHayLecheSuficienteParaProgramar()) {
@@ -520,7 +567,7 @@ export class ProgramacionProduccionForm implements OnInit {
       return 'Hay leche pendiente de liberación por calidad. La leche aprobada es la única disponible para iniciar producción.';
     }
 
-    return 'La leche aprobada cubre la programación actual.';
+    return 'La leche aprobada disponible en tanques cubre la programación actual.';
   }
 
   puedeConfirmarProgramacion(): boolean {
