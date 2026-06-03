@@ -327,6 +327,29 @@
 
         <div class="p-6 md:p-8 space-y-8">
 
+            <!-- Publicar Versión Técnica -->
+            <div *ngIf="authService.canManageCatalogosTecnicos() 
+                && formulaSeleccionada 
+                && formulaSeleccionada.estado !== 'VIGENTE'"
+                class="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 bg-emerald-50 border border-emerald-100 rounded-3xl">
+
+                <div>
+                    <h3 class="text-sm font-black text-emerald-800 uppercase tracking-wider">
+                        Publicar versión técnica
+                    </h3>
+
+                    <p class="text-xs text-emerald-700 mt-1">
+                        Cuando la fórmula esté completa, márcala como vigente para que pueda usarse en programación de
+                        producción.
+                    </p>
+                </div>
+
+                <button type="button" (click)="marcarVigente()"
+                    class="px-6 py-3 bg-emerald-600 text-white rounded-2xl text-xs font-black uppercase tracking-wider hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-900/10">
+                    Marcar como vigente
+                </button>
+            </div>
+
             <!-- Editar Versión Técnica -->
             <div *ngIf="puedeEditarFormula()"
                 class="p-6 bg-emerald-50/50 rounded-3xl border border-emerald-100 space-y-6">
