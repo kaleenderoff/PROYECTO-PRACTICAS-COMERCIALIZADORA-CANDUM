@@ -1,12 +1,16 @@
 package com.yerman.produccion_api.application.dto.response;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 public class DescremadoRecepcionResponse {
 
     private Long id;
     private Long idRecepcionLeche;
+    private LocalDate fechaDescremado;
+    private Long idTanqueOrigen;
     private Long idTanqueDestino;
+    private Long idUsuario;
     private BigDecimal litrosDescremados;
     private BigDecimal cremaObtenidaKg;
     private Long idSkuCrema;
@@ -17,14 +21,28 @@ public class DescremadoRecepcionResponse {
     private Long idMovimientoEntrada;
     private String observaciones;
 
-    public DescremadoRecepcionResponse(Long id, Long idRecepcionLeche, Long idTanqueDestino,
-            BigDecimal litrosDescremados, BigDecimal cremaObtenidaKg,
-            Long idSkuCrema, Integer unidadesCrema, BigDecimal kgPorUnidadCrema, String loteCrema,
-            Long idMovimientoSalida, Long idMovimientoEntrada,
+    public DescremadoRecepcionResponse(
+            Long id,
+            Long idRecepcionLeche,
+            LocalDate fechaDescremado,
+            Long idTanqueOrigen,
+            Long idTanqueDestino,
+            Long idUsuario,
+            BigDecimal litrosDescremados,
+            BigDecimal cremaObtenidaKg,
+            Long idSkuCrema,
+            Integer unidadesCrema,
+            BigDecimal kgPorUnidadCrema,
+            String loteCrema,
+            Long idMovimientoSalida,
+            Long idMovimientoEntrada,
             String observaciones) {
         this.id = id;
         this.idRecepcionLeche = idRecepcionLeche;
+        this.fechaDescremado = fechaDescremado;
+        this.idTanqueOrigen = idTanqueOrigen;
         this.idTanqueDestino = idTanqueDestino;
+        this.idUsuario = idUsuario;
         this.litrosDescremados = litrosDescremados;
         this.cremaObtenidaKg = cremaObtenidaKg;
         this.idSkuCrema = idSkuCrema;
@@ -44,8 +62,20 @@ public class DescremadoRecepcionResponse {
         return idRecepcionLeche;
     }
 
+    public LocalDate getFechaDescremado() {
+        return fechaDescremado;
+    }
+
+    public Long getIdTanqueOrigen() {
+        return idTanqueOrigen;
+    }
+
     public Long getIdTanqueDestino() {
         return idTanqueDestino;
+    }
+
+    public Long getIdUsuario() {
+        return idUsuario;
     }
 
     public BigDecimal getLitrosDescremados() {

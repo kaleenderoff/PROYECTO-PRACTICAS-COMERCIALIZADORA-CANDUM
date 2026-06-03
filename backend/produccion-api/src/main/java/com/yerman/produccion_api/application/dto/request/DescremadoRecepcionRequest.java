@@ -5,14 +5,23 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 public class DescremadoRecepcionRequest {
 
-    @NotNull
     private Long idRecepcionLeche;
 
     @NotNull
+    private LocalDate fechaDescremado;
+
+    @NotNull
+    private Long idTanqueOrigen;
+
+    @NotNull
     private Long idTanqueDestino;
+
+    @NotNull
+    private Long idUsuario;
 
     @NotNull
     @DecimalMin(value = "0.001")
@@ -43,12 +52,36 @@ public class DescremadoRecepcionRequest {
         this.idRecepcionLeche = idRecepcionLeche;
     }
 
+    public LocalDate getFechaDescremado() {
+        return fechaDescremado;
+    }
+
+    public void setFechaDescremado(LocalDate fechaDescremado) {
+        this.fechaDescremado = fechaDescremado;
+    }
+
+    public Long getIdTanqueOrigen() {
+        return idTanqueOrigen;
+    }
+
+    public void setIdTanqueOrigen(Long idTanqueOrigen) {
+        this.idTanqueOrigen = idTanqueOrigen;
+    }
+
     public Long getIdTanqueDestino() {
         return idTanqueDestino;
     }
 
     public void setIdTanqueDestino(Long idTanqueDestino) {
         this.idTanqueDestino = idTanqueDestino;
+    }
+
+    public Long getIdUsuario() {
+        return idUsuario;
+    }
+
+    public void setIdUsuario(Long idUsuario) {
+        this.idUsuario = idUsuario;
     }
 
     public BigDecimal getLitrosDescremados() {

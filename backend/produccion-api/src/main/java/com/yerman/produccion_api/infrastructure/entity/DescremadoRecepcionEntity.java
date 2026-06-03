@@ -3,27 +3,42 @@ package com.yerman.produccion_api.infrastructure.entity;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(
-        name = "descremado_recepcion",
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uq_descremado_recepcion_lote_crema", columnNames = "lote_crema")
-        })
+@Table(name = "descremado_recepcion", uniqueConstraints = {
+        @UniqueConstraint(name = "uq_descremado_recepcion_lote_crema", columnNames = "lote_crema")
+})
 public class DescremadoRecepcionEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /*
+     * Campo histórico.
+     * Antes el descremado dependía de una recepción específica.
+     * Ahora el flujo real se maneja por tanque origen y fecha de descremado.
+     */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_recepcion_leche", nullable = false)
+    @JoinColumn(name = "id_recepcion_leche")
     private RecepcionLecheEntity recepcionLeche;
+
+    @Column(name = "fecha_descremado", nullable = false)
+    private LocalDate fechaDescremado;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_tanque_origen", nullable = false)
+    private TanqueLecheEntity tanqueOrigen;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_tanque_destino")
     private TanqueLecheEntity tanqueDestino;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_usuario", nullable = false)
+    private UsuarioEntity usuario;
 
     @Column(name = "litros_descremados", nullable = false, precision = 14, scale = 3)
     private BigDecimal litrosDescremados;
@@ -69,8 +84,20 @@ public class DescremadoRecepcionEntity {
         return recepcionLeche;
     }
 
+    public LocalDate getFechaDescremado() {
+        return fechaDescremado;
+    }
+
+    public TanqueLecheEntity getTanqueOrigen() {
+        return tanqueOrigen;
+    }
+
     public TanqueLecheEntity getTanqueDestino() {
         return tanqueDestino;
+    }
+
+    public UsuarioEntity getUsuario() {
+        return usuario;
     }
 
     public BigDecimal getLitrosDescremados() {
@@ -121,8 +148,20 @@ public class DescremadoRecepcionEntity {
         this.recepcionLeche = recepcionLeche;
     }
 
+    public void setFechaDescremado(LocalDate fechaDescremado) {
+        this.fechaDescremado = fechaDescremado;
+    }
+
+    public void setTanqueOrigen(TanqueLecheEntity tanqueOrigen) {
+        this.tanqueOrigen = tanqueOrigen;
+    }
+
     public void setTanqueDestino(TanqueLecheEntity tanqueDestino) {
         this.tanqueDestino = tanqueDestino;
+    }
+
+    public void setUsuario(UsuarioEntity usuario) {
+        this.usuario = usuario;
     }
 
     public void setLitrosDescremados(BigDecimal litrosDescremados) {

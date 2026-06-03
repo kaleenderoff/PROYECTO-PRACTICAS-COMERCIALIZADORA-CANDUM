@@ -8,7 +8,7 @@
             </div>
             <div>
                 <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Descremado de Leche</h1>
-                <p class="text-slate-500 text-sm">Control de separación de grasas, saldos y crema obtenida</p>
+                <p class="text-slate-500 text-sm">Control de separación de grasas desde saldo disponible en tanques</p>
             </div>
         </div>
 
@@ -31,8 +31,7 @@
         </div>
 
         <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
-            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Disponible para
-                descremar</span>
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Disponible en tanques</span>
             <p class="mt-2 text-2xl font-black text-emerald-700">
                 {{ lecheDisponibleParaDescremar() | number:'1.0-3' }}
                 <span class="text-xs text-slate-400">L</span>
@@ -114,24 +113,22 @@
             <table class="w-full text-left">
                 <thead>
                     <tr class="bg-slate-50/50">
-                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                            #
-                        </th>
+                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">#</th>
 
                         <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                             Fecha / Procedencia
                         </th>
 
+                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                            Tanque origen
+                        </th>
+
                         <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">
-                            Recibido
+                            Saldo actual tanque
                         </th>
 
                         <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">
                             Descremado
-                        </th>
-
-                        <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">
-                            Restante
                         </th>
 
                         <th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -158,27 +155,29 @@
                         </td>
 
                         <td class="px-8 py-5">
-                            <span class="text-slate-500 text-xs font-medium block">Recepción</span>
+                            <span class="text-slate-500 text-xs font-medium block">Proceso</span>
                             <span class="text-slate-900 font-bold tracking-tight">
-                                {{ obtenerRecepcion(item.idRecepcionLeche) }}
+                                {{ obtenerProcedencia(item) }}
                             </span>
                             <p class="text-xs text-slate-400 italic mt-1 truncate" [title]="item.observaciones">
                                 {{ item.observaciones || 'Sin observaciones' }}
                             </p>
                         </td>
 
-                        <td class="px-8 py-5 text-right font-mono font-bold text-slate-700">
-                            {{ litrosRecibidosRecepcion(item.idRecepcionLeche) | number:'1.0-2' }}
+                        <td class="px-8 py-5">
+                            <span
+                                class="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-black uppercase tracking-tighter border border-emerald-100 shadow-sm">
+                                {{ obtenerTanque(item.idTanqueOrigen) }}
+                            </span>
+                        </td>
+
+                        <td class="px-8 py-5 text-right font-mono font-bold text-emerald-700">
+                            {{ obtenerSaldoTanque(item.idTanqueOrigen) | number:'1.0-2' }}
                             <span class="text-[10px] text-slate-400">L</span>
                         </td>
 
                         <td class="px-8 py-5 text-right font-mono font-bold text-amber-700">
                             {{ item.litrosDescremados | number:'1.0-2' }}
-                            <span class="text-[10px] text-slate-400">L</span>
-                        </td>
-
-                        <td class="px-8 py-5 text-right font-mono font-bold text-emerald-700">
-                            {{ litrosRestantesRecepcion(item.idRecepcionLeche) | number:'1.0-2' }}
                             <span class="text-[10px] text-slate-400">L</span>
                         </td>
 
@@ -206,8 +205,8 @@
                             </span>
 
                             <span class="mt-2 inline-block px-2 py-1 rounded-lg border text-[10px] font-black uppercase"
-                                [ngClass]="claseEstado(item.idRecepcionLeche)">
-                                {{ estadoRecepcion(item.idRecepcionLeche) }}
+                                [ngClass]="claseEstado(item)">
+                                {{ estadoRegistro(item) }}
                             </span>
                         </td>
                     </tr>

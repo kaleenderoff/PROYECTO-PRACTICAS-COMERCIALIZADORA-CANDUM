@@ -7,14 +7,14 @@
         </button>
         <div>
             <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Registro de Descremado</h1>
-            <p class="text-slate-500 text-sm">Control de extraccion de crema y balance de saldos en tanques</p>
+            <p class="text-slate-500 text-sm">Control de extracción de crema desde saldo disponible en tanques</p>
         </div>
     </div>
 
     <div *ngIf="cargandoDatos"
         class="flex items-center gap-3 p-4 bg-amber-50 text-amber-700 rounded-2xl border border-amber-100 shadow-sm animate-pulse">
         <div class="w-10 h-10 bg-amber-100 rounded-xl"></div>
-        <span class="text-sm font-bold">Cargando recepciones, saldos y calidad...</span>
+        <span class="text-sm font-bold">Cargando saldos de tanques...</span>
     </div>
 
     <div *ngIf="error"
@@ -28,38 +28,19 @@
         <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-8 md:p-10 space-y-8">
             <div class="flex items-center gap-3">
                 <div class="w-1.5 h-6 bg-amber-500 rounded-full"></div>
-                <h2 class="font-bold text-slate-800 uppercase tracking-wider text-sm">Configuracion del proceso</h2>
+                <h2 class="font-bold text-slate-800 uppercase tracking-wider text-sm">Configuración del proceso</h2>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div class="space-y-2">
                     <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
-                        Recepcion pendiente de descremar
+                        Fecha de descremado
                     </label>
 
-                    <div class="relative">
-                        <select formControlName="idRecepcionLeche"
-                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all text-slate-900 appearance-none text-sm">
-                            <option [ngValue]="null">Seleccione recepcion...</option>
+                    <input type="date" formControlName="fechaDescremado"
+                        class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all text-slate-900 text-sm font-bold">
 
-                            <option *ngFor="let recepcion of recepcionesPendientesDescremar" [value]="recepcion.id">
-                                {{ recepcion.fechaRecepcion | date:'dd/MM' }} -
-                                {{ recepcion.proveedor || 'Sin finca' }} -
-                                Rem. {{ recepcion.numeroRemision || 'Sin remision' }}
-                                (disp. {{ litrosDisponiblesParaVista(recepcion) | number:'1.0-2' }} L)
-                            </option>
-                        </select>
-
-                        <i
-                            class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
-                    </div>
-
-                    <p *ngIf="!cargandoDatos && recepcionesPendientesDescremar.length === 0"
-                        class="text-[10px] text-amber-600 font-bold ml-1 uppercase">
-                        No hay recepciones pendientes con saldo disponible.
-                    </p>
-
-                    <p *ngIf="form.get('idRecepcionLeche')?.invalid && form.get('idRecepcionLeche')?.touched"
+                    <p *ngIf="form.get('fechaDescremado')?.invalid && form.get('fechaDescremado')?.touched"
                         class="text-[10px] text-red-500 font-bold ml-1 uppercase">
                         Requerido
                     </p>
@@ -67,57 +48,94 @@
 
                 <div class="space-y-2">
                     <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
-                        Tanque destino
+                        Tanque origen
                     </label>
 
-                    <input type="text" readonly
-                        [value]="tanqueRefrigeracion ? (tanqueRefrigeracion.nombre + ' - saldo actual: ' + (tanqueRefrigeracion.saldoLitros | number:'1.0-3') + ' L') : 'Sin tanque asignado'"
-                        class="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-2xl text-slate-500 cursor-not-allowed text-sm font-medium">
+                    <div class="relative">
+                        <select formControlName="idTanqueOrigen"
+                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all text-slate-900 appearance-none text-sm">
+                            <option [ngValue]="null">Seleccione tanque...</option>
+
+                            <option *ngFor="let tanque of tanques" [value]="tanque.idTanque">
+                                {{ tanque.nombre }} - {{ tanque.saldoLitros | number:'1.0-3' }} L
+                            </option>
+                        </select>
+
+                        <i
+                            class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                    </div>
+
+                    <p *ngIf="form.get('idTanqueOrigen')?.invalid && form.get('idTanqueOrigen')?.touched"
+                        class="text-[10px] text-red-500 font-bold ml-1 uppercase">
+                        Requerido
+                    </p>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+                        Tanque destino / referencia
+                    </label>
+
+                    <div class="relative">
+                        <select formControlName="idTanqueDestino"
+                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all text-slate-900 appearance-none text-sm">
+                            <option [ngValue]="null">Seleccione tanque destino...</option>
+
+                            <option *ngFor="let tanque of tanques" [value]="tanque.idTanque">
+                                {{ tanque.nombre }} - {{ tanque.saldoLitros | number:'1.0-3' }} L
+                            </option>
+                        </select>
+
+                        <i
+                            class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                    </div>
+
+                    <p *ngIf="form.get('idTanqueDestino')?.invalid && form.get('idTanqueDestino')?.touched"
+                        class="text-[10px] text-red-500 font-bold ml-1 uppercase">
+                        Requerido
+                    </p>
                 </div>
             </div>
 
-            <div *ngIf="recepcionSeleccionada()" class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+            <div *ngIf="tanqueOrigenSeleccionado()" class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Proveedor</span>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        Tanque origen
+                    </span>
                     <p class="mt-1 text-sm font-black text-slate-900">
-                        {{ recepcionSeleccionada()?.proveedor || 'Sin finca' }}
+                        {{ tanqueOrigenSeleccionado()?.nombre }}
                     </p>
                     <p class="text-xs text-slate-400">
-                        {{ recepcionSeleccionada()?.fechaRecepcion | date:'dd/MM/yyyy' }}
+                        Disponible para descremar
                     </p>
                 </div>
 
-                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Remision</span>
-                    <p class="mt-1 text-sm font-black text-slate-900">
-                        {{ recepcionSeleccionada()?.numeroRemision || 'Sin remision' }}
-                    </p>
-                    <p class="text-xs text-slate-400">
-                        {{ recepcionSeleccionada()?.cantidadRemisionLitros || 0 | number:'1.0-3' }} L reportados
-                    </p>
-                </div>
-
-                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Recibido /
-                        usado</span>
-                    <p class="mt-1 text-sm font-black text-slate-900">
-                        {{ litrosRecibidosSeleccionada() | number:'1.0-3' }} L
-                    </p>
-                    <p class="text-xs text-slate-400">
-                        {{ litrosYaDescremadosSeleccionada() | number:'1.0-3' }} L ya descremados
+                <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-100">
+                    <span class="text-[10px] font-black text-emerald-600 uppercase tracking-widest">
+                        Saldo actual
+                    </span>
+                    <p class="mt-1 text-xl font-black text-emerald-700">
+                        {{ saldoTanqueOrigen() | number:'1.0-3' }} L
                     </p>
                 </div>
 
-                <div class="p-4 rounded-2xl border" [ngClass]="claseEstadoCalidad()">
-                    <span class="text-[10px] font-black uppercase tracking-widest">Calidad</span>
-                    <p class="mt-1 text-sm font-black">{{ textoEstadoCalidad() }}</p>
-                    <p class="text-xs opacity-80">Control inicial de recepcion</p>
+                <div class="p-4 rounded-2xl bg-blue-50 border border-blue-100">
+                    <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest">
+                        Después del descremado
+                    </span>
+                    <p class="mt-1 text-xl font-black text-blue-700">
+                        {{ litrosDespuesDescremado() | number:'1.0-3' }} L
+                    </p>
                 </div>
-            </div>
 
-            <div *ngIf="recepcionSeleccionada() && !puedeDescremarSeleccionada()"
-                class="p-4 bg-red-50 border border-red-100 text-red-700 rounded-2xl font-bold text-sm">
-                Esta recepcion esta retenida o no aprobada por calidad. No se debe usar para descremado.
+                <div class="p-4 rounded-2xl bg-amber-50 border border-amber-100">
+                    <span class="text-[10px] font-black text-amber-600 uppercase tracking-widest">
+                        Crema esperada
+                    </span>
+                    <p class="mt-1 text-xl font-black text-amber-700">
+                        {{ cremaEstimadaKg() | number:'1.0-2' }} kg
+                    </p>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -145,42 +163,13 @@
                     </div>
                 </div>
 
-                <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                            Disponible actual
-                        </span>
-                        <p class="mt-1 text-xl font-black text-slate-900">
-                            {{ litrosDisponiblesRecepcion() | number:'1.0-3' }} L
-                        </p>
-                    </div>
-
-                    <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-100">
-                        <span class="text-[10px] font-black text-emerald-600 uppercase tracking-widest">
-                            Despues del descremado
-                        </span>
-                        <p class="mt-1 text-xl font-black text-emerald-700">
-                            {{ litrosDespuesDescremado() | number:'1.0-3' }} L
-                        </p>
-                    </div>
-
-                    <div class="p-4 rounded-2xl bg-amber-50 border border-amber-100">
-                        <span class="text-[10px] font-black text-amber-600 uppercase tracking-widest">
-                            Crema esperada
-                        </span>
-                        <p class="mt-1 text-xl font-black text-amber-700">
-                            {{ cremaEstimadaKg() | number:'1.0-2' }} kg
-                        </p>
-                    </div>
-
-                    <div class="p-4 rounded-2xl bg-blue-50 border border-blue-100">
-                        <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest">
-                            Rendimiento crema
-                        </span>
-                        <p class="mt-1 text-xl font-black text-blue-700">
-                            {{ rendimientoCremaPor100Litros() | number:'1.1-2' }} kg/100L
-                        </p>
-                    </div>
+                <div class="md:col-span-2 p-4 rounded-2xl bg-blue-50 border border-blue-100">
+                    <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest">
+                        Rendimiento crema
+                    </span>
+                    <p class="mt-1 text-xl font-black text-blue-700">
+                        {{ rendimientoCremaPor100Litros() | number:'1.1-2' }} kg/100L
+                    </p>
                 </div>
             </div>
 
@@ -200,14 +189,14 @@
             <div class="flex items-center gap-3">
                 <div class="w-1.5 h-6 bg-amber-600 rounded-full"></div>
                 <h2 class="font-bold text-slate-800 uppercase tracking-wider text-sm">
-                    Informacion de empaque de crema
+                    Información de empaque de crema
                 </h2>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div class="md:col-span-2 space-y-2">
                     <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
-                        Presentacion (SKU)
+                        Presentación (SKU)
                     </label>
 
                     <div class="relative">
@@ -225,7 +214,7 @@
 
                 <div class="space-y-2">
                     <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
-                        Lote produccion
+                        Lote producción
                     </label>
 
                     <input type="text" formControlName="loteCrema" placeholder="Ej: CR-001"
@@ -278,7 +267,7 @@
                 Cancelar
             </button>
 
-            <button type="submit" [disabled]="cargando || cargandoDatos || !puedeDescremarSeleccionada()"
+            <button type="submit" [disabled]="cargando || cargandoDatos"
                 class="px-10 py-3 bg-amber-600 text-white font-black rounded-2xl shadow-xl shadow-amber-900/20 hover:bg-amber-500 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center gap-3">
 
                 <span *ngIf="!cargando">Confirmar registro</span>

@@ -15,4 +15,6 @@ public interface RecepcionLecheJpaRepository extends JpaRepository<RecepcionLech
             LocalDate fin);
 
     List<RecepcionLecheEntity> findByProveedorContainingIgnoreCaseOrderByIdDesc(String proveedor);
+
+    boolean existsByProveedorIgnoreCaseAndNumeroRemisionIgnoreCase(String proveedor, String numeroRemision);
 }

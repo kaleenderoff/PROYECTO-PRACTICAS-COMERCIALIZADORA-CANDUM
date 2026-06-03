@@ -5,8 +5,11 @@ import { environment } from '../../../environments/environment';
 
 export interface DescremadoRecepcion {
   id: number;
-  idRecepcionLeche: number;
-  idTanqueDestino?: number;
+  idRecepcionLeche?: number | null;
+  fechaDescremado: string;
+  idTanqueOrigen: number;
+  idTanqueDestino?: number | null;
+  idUsuario: number;
   litrosDescremados: number;
   cremaObtenidaKg?: number;
   idSkuCrema?: number;
@@ -18,8 +21,11 @@ export interface DescremadoRecepcion {
 }
 
 export interface DescremadoRecepcionRequest {
-  idRecepcionLeche: number;
-  idTanqueDestino?: number;
+  idRecepcionLeche?: number | null;
+  fechaDescremado: string;
+  idTanqueOrigen: number;
+  idTanqueDestino?: number | null;
+  idUsuario: number;
   litrosDescremados: number;
   cremaObtenidaKg?: number;
   idSkuCrema?: number;

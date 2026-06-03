@@ -4,18 +4,15 @@ import com.yerman.produccion_api.application.exception.RecursoNoEncontradoExcept
 import com.yerman.produccion_api.application.exception.ReglaNegocioException;
 import com.yerman.produccion_api.domain.model.DescremadoRecepcion;
 import com.yerman.produccion_api.domain.model.MovimientoLeche;
-import com.yerman.produccion_api.domain.model.RecepcionLeche;
 import com.yerman.produccion_api.domain.model.TipoMovimientoLeche;
 import com.yerman.produccion_api.domain.port.in.GestionDescremadoRecepcionUseCase;
 import com.yerman.produccion_api.domain.port.in.GestionMovimientoLecheUseCase;
-import com.yerman.produccion_api.domain.port.in.GestionRecepcionLecheUseCase;
 import com.yerman.produccion_api.domain.port.out.DescremadoRecepcionRepositoryPort;
-import com.yerman.produccion_api.infrastructure.entity.CalidadRecepcionLecheEntity;
-import com.yerman.produccion_api.infrastructure.repository.CalidadRecepcionLecheJpaRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -23,19 +20,13 @@ import java.util.List;
 public class GestionDescremadoRecepcionService implements GestionDescremadoRecepcionUseCase {
 
     private final DescremadoRecepcionRepositoryPort repository;
-    private final GestionRecepcionLecheUseCase recepcionLecheUseCase;
     private final GestionMovimientoLecheUseCase movimientoLecheUseCase;
-    private final CalidadRecepcionLecheJpaRepository calidadRecepcionRepository;
 
     public GestionDescremadoRecepcionService(
             DescremadoRecepcionRepositoryPort repository,
-            GestionRecepcionLecheUseCase recepcionLecheUseCase,
-            GestionMovimientoLecheUseCase movimientoLecheUseCase,
-            CalidadRecepcionLecheJpaRepository calidadRecepcionRepository) {
+            GestionMovimientoLecheUseCase movimientoLecheUseCase) {
         this.repository = repository;
-        this.recepcionLecheUseCase = recepcionLecheUseCase;
         this.movimientoLecheUseCase = movimientoLecheUseCase;
-        this.calidadRecepcionRepository = calidadRecepcionRepository;
     }
 
     @Override
@@ -43,30 +34,29 @@ public class GestionDescremadoRecepcionService implements GestionDescremadoRecep
     public DescremadoRecepcion registrarDescremado(DescremadoRecepcion descremadoRecepcion) {
         validarDescremado(descremadoRecepcion);
 
-        RecepcionLeche recepcion = recepcionLecheUseCase.obtenerPorId(
-                descremadoRecepcion.getIdRecepcionLeche());
-
-        validarCalidadAprobada(recepcion);
-        validarDisponibleEnRecepcion(recepcion, descremadoRecepcion);
-
-        /*
-         * El descremado consume leche del tanque donde entró la recepción.
-         * Por eso aquí SOLO se registra SALIDA_DESCREME.
-         *
-         * No se debe registrar ENTRADA_DESCREME por la misma cantidad,
-         * porque eso vuelve a sumar lo que se acaba de restar y el saldo
-         * del tanque queda igual.
-         */
         MovimientoLeche movimientoSalida = movimientoLecheUseCase.registrarMovimiento(
-                recepcion.getIdTanque(),
+                descremadoRecepcion.getIdTanqueOrigen(),
                 TipoMovimientoLeche.SALIDA_DESCREME,
                 descremadoRecepcion.getLitrosDescremados(),
-                recepcion.getIdUsuario(),
-                construirReferenciaSalida(recepcion),
+                descremadoRecepcion.getIdUsuario(),
+                construirReferenciaSalida(descremadoRecepcion),
                 descremadoRecepcion.getObservaciones());
 
         descremadoRecepcion.setIdMovimientoSalida(movimientoSalida.getId());
-        descremadoRecepcion.setIdMovimientoEntrada(null);
+
+        if (descremadoRecepcion.getIdTanqueDestino() != null) {
+            MovimientoLeche movimientoEntrada = movimientoLecheUseCase.registrarMovimiento(
+                    descremadoRecepcion.getIdTanqueDestino(),
+                    TipoMovimientoLeche.ENTRADA_DESCREME,
+                    descremadoRecepcion.getLitrosDescremados(),
+                    descremadoRecepcion.getIdUsuario(),
+                    construirReferenciaEntrada(descremadoRecepcion),
+                    descremadoRecepcion.getObservaciones());
+
+            descremadoRecepcion.setIdMovimientoEntrada(movimientoEntrada.getId());
+        } else {
+            descremadoRecepcion.setIdMovimientoEntrada(null);
+        }
 
         return repository.guardar(descremadoRecepcion);
     }
@@ -93,17 +83,43 @@ public class GestionDescremadoRecepcionService implements GestionDescremadoRecep
             throw new ReglaNegocioException("El registro de descremado es obligatorio.");
         }
 
-        if (descremadoRecepcion.getIdRecepcionLeche() == null) {
-            throw new ReglaNegocioException("La recepcion de leche es obligatoria.");
+        if (descremadoRecepcion.getFechaDescremado() == null) {
+            throw new ReglaNegocioException("La fecha de descremado es obligatoria.");
+        }
+
+        if (descremadoRecepcion.getFechaDescremado().isAfter(LocalDate.now().plusDays(1))) {
+            throw new ReglaNegocioException("La fecha de descremado no puede ser una fecha futura lejana.");
+        }
+
+        if (descremadoRecepcion.getIdTanqueOrigen() == null) {
+            throw new ReglaNegocioException("El tanque origen de la leche es obligatorio.");
         }
 
         if (descremadoRecepcion.getIdTanqueDestino() == null) {
-            throw new ReglaNegocioException("El tanque destino de leche descremada es obligatorio.");
+            throw new ReglaNegocioException("El tanque destino de la leche descremada es obligatorio.");
+        }
+
+        if (descremadoRecepcion.getIdUsuario() == null) {
+            throw new ReglaNegocioException("El usuario que registra el descremado es obligatorio.");
         }
 
         if (descremadoRecepcion.getLitrosDescremados() == null
                 || descremadoRecepcion.getLitrosDescremados().compareTo(BigDecimal.ZERO) <= 0) {
             throw new ReglaNegocioException("Los litros descremados deben ser mayores que cero.");
+        }
+
+        BigDecimal saldoActual = movimientoLecheUseCase.obtenerSaldoActualPorTanque(
+                descremadoRecepcion.getIdTanqueOrigen());
+
+        if (saldoActual.compareTo(descremadoRecepcion.getLitrosDescremados()) < 0) {
+            throw new ReglaNegocioException(
+                    "No hay suficiente leche disponible en el tanque origen. Saldo actual: "
+                            + saldoActual + " L, cantidad solicitada: "
+                            + descremadoRecepcion.getLitrosDescremados() + " L.");
+        }
+
+        if (descremadoRecepcion.getIdTanqueDestino().equals(descremadoRecepcion.getIdTanqueOrigen())) {
+            throw new ReglaNegocioException("El tanque destino no puede ser igual al tanque origen.");
         }
 
         if (descremadoRecepcion.getCremaObtenidaKg() != null
@@ -112,50 +128,6 @@ public class GestionDescremadoRecepcionService implements GestionDescremadoRecep
         }
 
         validarCremaEmpacada(descremadoRecepcion);
-    }
-
-    private void validarCalidadAprobada(RecepcionLeche recepcion) {
-        CalidadRecepcionLecheEntity calidad = calidadRecepcionRepository
-                .findFirstByRecepcionLecheIdOrderByFechaControlDescIdDesc(recepcion.getId())
-                .orElseThrow(() -> new ReglaNegocioException(
-                        "La recepcion debe tener control de calidad registrado antes de descremar."));
-
-        if (Boolean.TRUE.equals(calidad.getRetenido())) {
-            throw new ReglaNegocioException(
-                    "No se puede descremar una recepcion retenida por calidad.");
-        }
-
-        if (!Boolean.TRUE.equals(calidad.getAprobado())) {
-            throw new ReglaNegocioException(
-                    "No se puede descremar una recepcion no aprobada por calidad.");
-        }
-    }
-
-    private void validarDisponibleEnRecepcion(
-            RecepcionLeche recepcion,
-            DescremadoRecepcion descremadoRecepcion) {
-
-        BigDecimal litrosRecibidos = recepcion.getCantidadRecibidaLitros() != null
-                ? recepcion.getCantidadRecibidaLitros()
-                : BigDecimal.ZERO;
-
-        BigDecimal litrosYaDescremados = repository.listarPorRecepcion(recepcion.getId())
-                .stream()
-                .map(DescremadoRecepcion::getLitrosDescremados)
-                .filter(valor -> valor != null)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal disponible = litrosRecibidos.subtract(litrosYaDescremados);
-
-        if (disponible.compareTo(descremadoRecepcion.getLitrosDescremados()) < 0) {
-            throw new ReglaNegocioException(
-                    "No hay suficiente leche disponible en la recepcion para descremar. Recepcion ID: "
-                            + recepcion.getId()
-                            + ", recibido: " + litrosRecibidos
-                            + " L, ya descremado: " + litrosYaDescremados
-                            + " L, disponible: " + disponible
-                            + " L, requerido: " + descremadoRecepcion.getLitrosDescremados() + " L.");
-        }
     }
 
     private void validarCremaEmpacada(DescremadoRecepcion descremadoRecepcion) {
@@ -208,11 +180,17 @@ public class GestionDescremadoRecepcionService implements GestionDescremadoRecep
         descremadoRecepcion.setLoteCrema(lote.isBlank() ? null : lote);
     }
 
-    private String construirReferenciaSalida(RecepcionLeche recepcion) {
-        if (recepcion.getNumeroRemision() != null && !recepcion.getNumeroRemision().isBlank()) {
-            return "Salida a descreme - Remision " + recepcion.getNumeroRemision();
-        }
+    private String construirReferenciaSalida(DescremadoRecepcion descremadoRecepcion) {
+        return "Salida a descreme - "
+                + descremadoRecepcion.getFechaDescremado()
+                + " - Tanque origen ID "
+                + descremadoRecepcion.getIdTanqueOrigen();
+    }
 
-        return "Salida a descreme - Recepcion ID " + recepcion.getId();
+    private String construirReferenciaEntrada(DescremadoRecepcion descremadoRecepcion) {
+        return "Entrada por descreme - "
+                + descremadoRecepcion.getFechaDescremado()
+                + " - Tanque origen ID "
+                + descremadoRecepcion.getIdTanqueOrigen();
     }
 }

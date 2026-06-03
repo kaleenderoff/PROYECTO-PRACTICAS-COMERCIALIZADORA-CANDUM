@@ -98,12 +98,12 @@ public class DashboardJpaAdapter implements DashboardRepositoryPort {
         LocalDate fin = inicio.withDayOfMonth(inicio.lengthOfMonth());
 
         List<ReporteProduccionDiariaEntity> registros = reporteRepo.findByFechaBetweenOrderByFechaAsc(inicio, fin);
-        Map<ReporteProduccionDiariaEntity.TipoProducto, Map<String, List<ReporteProduccionDiariaEntity>>> agrupado =
-                registros.stream()
-                        .collect(Collectors.groupingBy(
-                                ReporteProduccionDiariaEntity::getTipoProducto,
-                                Collectors.groupingBy(ReporteProduccionDiariaEntity::getSkuDescripcion, TreeMap::new,
-                                        Collectors.toList())));
+        Map<ReporteProduccionDiariaEntity.TipoProducto, Map<String, List<ReporteProduccionDiariaEntity>>> agrupado = registros
+                .stream()
+                .collect(Collectors.groupingBy(
+                        ReporteProduccionDiariaEntity::getTipoProducto,
+                        Collectors.groupingBy(ReporteProduccionDiariaEntity::getSkuDescripcion, TreeMap::new,
+                                Collectors.toList())));
 
         List<DashboardProduccionSkuResponse> respuesta = new ArrayList<>();
         for (ReporteProduccionDiariaEntity.TipoProducto tipo : List.of(
@@ -168,8 +168,8 @@ public class DashboardJpaAdapter implements DashboardRepositoryPort {
         LocalDate fin = inicio.withDayOfMonth(inicio.lengthOfMonth());
         Map<Integer, SemanaAcumulada> semanas = inicializarSemanas();
 
-        List<RecepcionLecheEntity> recepciones =
-                recepcionRepo.findByFechaRecepcionBetweenOrderByFechaRecepcionAscIdAsc(inicio, fin);
+        List<RecepcionLecheEntity> recepciones = recepcionRepo
+                .findByFechaRecepcionBetweenOrderByFechaRecepcionAscIdAsc(inicio, fin);
         recepciones.forEach(r -> {
             int semana = semanaDeMes(r.getFechaRecepcion());
             SemanaAcumulada acumulada = semanas.get(semana);
@@ -177,11 +177,11 @@ public class DashboardJpaAdapter implements DashboardRepositoryPort {
             acumulada.kgCrema = acumulada.kgCrema.add(extraerKgCremaHistorica(r.getObservaciones()));
         });
 
-        List<DescremadoRecepcionEntity> descremados =
-                descremadoRepo.findByRecepcionLecheFechaRecepcionBetweenOrderByRecepcionLecheFechaRecepcionAscIdAsc(
+        List<DescremadoRecepcionEntity> descremados = descremadoRepo
+                .findByFechaDescremadoBetweenOrderByFechaDescremadoAscIdAsc(
                         inicio, fin);
         descremados.forEach(d -> {
-            int semana = semanaDeMes(d.getRecepcionLeche().getFechaRecepcion());
+            int semana = semanaDeMes(d.getFechaDescremado());
             SemanaAcumulada acumulada = semanas.get(semana);
             acumulada.kgCrema = acumulada.kgCrema.add(valor(d.getCremaObtenidaKg()));
             acumulada.litrosCrema = acumulada.litrosCrema.add(calcularLitrosCrema(d));
@@ -264,10 +264,10 @@ public class DashboardJpaAdapter implements DashboardRepositoryPort {
         LocalDate inicio = LocalDate.of(anio, mes, 1);
         LocalDate fin = inicio.withDayOfMonth(inicio.lengthOfMonth());
 
-        List<RecepcionLecheEntity> recepciones =
-                recepcionRepo.findByFechaRecepcionBetweenOrderByFechaRecepcionAscIdAsc(inicio, fin);
-        List<DescremadoRecepcionEntity> descremados =
-                descremadoRepo.findByRecepcionLecheFechaRecepcionBetweenOrderByRecepcionLecheFechaRecepcionAscIdAsc(
+        List<RecepcionLecheEntity> recepciones = recepcionRepo
+                .findByFechaRecepcionBetweenOrderByFechaRecepcionAscIdAsc(inicio, fin);
+        List<DescremadoRecepcionEntity> descremados = descremadoRepo
+                .findByFechaDescremadoBetweenOrderByFechaDescremadoAscIdAsc(
                         inicio, fin);
         List<MovimientoLecheEntity> movimientos = movimientoRepo.findByFechaHoraBetweenOrderByFechaHoraDescIdDesc(
                 inicio.atStartOfDay(), LocalDateTime.of(fin, LocalTime.MAX));

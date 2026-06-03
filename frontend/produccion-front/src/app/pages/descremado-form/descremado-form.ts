@@ -9,16 +9,12 @@ import {
 } from '../../core/services/descremado';
 
 import {
-  RecepcionLeche,
   RecepcionLecheService,
   SaldoTanqueLeche
 } from '../../core/services/recepcion-leche';
 
+import { AuthService } from '../../core/services/auth';
 import { NotificationService } from '../../core/services/notification';
-import {
-  ControlCalidadLacteaService,
-  EstadoCalidadRecepcion
-} from '../../core/services/control-calidad-lactea';
 
 @Component({
   selector: 'app-descremado-form',
@@ -34,30 +30,25 @@ export class DescremadoForm implements OnInit {
   cargandoDatos = false;
   error = '';
 
-  recepciones: RecepcionLeche[] = [];
+  tanques: SaldoTanqueLeche[] = [];
   skusCrema: SkuCatalogo[] = [];
-  estadosCalidad: EstadoCalidadRecepcion[] = [];
-
-  tanqueRefrigeracion: SaldoTanqueLeche | null = null;
 
   private lotesCremaRegistrados = new Set<string>();
-  private descremadosRegistrados: Array<{
-    idRecepcionLeche: number;
-    litrosDescremados: number;
-  }> = [];
 
-  form;
+  form: any;
 
   constructor(
     private fb: FormBuilder,
     private descremadoService: DescremadoService,
     private recepcionLecheService: RecepcionLecheService,
-    private controlCalidadService: ControlCalidadLacteaService,
+    private authService: AuthService,
     private router: Router,
     private notification: NotificationService
   ) {
     this.form = this.fb.group({
-      idRecepcionLeche: [null, Validators.required],
+      fechaDescremado: [this.fechaHoyLocal(), Validators.required],
+      idTanqueOrigen: [null, Validators.required],
+      idTanqueDestino: [null, Validators.required],
       litrosDescremados: [0, [Validators.required, Validators.min(0.001)]],
       cremaObtenidaKg: [0],
       registraCremaEmpacada: [false],
@@ -76,12 +67,12 @@ export class DescremadoForm implements OnInit {
       this.aplicarCremaEstimada(false);
     });
 
-    this.form.get('idRecepcionLeche')?.valueChanges.subscribe(() => {
-      const disponible = this.litrosDisponiblesRecepcion();
-      this.form.get('litrosDescremados')?.setValue(Number(disponible.toFixed(3)));
+    this.form.get('idTanqueOrigen')?.valueChanges.subscribe(() => {
+      const saldo = this.saldoTanqueOrigen();
+      this.form.get('litrosDescremados')?.setValue(Number(saldo.toFixed(3)));
     });
 
-    this.form.get('registraCremaEmpacada')?.valueChanges.subscribe((registra) => {
+    this.form.get('registraCremaEmpacada')?.valueChanges.subscribe((registra: boolean) => {
       const idSkuCrema = this.form.get('idSkuCrema');
       const unidadesCrema = this.form.get('unidadesCrema');
       const kgPorUnidadCrema = this.form.get('kgPorUnidadCrema');
@@ -115,80 +106,43 @@ export class DescremadoForm implements OnInit {
     this.cargandoDatos = true;
     this.error = '';
 
-    this.recepcionLecheService.listarRecepciones().subscribe({
-      next: (recepciones) => {
-        this.controlCalidadService.listarEstadosRecepcion().subscribe({
-          next: (estados) => {
-            this.estadosCalidad = estados || [];
+    this.recepcionLecheService.listarSaldosTanques().subscribe({
+      next: (data) => {
+        this.tanques = (data || [])
+          .filter(tanque => tanque.activo)
+          .sort((a, b) => String(a.nombre).localeCompare(String(b.nombre)));
 
-            this.descremadoService.listar().subscribe({
-              next: (descremados) => {
-                this.descremadosRegistrados = (descremados || []).map(descremado => ({
-                  idRecepcionLeche: Number(descremado.idRecepcionLeche),
-                  litrosDescremados: Number(descremado.litrosDescremados || 0)
-                }));
+        const tanqueRefrigeracion = this.tanques.find(t =>
+          this.normalizarTexto(t.nombre).includes('REFRIGERACION')
+        );
 
-                this.lotesCremaRegistrados = new Set(
-                  (descremados || [])
-                    .map(descremado => descremado.loteCrema?.trim().toUpperCase())
-                    .filter((lote): lote is string => Boolean(lote))
-                );
+        if (tanqueRefrigeracion) {
+          this.form.patchValue({
+            idTanqueOrigen: Number(tanqueRefrigeracion.idTanque)
+          });
+        }
 
-                this.recepciones = (recepciones || [])
-                  .map(recepcion => ({
-                    ...recepcion,
-                    estadoCalidad: this.estadoCalidadRecepcion(recepcion.id)
-                  }))
-                  .sort((a, b) => this.compararRecepcionesRecientes(a, b));
-
-                this.cargandoDatos = false;
-              },
-              error: (err) => {
-                console.error(err);
-                this.error = 'No se pudieron cargar los descremados existentes.';
-                this.notification.error(this.error);
-                this.cargandoDatos = false;
-              }
-            });
-          },
-          error: (err) => {
-            console.error(err);
-            this.error = 'No se pudieron cargar los estados de calidad.';
-            this.notification.error(this.error);
-            this.cargandoDatos = false;
-          }
-        });
+        this.cargandoDatos = false;
       },
       error: (err) => {
         console.error(err);
-        this.error = 'No se pudieron cargar las recepciones.';
+        this.error = 'No se pudieron cargar los saldos de tanques.';
         this.notification.error(this.error);
         this.cargandoDatos = false;
       }
     });
 
-    this.recepcionLecheService.listarSaldosTanques().subscribe({
-      next: (data) => {
-        const tanque = (data || []).find(t =>
-          t.activo &&
-          (
-            t.nombre.toUpperCase().includes('REFRIGERACION')
-            || t.nombre.toUpperCase().includes('REFRIGERACIÓN')
-          )
+    this.descremadoService.listar().subscribe({
+      next: (descremados) => {
+        this.lotesCremaRegistrados = new Set(
+          (descremados || [])
+            .map(descremado => descremado.loteCrema?.trim().toUpperCase())
+            .filter((lote): lote is string => Boolean(lote))
         );
-
-        if (!tanque) {
-          this.error = 'No se encontro el tanque de refrigeracion.';
-          this.notification.error(this.error);
-          return;
-        }
-
-        this.tanqueRefrigeracion = tanque;
       },
       error: (err) => {
         console.error(err);
-        this.error = 'No se pudo cargar el tanque de refrigeracion.';
-        this.notification.error(this.error);
+        this.notification.warning('No se pudieron cargar los lotes de crema registrados.');
       }
     });
 
@@ -197,8 +151,8 @@ export class DescremadoForm implements OnInit {
         this.skusCrema = (data || []).filter(sku =>
           sku.activo &&
           (
-            sku.descripcion.toUpperCase().includes('CREMA')
-            || sku.nombreProducto.toUpperCase().includes('CREMA')
+            this.normalizarTexto(sku.descripcion).includes('CREMA')
+            || this.normalizarTexto(sku.nombreProducto).includes('CREMA')
           )
         );
       },
@@ -210,12 +164,6 @@ export class DescremadoForm implements OnInit {
     });
   }
 
-  get recepcionesPendientesDescremar(): RecepcionLeche[] {
-    return this.recepciones
-      .filter(recepcion => !this.tieneDescremadoRegistrado(recepcion.id))
-      .sort((a, b) => this.compararRecepcionesRecientes(a, b));
-  }
-
   guardar(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -223,44 +171,57 @@ export class DescremadoForm implements OnInit {
       return;
     }
 
-    if (!this.tanqueRefrigeracion) {
-      this.error = 'No existe tanque de refrigeracion configurado.';
-      this.notification.error(this.error);
+    const idUsuario = this.authService.getIdUsuario();
+
+    if (!idUsuario) {
+      this.notification.error('No se pudo identificar el usuario autenticado.');
+      return;
+    }
+
+    const value = this.form.getRawValue();
+    const registraCrema = Boolean(value.registraCremaEmpacada);
+    const loteCrema = typeof value.loteCrema === 'string' ? value.loteCrema.trim() : '';
+    const litrosDescremados = Number(value.litrosDescremados || 0);
+    const saldoDisponible = this.saldoTanqueOrigen();
+
+    if (!value.idTanqueOrigen) {
+      this.notification.warning('Debe seleccionar el tanque origen.');
+      return;
+    }
+
+    if (!value.idTanqueDestino) {
+      this.notification.warning('Debe seleccionar el tanque destino.');
+      return;
+    }
+
+    if (registraCrema && this.lotesCremaRegistrados.has(loteCrema.toUpperCase())) {
+      this.notification.warning('El lote de crema ya existe. Use un lote diferente.');
+      return;
+    }
+
+    if (litrosDescremados <= 0) {
+      this.notification.warning('Los litros a descremar deben ser mayores que cero.');
+      return;
+    }
+
+    if (litrosDescremados > saldoDisponible) {
+      this.notification.warning(`Solo hay ${saldoDisponible.toFixed(3)} L disponibles en el tanque origen.`);
+      return;
+    }
+
+    if (value.idTanqueDestino && Number(value.idTanqueDestino) === Number(value.idTanqueOrigen)) {
+      this.notification.warning('El tanque destino no puede ser igual al tanque origen.');
       return;
     }
 
     this.cargando = true;
     this.error = '';
 
-    const value = this.form.getRawValue();
-    const registraCrema = Boolean(value.registraCremaEmpacada);
-    const loteCrema = typeof value.loteCrema === 'string' ? value.loteCrema.trim() : '';
-
-    if (registraCrema && this.lotesCremaRegistrados.has(loteCrema.toUpperCase())) {
-      this.notification.warning('El lote de crema ya existe. Use un lote diferente.');
-      this.cargando = false;
-      return;
-    }
-
-    const litrosDescremados = Number(value.litrosDescremados);
-    const litrosDisponibles = this.litrosDisponiblesRecepcion();
-    const estadoCalidad = this.estadoCalidadSeleccionada();
-
-    if (estadoCalidad === 'RETENIDA' || estadoCalidad === 'NO_APROBADA') {
-      this.notification.warning('No se puede descremar una recepcion retenida o no aprobada por calidad.');
-      this.cargando = false;
-      return;
-    }
-
-    if (litrosDescremados > litrosDisponibles) {
-      this.notification.warning(`Solo hay ${litrosDisponibles.toFixed(2)} L disponibles para esta recepcion.`);
-      this.cargando = false;
-      return;
-    }
-
     const request = {
-      idRecepcionLeche: Number(value.idRecepcionLeche),
-      idTanqueDestino: this.tanqueRefrigeracion.idTanque,
+      fechaDescremado: String(value.fechaDescremado),
+      idTanqueOrigen: Number(value.idTanqueOrigen),
+      idTanqueDestino: Number(value.idTanqueDestino),
+      idUsuario: Number(idUsuario),
       litrosDescremados,
       cremaObtenidaKg: Number(value.cremaObtenidaKg) || undefined,
       idSkuCrema: registraCrema ? Number(value.idSkuCrema) : undefined,
@@ -285,38 +246,22 @@ export class DescremadoForm implements OnInit {
     });
   }
 
-  recepcionSeleccionada(): RecepcionLeche | undefined {
-    const id = Number(this.form.get('idRecepcionLeche')?.value || 0);
-    return this.recepciones.find(recepcion => Number(recepcion.id) === id);
+  tanqueOrigenSeleccionado(): SaldoTanqueLeche | undefined {
+    const id = Number(this.form.get('idTanqueOrigen')?.value || 0);
+    return this.tanques.find(tanque => Number(tanque.idTanque) === id);
   }
 
-  litrosDisponiblesRecepcion(): number {
-    const recepcion = this.recepcionSeleccionada();
-    return recepcion ? this.litrosDisponiblesPara(recepcion) : 0;
+  tanqueDestinoSeleccionado(): SaldoTanqueLeche | undefined {
+    const id = Number(this.form.get('idTanqueDestino')?.value || 0);
+    return this.tanques.find(tanque => Number(tanque.idTanque) === id);
   }
 
-  litrosDisponiblesParaVista(recepcion: RecepcionLeche): number {
-    return this.litrosDisponiblesPara(recepcion);
-  }
-
-  litrosRecibidosSeleccionada(): number {
-    return Number(this.recepcionSeleccionada()?.cantidadRecibidaLitros || 0);
-  }
-
-  litrosYaDescremadosSeleccionada(): number {
-    const recepcion = this.recepcionSeleccionada();
-
-    if (!recepcion) {
-      return 0;
-    }
-
-    return this.descremadosRegistrados
-      .filter(item => Number(item.idRecepcionLeche) === Number(recepcion.id))
-      .reduce((total, item) => total + Number(item.litrosDescremados || 0), 0);
+  saldoTanqueOrigen(): number {
+    return Number(this.tanqueOrigenSeleccionado()?.saldoLitros || 0);
   }
 
   litrosDespuesDescremado(): number {
-    const disponibles = this.litrosDisponiblesRecepcion();
+    const disponibles = this.saldoTanqueOrigen();
     const litros = Number(this.form.get('litrosDescremados')?.value || 0);
 
     return Math.max(disponibles - litros, 0);
@@ -331,48 +276,6 @@ export class DescremadoForm implements OnInit {
     }
 
     return (crema / litros) * 100;
-  }
-
-  estadoCalidadSeleccionada(): RecepcionLeche['estadoCalidad'] {
-    const recepcion = this.recepcionSeleccionada();
-    return recepcion?.estadoCalidad || 'SIN_CALIDAD';
-  }
-
-  textoEstadoCalidad(): string {
-    const estado = this.estadoCalidadSeleccionada();
-
-    if (estado === 'APROBADA') {
-      return 'Aprobada';
-    }
-
-    if (estado === 'RETENIDA') {
-      return 'Retenida';
-    }
-
-    if (estado === 'NO_APROBADA') {
-      return 'No aprobada';
-    }
-
-    return 'Sin control';
-  }
-
-  claseEstadoCalidad(): string {
-    const estado = this.estadoCalidadSeleccionada();
-
-    if (estado === 'APROBADA') {
-      return 'bg-emerald-50 text-emerald-700 border-emerald-100';
-    }
-
-    if (estado === 'RETENIDA' || estado === 'NO_APROBADA') {
-      return 'bg-red-50 text-red-700 border-red-100';
-    }
-
-    return 'bg-amber-50 text-amber-700 border-amber-100';
-  }
-
-  puedeDescremarSeleccionada(): boolean {
-    const estado = this.estadoCalidadSeleccionada();
-    return estado !== 'RETENIDA' && estado !== 'NO_APROBADA';
   }
 
   cremaEstimadaKg(): number {
@@ -391,46 +294,21 @@ export class DescremadoForm implements OnInit {
     return unidades * kgUnidad;
   }
 
-  private tieneDescremadoRegistrado(idRecepcionLeche: number): boolean {
-    return this.descremadosRegistrados.some(item =>
-      Number(item.idRecepcionLeche) === Number(idRecepcionLeche)
-    );
+  private fechaHoyLocal(): string {
+    const hoy = new Date();
+    const year = hoy.getFullYear();
+    const month = String(hoy.getMonth() + 1).padStart(2, '0');
+    const day = String(hoy.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
   }
 
-  private compararRecepcionesRecientes(a: RecepcionLeche, b: RecepcionLeche): number {
-    const fechaA = this.tiempoRecepcion(a);
-    const fechaB = this.tiempoRecepcion(b);
-
-    if (fechaA !== fechaB) {
-      return fechaB - fechaA;
-    }
-
-    return Number(b.id || 0) - Number(a.id || 0);
-  }
-
-  private tiempoRecepcion(recepcion: RecepcionLeche): number {
-    const tiempo = new Date(recepcion.fechaRecepcion || '').getTime();
-
-    if (!Number.isNaN(tiempo)) {
-      return tiempo;
-    }
-
-    return 0;
-  }
-
-  private litrosDisponiblesPara(recepcion: RecepcionLeche): number {
-    const recibido = Number(recepcion.cantidadRecibidaLitros || 0);
-
-    const descremado = this.descremadosRegistrados
-      .filter(item => Number(item.idRecepcionLeche) === Number(recepcion.id))
-      .reduce((total, item) => total + Number(item.litrosDescremados || 0), 0);
-
-    return Math.max(recibido - descremado, 0);
-  }
-
-  private estadoCalidadRecepcion(idRecepcion: number): RecepcionLeche['estadoCalidad'] {
-    return this.estadosCalidad
-      .find(estado => Number(estado.idRecepcionLeche) === Number(idRecepcion))
-      ?.estadoCalidad || 'SIN_CALIDAD';
+  private normalizarTexto(valor: string): string {
+    return String(valor || '')
+      .trim()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, ' ')
+      .toUpperCase();
   }
 }

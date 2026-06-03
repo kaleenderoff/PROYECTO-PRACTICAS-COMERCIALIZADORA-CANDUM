@@ -8,4 +8,6 @@ import java.util.List;
 public interface ControlCalidadProcesoJpaRepository extends JpaRepository<ControlCalidadProcesoEntity, Long> {
 
     List<ControlCalidadProcesoEntity> findByOrdenProduccionIdOrderByFechaProduccionDescIdDesc(Long idOrdenProduccion);
+
+    boolean existsByOrdenProduccionId(Long idOrdenProduccion);
 }

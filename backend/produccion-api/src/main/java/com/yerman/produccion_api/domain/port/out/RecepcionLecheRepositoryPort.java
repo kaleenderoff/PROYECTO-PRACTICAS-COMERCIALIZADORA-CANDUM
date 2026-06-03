@@ -17,4 +17,6 @@ public interface RecepcionLecheRepositoryPort {
     List<RecepcionLeche> listarPorFecha(LocalDate fechaRecepcion);
 
     List<RecepcionLeche> listarPorProveedor(String proveedor);
+
+    boolean existeRemisionPorProveedor(String proveedor, String numeroRemision);
 }

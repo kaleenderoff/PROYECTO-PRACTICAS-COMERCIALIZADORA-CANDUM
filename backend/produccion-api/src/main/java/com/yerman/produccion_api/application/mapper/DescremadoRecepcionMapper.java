@@ -16,7 +16,10 @@ public class DescremadoRecepcionMapper {
         return new DescremadoRecepcion(
                 entity.getId(),
                 entity.getRecepcionLeche() != null ? entity.getRecepcionLeche().getId() : null,
+                entity.getFechaDescremado(),
+                entity.getTanqueOrigen() != null ? entity.getTanqueOrigen().getId() : null,
                 entity.getTanqueDestino() != null ? entity.getTanqueDestino().getId() : null,
+                entity.getUsuario() != null ? entity.getUsuario().getIdUsuario() : null,
                 entity.getLitrosDescremados(),
                 entity.getCremaObtenidaKg(),
                 entity.getSkuCrema() != null ? entity.getSkuCrema().getId() : null,

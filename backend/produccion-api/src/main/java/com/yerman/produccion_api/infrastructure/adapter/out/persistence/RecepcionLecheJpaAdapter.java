@@ -66,6 +66,11 @@ public class RecepcionLecheJpaAdapter implements RecepcionLecheRepositoryPort {
                 .toList();
     }
 
+    @Override
+    public boolean existeRemisionPorProveedor(String proveedor, String numeroRemision) {
+        return repository.existsByProveedorIgnoreCaseAndNumeroRemisionIgnoreCase(proveedor, numeroRemision);
+    }
+
     private RecepcionLecheEntity toEntity(RecepcionLeche recepcionLeche) {
         RecepcionLecheEntity entity = new RecepcionLecheEntity();
 

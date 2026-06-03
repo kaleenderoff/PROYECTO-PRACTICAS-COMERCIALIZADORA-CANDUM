@@ -16,7 +16,10 @@ public class DescremadoRecepcionRestMapper {
 
         DescremadoRecepcion descremado = new DescremadoRecepcion();
         descremado.setIdRecepcionLeche(request.getIdRecepcionLeche());
+        descremado.setFechaDescremado(request.getFechaDescremado());
+        descremado.setIdTanqueOrigen(request.getIdTanqueOrigen());
         descremado.setIdTanqueDestino(request.getIdTanqueDestino());
+        descremado.setIdUsuario(request.getIdUsuario());
         descremado.setLitrosDescremados(request.getLitrosDescremados());
         descremado.setCremaObtenidaKg(request.getCremaObtenidaKg());
         descremado.setIdSkuCrema(request.getIdSkuCrema());
@@ -36,7 +39,10 @@ public class DescremadoRecepcionRestMapper {
         return new DescremadoRecepcionResponse(
                 descremado.getId(),
                 descremado.getIdRecepcionLeche(),
+                descremado.getFechaDescremado(),
+                descremado.getIdTanqueOrigen(),
                 descremado.getIdTanqueDestino(),
+                descremado.getIdUsuario(),
                 descremado.getLitrosDescremados(),
                 descremado.getCremaObtenidaKg(),
                 descremado.getIdSkuCrema(),

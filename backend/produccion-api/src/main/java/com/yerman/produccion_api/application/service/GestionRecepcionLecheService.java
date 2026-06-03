@@ -93,8 +93,31 @@ public class GestionRecepcionLecheService implements GestionRecepcionLecheUseCas
             throw new ReglaNegocioException("La fecha de recepción es obligatoria.");
         }
 
+        if (recepcionLeche.getFechaRecepcion().isAfter(LocalDate.now().plusDays(1))) {
+            throw new ReglaNegocioException("La fecha de recepción no puede ser una fecha futura lejana.");
+        }
+
         if (recepcionLeche.getProveedor() == null || recepcionLeche.getProveedor().isBlank()) {
             throw new ReglaNegocioException("El proveedor es obligatorio.");
+        }
+
+        recepcionLeche.setProveedor(recepcionLeche.getProveedor().trim());
+
+        if (recepcionLeche.getNumeroRemision() != null) {
+            String remision = recepcionLeche.getNumeroRemision().trim();
+            recepcionLeche.setNumeroRemision(remision.isBlank() ? null : remision);
+        }
+
+        if (recepcionLeche.getNumeroRemision() != null
+                && recepcionRepository.existeRemisionPorProveedor(
+                        recepcionLeche.getProveedor(),
+                        recepcionLeche.getNumeroRemision())) {
+            throw new ReglaNegocioException(
+                    "Ya existe una recepción registrada para el proveedor "
+                            + recepcionLeche.getProveedor()
+                            + " con la remisión "
+                            + recepcionLeche.getNumeroRemision()
+                            + ".");
         }
 
         if (recepcionLeche.getIdUsuario() == null) {

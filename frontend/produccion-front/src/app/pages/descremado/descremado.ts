@@ -14,11 +14,6 @@ import {
   SaldoTanqueLeche
 } from '../../core/services/recepcion-leche';
 
-import {
-  ControlCalidadLacteaService,
-  EstadoCalidadRecepcion
-} from '../../core/services/control-calidad-lactea';
-
 import { AuthService } from '../../core/services/auth';
 import { NotificationService } from '../../core/services/notification';
 
@@ -37,7 +32,6 @@ export class Descremado implements OnInit {
   descremados: DescremadoRecepcion[] = [];
   recepciones: RecepcionLeche[] = [];
   tanques: SaldoTanqueLeche[] = [];
-  estadosCalidad: EstadoCalidadRecepcion[] = [];
 
   filtroFecha = '';
   filtroProveedor = '';
@@ -50,7 +44,6 @@ export class Descremado implements OnInit {
   constructor(
     private descremadoService: DescremadoService,
     private recepcionLecheService: RecepcionLecheService,
-    private controlCalidadService: ControlCalidadLacteaService,
     public authService: AuthService,
     private notification: NotificationService
   ) { }
@@ -64,29 +57,17 @@ export class Descremado implements OnInit {
     this.error = '';
 
     this.descremadoService.listar().subscribe({
-      next: (descremados: DescremadoRecepcion[]) => {
+      next: (descremados) => {
         this.descremados = descremados || [];
 
         this.recepcionLecheService.listarRecepciones().subscribe({
-          next: (recepciones: RecepcionLeche[]) => {
+          next: (recepciones) => {
             this.recepciones = recepciones || [];
 
             this.recepcionLecheService.listarSaldosTanques().subscribe({
-              next: (tanques: SaldoTanqueLeche[]) => {
+              next: (tanques) => {
                 this.tanques = tanques || [];
-
-                this.controlCalidadService.listarEstadosRecepcion().subscribe({
-                  next: (estados: EstadoCalidadRecepcion[]) => {
-                    this.estadosCalidad = estados || [];
-                    this.cargando = false;
-                  },
-                  error: (err) => {
-                    console.error(err);
-                    this.error = 'No se pudieron cargar los estados de calidad.';
-                    this.notification.error(this.error);
-                    this.cargando = false;
-                  }
-                });
+                this.cargando = false;
               },
               error: (err) => {
                 console.error(err);
@@ -122,9 +103,9 @@ export class Descremado implements OnInit {
   }
 
   lecheDisponibleParaDescremar(): number {
-    return this.recepciones.reduce((total, recepcion) => {
-      return total + this.litrosRestantesRecepcion(recepcion.id);
-    }, 0);
+    return this.tanques
+      .filter(tanque => tanque.activo)
+      .reduce((total, tanque) => total + Number(tanque.saldoLitros || 0), 0);
   }
 
   lecheDescremadaHoy(): number {
@@ -154,7 +135,7 @@ export class Descremado implements OnInit {
   get descremadosFiltrados(): DescremadoRecepcion[] {
     return this.descremados
       .filter(item => {
-        const recepcion = this.buscarRecepcion(item.idRecepcionLeche);
+        const recepcion = this.buscarRecepcion(item.idRecepcionLeche ?? null);
 
         const coincideFecha = !this.filtroFecha
           || this.esMismaFechaDescremado(item, this.filtroFecha)
@@ -164,6 +145,7 @@ export class Descremado implements OnInit {
           || recepcion?.proveedor === this.filtroProveedor;
 
         const coincideTanque = !this.filtroTanque
+          || String(item.idTanqueOrigen || '') === String(this.filtroTanque)
           || String(item.idTanqueDestino || '') === String(this.filtroTanque);
 
         const coincideLote = !this.filtroLote
@@ -209,90 +191,66 @@ export class Descremado implements OnInit {
     return ((this.paginaActual - 1) * this.tamanioPagina) + index + 1;
   }
 
-  obtenerRecepcion(idRecepcionLeche: number): string {
-    const recepcion = this.buscarRecepcion(idRecepcionLeche);
+  obtenerProcedencia(item: DescremadoRecepcion): string {
+    const fecha = this.normalizarFecha(item.fechaDescremado || item.createdAt);
+    const recepcion = this.buscarRecepcion(item.idRecepcionLeche ?? null);
 
-    if (!recepcion) {
-      return `Recepción #${idRecepcionLeche}`;
+    if (recepcion) {
+      const proveedor = recepcion.proveedor || 'Sin proveedor';
+      const remision = recepcion.numeroRemision ? ` - Rem. ${recepcion.numeroRemision}` : '';
+      return `${fecha} - ${proveedor}${remision}`;
     }
 
-    const fecha = this.normalizarFecha(recepcion.fechaRecepcion);
-    const proveedor = recepcion.proveedor || 'Sin proveedor';
-    const remision = recepcion.numeroRemision ? ` - Rem. ${recepcion.numeroRemision}` : '';
-
-    return `${fecha} - ${proveedor}${remision}`;
+    return `${fecha || 'Sin fecha'} - Descremado por tanque`;
   }
 
-  litrosRecibidosRecepcion(idRecepcionLeche: number): number {
-    const recepcion = this.buscarRecepcion(idRecepcionLeche);
-    return Number(recepcion?.cantidadRecibidaLitros || 0);
-  }
-
-  litrosRestantesRecepcion(idRecepcionLeche: number): number {
-    const recibido = this.litrosRecibidosRecepcion(idRecepcionLeche);
-
-    const descremado = this.descremados
-      .filter(item => Number(item.idRecepcionLeche) === Number(idRecepcionLeche))
-      .reduce((total, item) => total + Number(item.litrosDescremados || 0), 0);
-
-    return Math.max(recibido - descremado, 0);
-  }
-
-  obtenerTanque(idTanqueDestino?: number): string {
-    if (!idTanqueDestino) {
+  obtenerTanque(idTanque?: number | null): string {
+    if (!idTanque) {
       return 'Sin tanque';
     }
 
-    const tanque = this.tanques.find(item => Number(item.idTanque) === Number(idTanqueDestino));
+    const tanque = this.tanques.find(item => Number(item.idTanque) === Number(idTanque));
 
-    return tanque?.nombre || `Tanque #${idTanqueDestino}`;
+    return tanque?.nombre || `Tanque #${idTanque}`;
   }
 
-  estadoRecepcion(idRecepcionLeche: number): string {
-    const recibido = this.litrosRecibidosRecepcion(idRecepcionLeche);
-    const restante = this.litrosRestantesRecepcion(idRecepcionLeche);
-
-    if (recibido <= 0) {
-      return 'Sin dato';
+  obtenerSaldoTanque(idTanque?: number | null): number {
+    if (!idTanque) {
+      return 0;
     }
 
-    if (restante <= 0) {
-      return 'Completa';
-    }
-
-    if (restante < recibido) {
-      return 'Parcial';
-    }
-
-    return 'Pendiente';
+    const tanque = this.tanques.find(item => Number(item.idTanque) === Number(idTanque));
+    return Number(tanque?.saldoLitros || 0);
   }
 
-  claseEstado(idRecepcionLeche: number): string {
-    const estado = this.estadoRecepcion(idRecepcionLeche);
-
-    if (estado === 'Completa') {
-      return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+  estadoRegistro(item: DescremadoRecepcion): string {
+    if (item.idRecepcionLeche) {
+      return 'Histórico';
     }
 
-    if (estado === 'Parcial') {
-      return 'bg-amber-50 text-amber-700 border-amber-100';
-    }
-
-    return 'bg-slate-50 text-slate-600 border-slate-100';
+    return 'Por tanque';
   }
 
-  estadoCalidadRecepcion(idRecepcionLeche: number): string {
-    return this.estadosCalidad.find(item => Number(item.idRecepcionLeche) === Number(idRecepcionLeche))?.estadoCalidad || 'SIN_CALIDAD';
+  claseEstado(item: DescremadoRecepcion): string {
+    if (item.idRecepcionLeche) {
+      return 'bg-slate-50 text-slate-600 border-slate-100';
+    }
+
+    return 'bg-emerald-50 text-emerald-700 border-emerald-100';
   }
 
   private esMismaFechaDescremado(descremado: DescremadoRecepcion, fechaComparar: string): boolean {
+    if (descremado.fechaDescremado) {
+      return this.normalizarFecha(descremado.fechaDescremado) === fechaComparar;
+    }
+
     const fechaCreacion = this.normalizarFecha(descremado.createdAt);
 
     if (fechaCreacion) {
       return fechaCreacion === fechaComparar;
     }
 
-    const recepcion = this.buscarRecepcion(descremado.idRecepcionLeche);
+    const recepcion = this.buscarRecepcion(descremado.idRecepcionLeche ?? null);
 
     return this.normalizarFecha(recepcion?.fechaRecepcion) === fechaComparar;
   }
@@ -309,13 +267,19 @@ export class Descremado implements OnInit {
   }
 
   private obtenerTiempoDescremado(descremado: DescremadoRecepcion): number {
-    const tiempo = new Date(descremado.createdAt || '').getTime();
+    const tiempoFechaDescremado = new Date(descremado.fechaDescremado || '').getTime();
 
-    if (!Number.isNaN(tiempo)) {
-      return tiempo;
+    if (!Number.isNaN(tiempoFechaDescremado)) {
+      return tiempoFechaDescremado;
     }
 
-    const recepcion = this.buscarRecepcion(descremado.idRecepcionLeche);
+    const tiempoCreacion = new Date(descremado.createdAt || '').getTime();
+
+    if (!Number.isNaN(tiempoCreacion)) {
+      return tiempoCreacion;
+    }
+
+    const recepcion = this.buscarRecepcion(descremado.idRecepcionLeche ?? null);
     const tiempoRecepcion = new Date(recepcion?.fechaRecepcion || '').getTime();
 
     if (!Number.isNaN(tiempoRecepcion)) {
@@ -325,7 +289,11 @@ export class Descremado implements OnInit {
     return 0;
   }
 
-  private buscarRecepcion(idRecepcionLeche: number): RecepcionLeche | undefined {
+  private buscarRecepcion(idRecepcionLeche?: number | null): RecepcionLeche | undefined {
+    if (!idRecepcionLeche) {
+      return undefined;
+    }
+
     return this.recepciones.find(recepcion => Number(recepcion.id) === Number(idRecepcionLeche));
   }
 
