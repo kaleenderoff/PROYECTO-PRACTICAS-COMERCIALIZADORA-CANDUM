@@ -3,6 +3,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { ProgramacionProduccionService } from '../../core/services/programacion-produccion';
+import { RecepcionLeche, RecepcionLecheService } from '../../core/services/recepcion-leche';
 import { NotificationService } from '../../core/services/notification';
 
 import {
@@ -25,6 +26,7 @@ import { RouterModule } from '@angular/router';
 export class ProgramacionProduccionForm implements OnInit {
 
   private programacionService = inject(ProgramacionProduccionService);
+  private recepcionLecheService = inject(RecepcionLecheService);
   private usuarioService = inject(UsuarioService);
   private notification = inject(NotificationService);
 
@@ -36,6 +38,9 @@ export class ProgramacionProduccionForm implements OnInit {
   skusDisponibles: any[] = [];
   formulaVigente: any | null = null;
   jefesLinea: Usuario[] = [];
+
+  recepcionesFecha: RecepcionLeche[] = [];
+  cargandoDisponibilidadLeche = false;
 
   idProducto: number | null = null;
   idJefeLineaEjecutor: number | null = null;
@@ -61,6 +66,7 @@ export class ProgramacionProduccionForm implements OnInit {
     this.cargarProductos();
     this.cargarTurnos();
     this.cargarJefesLinea();
+    this.cargarDisponibilidadLeche();
   }
 
   cargarProductos(): void {
@@ -82,6 +88,33 @@ export class ProgramacionProduccionForm implements OnInit {
       next: usuarios => this.jefesLinea = usuarios || [],
       error: error => console.error('Error cargando jefes de línea', error)
     });
+  }
+
+  cargarDisponibilidadLeche(): void {
+    if (!this.fechaProduccion) {
+      this.recepcionesFecha = [];
+      return;
+    }
+
+    this.cargandoDisponibilidadLeche = true;
+
+    this.recepcionLecheService.listarRecepciones().subscribe({
+      next: recepciones => {
+        this.recepcionesFecha = (recepciones || []).filter(
+          recepcion => recepcion.fechaRecepcion === this.fechaProduccion
+        );
+        this.cargandoDisponibilidadLeche = false;
+      },
+      error: error => {
+        console.error('Error cargando disponibilidad de leche', error);
+        this.recepcionesFecha = [];
+        this.cargandoDisponibilidadLeche = false;
+      }
+    });
+  }
+
+  onFechaProduccionChange(): void {
+    this.cargarDisponibilidadLeche();
   }
 
   onProductoChange(): void {
@@ -384,6 +417,120 @@ export class ProgramacionProduccionForm implements OnInit {
     );
   }
 
+  obtenerLitrosRecepcion(recepcion: RecepcionLeche): number {
+    return Number(
+      recepcion.cantidadRecibidaLitros ??
+      recepcion.cantidadRemisionLitros ??
+      0
+    );
+  }
+
+  obtenerRecepcionesPorEstado(estados: string[]): RecepcionLeche[] {
+    return this.recepcionesFecha.filter(recepcion =>
+      estados.includes(recepcion.estadoCalidad || 'SIN_CALIDAD')
+    );
+  }
+
+  calcularLecheAprobadaLitros(): number {
+    return Number(
+      this.obtenerRecepcionesPorEstado(['APROBADA'])
+        .reduce((total, recepcion) => total + this.obtenerLitrosRecepcion(recepcion), 0)
+        .toFixed(2)
+    );
+  }
+
+  calcularLechePendienteCalidadLitros(): number {
+    return Number(
+      this.obtenerRecepcionesPorEstado(['SIN_CALIDAD'])
+        .reduce((total, recepcion) => total + this.obtenerLitrosRecepcion(recepcion), 0)
+        .toFixed(2)
+    );
+  }
+
+  calcularLecheRetenidaLitros(): number {
+    return Number(
+      this.obtenerRecepcionesPorEstado(['RETENIDA', 'NO_APROBADA'])
+        .reduce((total, recepcion) => total + this.obtenerLitrosRecepcion(recepcion), 0)
+        .toFixed(2)
+    );
+  }
+
+  calcularLecheTotalFisicaLitros(): number {
+    return Number(
+      this.recepcionesFecha
+        .reduce((total, recepcion) => total + this.obtenerLitrosRecepcion(recepcion), 0)
+        .toFixed(2)
+    );
+  }
+
+  calcularLecheRequeridaLitros(): number {
+    return Number(this.calcularKgEntradaPorBatchPlan().toFixed(2));
+  }
+
+  calcularLecheAprobadaDisponibleDespuesPlan(): number {
+    return Number((this.calcularLecheAprobadaLitros() - this.calcularLecheRequeridaLitros()).toFixed(2));
+  }
+
+  calcularLecheTotalPotencialLitros(): number {
+    return Number((this.calcularLecheAprobadaLitros() + this.calcularLechePendienteCalidadLitros()).toFixed(2));
+  }
+
+  tieneLechePendienteCalidad(): boolean {
+    return this.calcularLechePendienteCalidadLitros() > 0;
+  }
+
+  tieneLecheRetenida(): boolean {
+    return this.calcularLecheRetenidaLitros() > 0;
+  }
+
+  programacionDependeDeLechePendiente(): boolean {
+    const requerida = this.calcularLecheRequeridaLitros();
+    return requerida > this.calcularLecheAprobadaLitros()
+      && requerida <= this.calcularLecheTotalPotencialLitros();
+  }
+
+  noHayLecheSuficienteParaProgramar(): boolean {
+    const requerida = this.calcularLecheRequeridaLitros();
+
+    if (requerida <= 0) {
+      return false;
+    }
+
+    return requerida > this.calcularLecheTotalPotencialLitros();
+  }
+
+  obtenerMensajeDisponibilidadLeche(): string {
+    if (this.cargandoDisponibilidadLeche) {
+      return 'Consultando recepciones y liberaciones de calidad...';
+    }
+
+    if (this.recepcionesFecha.length === 0) {
+      return 'No hay recepciones de leche registradas para la fecha programada.';
+    }
+
+    if (this.noHayLecheSuficienteParaProgramar()) {
+      return 'No existe leche suficiente para cubrir esta programación, ni siquiera contando la leche pendiente por calidad.';
+    }
+
+    if (this.programacionDependeDeLechePendiente()) {
+      return 'La programación depende de leche que todavía no ha sido liberada por calidad. Puede planearse, pero no debería iniciar producción hasta liberar la leche.';
+    }
+
+    if (this.tieneLechePendienteCalidad()) {
+      return 'Hay leche pendiente de liberación por calidad. La leche aprobada es la única disponible para iniciar producción.';
+    }
+
+    return 'La leche aprobada cubre la programación actual.';
+  }
+
+  puedeConfirmarProgramacion(): boolean {
+    if (!this.tieneSkusValidos() || this.guardando) {
+      return false;
+    }
+
+    return !this.noHayLecheSuficienteParaProgramar();
+  }
+
   crearProgramacion(): void {
     if (
       !this.idProducto ||
@@ -394,6 +541,11 @@ export class ProgramacionProduccionForm implements OnInit {
       !this.fechaProduccion
     ) {
       this.notification.warning('Seleccione fecha, producto, turno, jefe de línea y al menos un SKU.');
+      return;
+    }
+
+    if (this.noHayLecheSuficienteParaProgramar()) {
+      this.notification.error('No existe leche suficiente para crear la programación.');
       return;
     }
 
@@ -411,6 +563,12 @@ export class ProgramacionProduccionForm implements OnInit {
         unidadesObjetivo: Number(fila.unidades)
       }));
 
+    const observacionesBase = this.observaciones?.trim() || 'Programación generada desde pantalla tipo Excel';
+
+    const observacionesLeche = this.programacionDependeDeLechePendiente()
+      ? ' Programación condicional: depende de leche pendiente de liberación por calidad.'
+      : '';
+
     const body = {
       fechaProduccion: this.fechaProduccion,
       idLinea: Number(productoSeleccionado.idLinea),
@@ -420,7 +578,7 @@ export class ProgramacionProduccionForm implements OnInit {
       numBachesPlan: this.obtenerBachesPlanParaVista(),
       kgBachePlan: this.obtenerKgBatchFormula(),
       idFormulaVersion: Number(this.formulaVigente.idFormulaVersion ?? this.formulaVigente.id),
-      observaciones: this.observaciones?.trim() || 'Programación generada desde pantalla tipo Excel',
+      observaciones: `${observacionesBase}${observacionesLeche}`,
       skus: skusValidos
     };
 
@@ -441,6 +599,7 @@ export class ProgramacionProduccionForm implements OnInit {
         this.formulaVigente = null;
         this.skusDisponibles = [];
         this.skus = [{ idSku: 0, unidades: 0 }];
+        this.cargarDisponibilidadLeche();
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
       },
