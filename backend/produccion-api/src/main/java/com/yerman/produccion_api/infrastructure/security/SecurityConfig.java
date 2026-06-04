@@ -193,6 +193,14 @@ public class SecurityConfig {
                                                                 ROL_ADMIN,
                                                                 ROL_COORDINADOR_CALIDAD)
 
+                                                // CANCELAR ORDEN — JEFE_PRODUCCION puede cancelar órdenes PROGRAMADA
+                                                .requestMatchers(HttpMethod.PATCH,
+                                                                "/ordenes-produccion/*/cancelar")
+                                                .hasAnyRole(
+                                                                ROL_ADMIN,
+                                                                ROL_JEFE_PRODUCCION,
+                                                                ROL_JEFE_LINEA)
+
                                                 // ORDENES Y EJECUCION
                                                 .requestMatchers("/ordenes-produccion/**", "/ejecucion-batch/**",
                                                                 "/producciones-lactea/**")
