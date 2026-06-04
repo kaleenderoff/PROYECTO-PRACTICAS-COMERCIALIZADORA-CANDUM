@@ -191,7 +191,8 @@ public class SecurityConfig {
                                                                 "/ordenes-produccion/*/reabrir-tandas")
                                                 .hasAnyRole(
                                                                 ROL_ADMIN,
-                                                                ROL_COORDINADOR_CALIDAD)
+                                                                ROL_COORDINADOR_CALIDAD,
+                                                                ROL_AUXILIAR_CALIDAD)
 
                                                 // CANCELAR ORDEN — JEFE_PRODUCCION puede cancelar órdenes PROGRAMADA
                                                 .requestMatchers(HttpMethod.PATCH,

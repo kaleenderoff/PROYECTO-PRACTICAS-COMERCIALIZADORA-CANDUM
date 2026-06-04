@@ -228,7 +228,8 @@ export class AuthService {
   canCloseTandasCalidad(): boolean {
     return this.hasAnyRole([
       'ADMIN',
-      'COORDINADOR_CALIDAD'
+      'COORDINADOR_CALIDAD',
+      'AUXILIAR_CALIDAD'
     ]);
   }
 
