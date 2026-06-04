@@ -201,8 +201,11 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
 
         impactarInventario(orden);
 
+        OrdenProduccion ordenGuardada = ordenRepository.guardar(orden);
+        sincronizarReporteProduccionDiaria(ordenGuardada.getFechaProduccion());
+
         LOGGER.info("Orden {} finalizada exitosamente.", orden.getNumeroOrden());
-        return ordenRepository.guardar(orden);
+        return ordenGuardada;
     }
 
     private void impactarInventario(OrdenProduccion orden) {
@@ -230,10 +233,15 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
             throw new ReglaNegocioException("No se puede cancelar una orden FINALIZADA.");
         }
 
+        LocalDate fechaProduccion = orden.getFechaProduccion();
+
         orden.setEstado(EstadoOrdenProduccion.CANCELADA);
         orden.setObservaciones(observaciones);
 
-        return ordenRepository.guardar(orden);
+        OrdenProduccion ordenGuardada = ordenRepository.guardar(orden);
+        sincronizarReporteProduccionDiaria(fechaProduccion);
+
+        return ordenGuardada;
     }
 
     @Override
