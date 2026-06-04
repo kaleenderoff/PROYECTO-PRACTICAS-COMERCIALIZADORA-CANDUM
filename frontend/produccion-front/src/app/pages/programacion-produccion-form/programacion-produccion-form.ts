@@ -636,14 +636,7 @@ export class ProgramacionProduccionForm implements OnInit {
       ? ' Programación condicional: depende de leche pendiente de liberación por calidad.'
       : '';
 
-    // kgBachePlan debe ser el kg de LECHE por batch, no el total de ingredientes de la fórmula
-    // Si hay SKUs calculados, usar calcularTotalKgEntrada() / numBaches (leche real por batch)
-    // Si no hay SKUs, usar obtenerKgBatchFormula() como aproximación
     const numBachesPlan = this.obtenerBachesPlanParaVista();
-    const totalKgEntradaLeche = this.calcularTotalKgEntrada();
-    const kgBachePlanLeche = (totalKgEntradaLeche > 0 && numBachesPlan > 0)
-      ? Number((totalKgEntradaLeche / numBachesPlan).toFixed(3))
-      : this.obtenerKgBatchFormula();
 
     const body = {
       fechaProduccion: this.fechaProduccion,
@@ -652,7 +645,7 @@ export class ProgramacionProduccionForm implements OnInit {
       idTurno: Number(this.idTurno),
       idJefeLineaEjecutor: Number(this.idJefeLineaEjecutor),
       numBachesPlan,
-      kgBachePlan: kgBachePlanLeche,
+      kgBachePlan: this.obtenerKgBatchFormula(),
       idFormulaVersion: Number(this.formulaVigente.idFormulaVersion ?? this.formulaVigente.id),
       observaciones: `${observacionesBase}${observacionesLeche}`,
       skus: skusValidos
