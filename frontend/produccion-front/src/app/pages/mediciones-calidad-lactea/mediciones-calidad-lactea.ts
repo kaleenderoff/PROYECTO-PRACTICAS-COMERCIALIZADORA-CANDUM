@@ -158,7 +158,7 @@ export class MedicionesCalidadLactea implements OnInit {
 
     this.ordenService.listar().subscribe({
       next: (ordenes) => {
-        this.ordenes = ordenes;
+        this.ordenes = [...ordenes].sort((a, b) => b.id - a.id);
 
         const ordenActiva = ordenes.find(o => o.estado === 'EN_EJECUCION') || ordenes[0];
 
