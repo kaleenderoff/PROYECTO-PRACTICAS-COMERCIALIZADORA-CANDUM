@@ -46,6 +46,7 @@ export class ProgramacionProduccionForm implements OnInit {
   recepcionesFecha: RecepcionLeche[] = [];
   saldosTanques: SaldoTanqueLeche[] = [];
   cargandoDisponibilidadLeche = false;
+  lecheReservadaEnProgramaciones = 0;
 
   idProducto: number | null = null;
   idJefeLineaEjecutor: number | null = null;
@@ -99,6 +100,7 @@ export class ProgramacionProduccionForm implements OnInit {
     if (!this.fechaProduccion) {
       this.recepcionesFecha = [];
       this.saldosTanques = [];
+      this.lecheReservadaEnProgramaciones = 0;
       return;
     }
 
@@ -106,9 +108,10 @@ export class ProgramacionProduccionForm implements OnInit {
 
     let recepcionesCargadas = false;
     let saldosCargados = false;
+    let reservadaCargada = false;
 
     const finalizarCarga = () => {
-      if (recepcionesCargadas && saldosCargados) {
+      if (recepcionesCargadas && saldosCargados && reservadaCargada) {
         this.cargandoDisponibilidadLeche = false;
       }
     };
@@ -139,6 +142,19 @@ export class ProgramacionProduccionForm implements OnInit {
         console.error('Error cargando saldos de tanques', error);
         this.saldosTanques = [];
         saldosCargados = true;
+        finalizarCarga();
+      }
+    });
+
+    this.programacionService.obtenerLecheReservada(this.fechaProduccion).subscribe({
+      next: data => {
+        this.lecheReservadaEnProgramaciones = Number(data.litrosReservados || 0);
+        reservadaCargada = true;
+        finalizarCarga();
+      },
+      error: () => {
+        this.lecheReservadaEnProgramaciones = 0;
+        reservadaCargada = true;
         finalizarCarga();
       }
     });
@@ -514,7 +530,11 @@ export class ProgramacionProduccionForm implements OnInit {
   }
 
   calcularLecheAprobadaDisponibleDespuesPlan(): number {
-    return Number((this.calcularLecheAprobadaLitros() - this.calcularLecheRequeridaLitros()).toFixed(2));
+    return Number((
+      this.calcularLecheAprobadaLitros()
+      - this.lecheReservadaEnProgramaciones
+      - this.calcularLecheRequeridaLitros()
+    ).toFixed(2));
   }
 
   calcularLecheTotalPotencialLitros(): number {

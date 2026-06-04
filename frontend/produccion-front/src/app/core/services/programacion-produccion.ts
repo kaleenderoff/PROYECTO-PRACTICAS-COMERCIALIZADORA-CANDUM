@@ -64,6 +64,13 @@ export class ProgramacionProduccionService {
         );
     }
 
+    obtenerLecheReservada(fecha: string): Observable<{ fecha: string; litrosReservados: number }> {
+        return this.http.get<{ fecha: string; litrosReservados: number }>(
+            `${this.programacionesUrl}/leche-reservada`,
+            { params: { fecha } }
+        );
+    }
+
     agregarSku(body: any): Observable<any> {
         return this.http.post(
             `${this.baseUrl}/programacion-skus`,

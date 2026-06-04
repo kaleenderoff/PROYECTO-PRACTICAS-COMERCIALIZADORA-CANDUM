@@ -362,6 +362,24 @@ public class ProgramacionProduccionController {
                 .findByProgramacionIdOrderByIdAsc(idProgramacion);
     }
 
+    @GetMapping("/leche-reservada")
+    public ResponseEntity<java.util.Map<String, Object>> getLecheReservada(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
+
+        List<com.yerman.produccion_api.domain.model.EstadoProgramacionProduccion> estadosActivos =
+                List.of(
+                        com.yerman.produccion_api.domain.model.EstadoProgramacionProduccion.CONFIRMADA,
+                        com.yerman.produccion_api.domain.model.EstadoProgramacionProduccion.CON_ORDEN
+                );
+
+        BigDecimal reservada = programacionRepository.calcularLecheReservadaPorFecha(fecha, estadosActivos);
+
+        return ResponseEntity.ok(java.util.Map.of(
+                "fecha", fecha.toString(),
+                "litrosReservados", reservada != null ? reservada : BigDecimal.ZERO
+        ));
+    }
+
     private String generarNumeroOrden() {
 
         return "OP-"
