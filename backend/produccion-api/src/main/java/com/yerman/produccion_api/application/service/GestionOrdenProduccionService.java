@@ -12,8 +12,10 @@ import com.yerman.produccion_api.domain.port.in.GestionOrdenProduccionUseCase;
 import com.yerman.produccion_api.domain.port.out.EjecucionBatchRepositoryPort;
 import com.yerman.produccion_api.domain.port.out.OrdenProduccionRepositoryPort;
 import com.yerman.produccion_api.domain.port.out.ProgramacionProduccionRepositoryPort;
+import com.yerman.produccion_api.infrastructure.entity.EjecucionBatchEntity;
 import com.yerman.produccion_api.infrastructure.entity.OrdenProduccionDetalleEntity;
 import com.yerman.produccion_api.infrastructure.entity.ReporteProduccionDiariaEntity;
+import com.yerman.produccion_api.infrastructure.repository.EjecucionBatchRepository;
 import com.yerman.produccion_api.infrastructure.repository.OrdenProduccionDetalleJpaRepository;
 import com.yerman.produccion_api.infrastructure.repository.ProgramacionProduccionJpaRepository;
 import com.yerman.produccion_api.infrastructure.repository.ReporteProduccionDiariaJpaRepository;
@@ -41,6 +43,7 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
     private final ProgramacionProduccionJpaRepository programacionJpaRepository;
     private final OrdenProduccionDetalleJpaRepository detalleRepository;
     private final EjecucionBatchRepositoryPort batchRepository;
+    private final EjecucionBatchRepository ejecucionBatchJpaRepository;
     private final ValidacionOrdenProduccionGuardService validacionGuardService;
     private final ReporteProduccionDiariaJpaRepository reporteProduccionDiariaRepository;
 
@@ -50,6 +53,7 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
             ProgramacionProduccionJpaRepository programacionJpaRepository,
             OrdenProduccionDetalleJpaRepository detalleRepository,
             EjecucionBatchRepositoryPort batchRepository,
+            EjecucionBatchRepository ejecucionBatchJpaRepository,
             ValidacionOrdenProduccionGuardService validacionGuardService,
             ReporteProduccionDiariaJpaRepository reporteProduccionDiariaRepository) {
         this.ordenRepository = ordenRepository;
@@ -57,6 +61,7 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
         this.programacionJpaRepository = programacionJpaRepository;
         this.detalleRepository = detalleRepository;
         this.batchRepository = batchRepository;
+        this.ejecucionBatchJpaRepository = ejecucionBatchJpaRepository;
         this.validacionGuardService = validacionGuardService;
         this.reporteProduccionDiariaRepository = reporteProduccionDiariaRepository;
     }
@@ -361,6 +366,11 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
                         "No existe una orden de produccion con ID: " + idOrden));
     }
 
+    @Transactional
+    public void resincronizarReporteDiario(LocalDate fecha) {
+        sincronizarReporteProduccionDiaria(fecha);
+    }
+
     private void sincronizarReporteProduccionDiaria(LocalDate fechaProduccion) {
         if (fechaProduccion == null) {
             return;
@@ -378,7 +388,8 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
             reporteProduccionDiariaRepository.deleteByFechaAndFuente(fechaProduccion, "SISTEMA");
 
             if (detalles.isEmpty()) {
-                LOGGER.info("Sin detalles de produccion real para {} — reporte diario omitido.", fechaProduccion);
+                // Fallback: si no hay SKUs registrados, usar totales de batches finalizados
+                sincronizarDesdesBatches(fechaProduccion);
                 return;
             }
 
@@ -448,6 +459,45 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
     private String generarNumeroOrden(ProgramacionProduccion programacion) {
         return "OP-" + programacion.getFechaProduccion().toString().replace("-", "")
                 + "-" + programacion.getId();
+    }
+
+    private void sincronizarDesdesBatches(LocalDate fechaProduccion) {
+        try {
+            List<EjecucionBatchEntity> batches = ejecucionBatchJpaRepository.findBatchesFinalizadosPorFecha(fechaProduccion);
+
+            if (batches.isEmpty()) {
+                LOGGER.info("Sin batches finalizados para {} — reporte diario omitido.", fechaProduccion);
+                return;
+            }
+
+            // Agrupar por producto y sumar kg producidos
+            Map<String, BigDecimal> kgPorProducto = new java.util.LinkedHashMap<>();
+            for (EjecucionBatchEntity batch : batches) {
+                String nombreProducto = batch.getOrdenProduccion().getProducto().getNombre();
+                kgPorProducto.merge(nombreProducto,
+                        batch.getKgProducidos() != null ? batch.getKgProducidos() : BigDecimal.ZERO,
+                        BigDecimal::add);
+            }
+
+            List<ReporteProduccionDiariaEntity> reportes = new java.util.ArrayList<>();
+            for (Map.Entry<String, BigDecimal> entry : kgPorProducto.entrySet()) {
+                ReporteProduccionDiariaEntity.TipoProducto tipo = inferirTipoProducto(entry.getKey(), "");
+                ReporteProduccionDiariaEntity reporte = new ReporteProduccionDiariaEntity();
+                reporte.setFecha(fechaProduccion);
+                reporte.setSkuDescripcion(entry.getKey().toUpperCase() + " (TOTAL BATCHES)");
+                reporte.setTipoProducto(tipo);
+                reporte.setPesoNetoGr(0);
+                reporte.setUnidadesReales(0);
+                reporte.setKgPtReales(entry.getValue().setScale(1, java.math.RoundingMode.HALF_UP));
+                reporte.setFuente("SISTEMA");
+                reportes.add(reporte);
+            }
+
+            reporteProduccionDiariaRepository.saveAll(reportes);
+            LOGGER.info("Reporte diario sincronizado desde batches para {} con {} productos.", fechaProduccion, reportes.size());
+        } catch (Exception e) {
+            LOGGER.warn("Error sincronizando desde batches para {}: {}", fechaProduccion, e.getMessage());
+        }
     }
 
     private record ReporteSkuKey(
