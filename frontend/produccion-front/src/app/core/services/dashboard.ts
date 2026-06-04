@@ -129,6 +129,10 @@ export class DashboardService {
     return this.http.get<any>(`${this.apiUrl}/trazabilidad-por-lote/${encodeURIComponent(lote)}`);
   }
 
+  resincronizarReporte(fecha: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/resync-reporte`, null, { params: { fecha } });
+  }
+
   obtenerDashboardOperativoLacteo(): Observable<DashboardOperativoLacteo> {
     return this.http.get<DashboardOperativoLacteo>(`${environment.apiUrl}/dashboard-operativo/lacteos`);
   }

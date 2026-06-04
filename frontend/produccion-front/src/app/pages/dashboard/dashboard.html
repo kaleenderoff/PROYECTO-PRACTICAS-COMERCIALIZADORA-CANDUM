@@ -35,6 +35,14 @@
             </div>
         </div>
 
+        <!-- Resync button -->
+        <button *ngIf="authService.isJefeProduccion() || authService.isJefePlanta()"
+            (click)="resincronizarHoy()" [disabled]="resincroniando"
+            class="px-4 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-2xl text-xs font-black border border-amber-200 transition-all disabled:opacity-50">
+            <i class="bi bi-arrow-clockwise mr-1" [class.animate-spin]="resincroniando"></i>
+            {{ resincroniando ? 'Sincronizando...' : 'Resincronizar hoy' }}
+        </button>
+
         <!-- Tab Switcher -->
         <div class="flex bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
             <button (click)="setView('general')"

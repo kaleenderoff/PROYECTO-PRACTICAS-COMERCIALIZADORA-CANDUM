@@ -186,6 +186,7 @@ export class Dashboard implements OnInit {
 
   cargando = false;
   error = '';
+  resincroniando = false;
 
   mesActual = new Date().getMonth() + 1;
   anioActual = new Date().getFullYear();
@@ -371,6 +372,18 @@ export class Dashboard implements OnInit {
           ]
         };
       }
+    });
+  }
+
+  resincronizarHoy(): void {
+    const hoy = new Date().toISOString().slice(0, 10);
+    this.resincroniando = true;
+    this.dashboardService.resincronizarReporte(hoy).subscribe({
+      next: () => {
+        this.resincroniando = false;
+        this.cargarDatos();
+      },
+      error: () => { this.resincroniando = false; }
     });
   }
 
