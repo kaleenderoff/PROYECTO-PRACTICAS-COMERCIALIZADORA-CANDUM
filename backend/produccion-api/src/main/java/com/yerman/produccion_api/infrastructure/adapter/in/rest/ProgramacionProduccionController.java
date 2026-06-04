@@ -368,6 +368,7 @@ public class ProgramacionProduccionController {
 
         List<com.yerman.produccion_api.domain.model.EstadoProgramacionProduccion> estadosActivos =
                 List.of(
+                        com.yerman.produccion_api.domain.model.EstadoProgramacionProduccion.BORRADOR,
                         com.yerman.produccion_api.domain.model.EstadoProgramacionProduccion.CONFIRMADA,
                         com.yerman.produccion_api.domain.model.EstadoProgramacionProduccion.CON_ORDEN
                 );
