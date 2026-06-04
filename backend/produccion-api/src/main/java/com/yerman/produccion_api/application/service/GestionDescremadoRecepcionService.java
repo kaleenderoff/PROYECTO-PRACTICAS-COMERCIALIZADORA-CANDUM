@@ -45,10 +45,12 @@ public class GestionDescremadoRecepcionService implements GestionDescremadoRecep
         descremadoRecepcion.setIdMovimientoSalida(movimientoSalida.getId());
 
         if (descremadoRecepcion.getIdTanqueDestino() != null) {
+            BigDecimal litrosTransferidos = calcularLecheDescremadaTransferida(descremadoRecepcion);
+
             MovimientoLeche movimientoEntrada = movimientoLecheUseCase.registrarMovimiento(
                     descremadoRecepcion.getIdTanqueDestino(),
                     TipoMovimientoLeche.ENTRADA_DESCREME,
-                    descremadoRecepcion.getLitrosDescremados(),
+                    litrosTransferidos,
                     descremadoRecepcion.getIdUsuario(),
                     construirReferenciaEntrada(descremadoRecepcion),
                     descremadoRecepcion.getObservaciones());
@@ -127,7 +129,29 @@ public class GestionDescremadoRecepcionService implements GestionDescremadoRecep
             throw new ReglaNegocioException("La crema obtenida no puede ser negativa.");
         }
 
+        if (descremadoRecepcion.getCremaObtenidaKg() != null
+                && descremadoRecepcion.getCremaObtenidaKg().compareTo(descremadoRecepcion.getLitrosDescremados()) >= 0) {
+            throw new ReglaNegocioException(
+                    "La crema obtenida no puede ser mayor o igual a los litros descremados.");
+        }
+
+        if (calcularLecheDescremadaTransferida(descremadoRecepcion).compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ReglaNegocioException(
+                    "La leche descremada transferida al tanque destino debe ser mayor que cero.");
+        }
+
         validarCremaEmpacada(descremadoRecepcion);
+    }
+
+    private BigDecimal calcularLecheDescremadaTransferida(DescremadoRecepcion descremadoRecepcion) {
+        BigDecimal litrosDescremados = descremadoRecepcion.getLitrosDescremados() != null
+                ? descremadoRecepcion.getLitrosDescremados()
+                : BigDecimal.ZERO;
+        BigDecimal cremaObtenida = descremadoRecepcion.getCremaObtenidaKg() != null
+                ? descremadoRecepcion.getCremaObtenidaKg()
+                : BigDecimal.ZERO;
+
+        return litrosDescremados.subtract(cremaObtenida);
     }
 
     private void validarCremaEmpacada(DescremadoRecepcion descremadoRecepcion) {
