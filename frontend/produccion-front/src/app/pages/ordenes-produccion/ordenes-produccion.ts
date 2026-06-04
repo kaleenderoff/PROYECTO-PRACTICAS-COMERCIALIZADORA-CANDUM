@@ -87,6 +87,34 @@ export class OrdenesProduccion implements OnInit {
     });
   }
 
+  async cancelarOrden(orden: OrdenProduccionResponse): Promise<void> {
+    if (!this.authService.canManageProgramacion()) return;
+
+    const confirmado = await this.notification.confirm({
+      title: 'Cancelar orden',
+      text: `¿Está segura de cancelar la orden ${orden.numeroOrden}? Esta acción no se puede deshacer.`,
+      confirmText: 'Sí, cancelar',
+      cancelText: 'No',
+      icon: 'warning'
+    });
+
+    if (!confirmado) return;
+
+    this.cargando = true;
+
+    this.ordenService.cancelar(orden.id, 'Cancelada por jefe de producción').subscribe({
+      next: () => {
+        this.notification.toast('Orden cancelada correctamente.');
+        this.cargarOrdenes();
+      },
+      error: (err) => {
+        const mensaje = err.error?.message || 'No se pudo cancelar la orden.';
+        this.notification.error(mensaje);
+        this.cargando = false;
+      }
+    });
+  }
+
   obtenerClaseEstado(estado: string): string {
     switch (estado) {
       case 'PROGRAMADA':
