@@ -84,7 +84,8 @@ public class ProgramacionProduccionJpaAdapter implements ProgramacionProduccionR
     }
 
     public boolean existeDuplicada(LocalDate fecha, Long idLinea, Long idTurno, Long idProducto) {
-        return repository.existsByFechaProduccionAndLineaIdAndTurnoIdAndProductoId(
-                fecha, idLinea, idTurno, idProducto);
+        return repository.existsByFechaProduccionAndLineaIdAndTurnoIdAndProductoIdAndEstadoNot(
+                fecha, idLinea, idTurno, idProducto,
+                com.yerman.produccion_api.domain.model.EstadoProgramacionProduccion.CANCELADA);
     }
 }

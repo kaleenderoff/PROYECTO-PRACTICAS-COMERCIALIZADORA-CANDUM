@@ -21,6 +21,13 @@ public interface ProgramacionProduccionJpaRepository extends JpaRepository<Progr
             Long idTurno,
             Long idProducto);
 
+    boolean existsByFechaProduccionAndLineaIdAndTurnoIdAndProductoIdAndEstadoNot(
+            LocalDate fechaProduccion,
+            Long idLinea,
+            Long idTurno,
+            Long idProducto,
+            EstadoProgramacionProduccion estado);
+
     Optional<ProgramacionProduccionEntity> findByCodigoProgramacion(String codigoProgramacion);
 
     @org.springframework.data.jpa.repository.Modifying
