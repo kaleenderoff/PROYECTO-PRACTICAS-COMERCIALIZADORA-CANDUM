@@ -113,12 +113,6 @@
                                 </button>
 
                                 <!-- Botones exclusivos Jefe de Producción para órdenes PROGRAMADA -->
-                                <a *ngIf="authService.canManageProgramacion() && orden.estado === 'PROGRAMADA' && orden.idProgramacion"
-                                   [routerLink]="['/programacion-produccion', orden.idProgramacion, 'editar']"
-                                   title="Editar programación"
-                                   class="p-2.5 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white rounded-xl transition-all shadow-sm border border-blue-100 hover:border-blue-600">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
 
                                 <button *ngIf="authService.canManageProgramacion() && orden.estado === 'PROGRAMADA'"
                                         (click)="cancelarOrden(orden)"

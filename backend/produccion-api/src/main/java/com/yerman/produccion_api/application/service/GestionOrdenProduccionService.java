@@ -225,6 +225,7 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
     }
 
     @Override
+    @Transactional
     public OrdenProduccion cancelar(Long idOrden, String observaciones) {
         OrdenProduccion orden = buscarOrden(idOrden);
         validacionGuardService.validarOrdenNoAprobada(idOrden);
