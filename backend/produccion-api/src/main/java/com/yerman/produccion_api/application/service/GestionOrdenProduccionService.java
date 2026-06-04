@@ -240,6 +240,18 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
         orden.setObservaciones(observaciones);
 
         OrdenProduccion ordenGuardada = ordenRepository.guardar(orden);
+
+        // Cancelar también la programación asociada para liberar la leche reservada
+        if (orden.getIdProgramacion() != null) {
+            programacionRepository.obtenerPorId(orden.getIdProgramacion()).ifPresent(prog -> {
+                if (prog.getEstado() != com.yerman.produccion_api.domain.model.EstadoProgramacionProduccion.CANCELADA) {
+                    prog.setEstado(com.yerman.produccion_api.domain.model.EstadoProgramacionProduccion.CANCELADA);
+                    programacionRepository.guardar(prog);
+                    LOGGER.info("Programacion {} cancelada por cancelacion de orden {}.", prog.getId(), idOrden);
+                }
+            });
+        }
+
         sincronizarReporteProduccionDiaria(fechaProduccion);
 
         return ordenGuardada;
