@@ -347,20 +347,34 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
             return;
         }
 
-        List<OrdenProduccionDetalleEntity> detalles = detalleRepository
-                .findProduccionRealParaReporteDiario(fechaProduccion);
+        List<OrdenProduccionDetalleEntity> detalles;
+        try {
+            detalles = detalleRepository.findProduccionRealParaReporteDiario(fechaProduccion);
+        } catch (Exception e) {
+            LOGGER.warn("No se pudo obtener detalles para reporte diario de {}: {}", fechaProduccion, e.getMessage());
+            return;
+        }
 
-        reporteProduccionDiariaRepository.deleteByFechaAndFuente(fechaProduccion, "SISTEMA");
+        try {
+            reporteProduccionDiariaRepository.deleteByFechaAndFuente(fechaProduccion, "SISTEMA");
 
-        Map<ReporteSkuKey, List<OrdenProduccionDetalleEntity>> agrupado = detalles.stream()
-                .collect(Collectors.groupingBy(this::crearKeyReporte));
+            if (detalles.isEmpty()) {
+                LOGGER.info("Sin detalles de produccion real para {} — reporte diario omitido.", fechaProduccion);
+                return;
+            }
 
-        List<ReporteProduccionDiariaEntity> reportes = agrupado.entrySet().stream()
-                .map(entry -> construirReporteDiario(fechaProduccion, entry.getKey(), entry.getValue()))
-                .toList();
+            Map<ReporteSkuKey, List<OrdenProduccionDetalleEntity>> agrupado = detalles.stream()
+                    .collect(Collectors.groupingBy(this::crearKeyReporte));
 
-        reporteProduccionDiariaRepository.saveAll(reportes);
-        LOGGER.info("Reporte produccion diaria sincronizado para {} con {} SKUs.", fechaProduccion, reportes.size());
+            List<ReporteProduccionDiariaEntity> reportes = agrupado.entrySet().stream()
+                    .map(entry -> construirReporteDiario(fechaProduccion, entry.getKey(), entry.getValue()))
+                    .toList();
+
+            reporteProduccionDiariaRepository.saveAll(reportes);
+            LOGGER.info("Reporte produccion diaria sincronizado para {} con {} SKUs.", fechaProduccion, reportes.size());
+        } catch (Exception e) {
+            LOGGER.warn("Error sincronizando reporte diario para {}: {}", fechaProduccion, e.getMessage());
+        }
     }
 
     private ReporteSkuKey crearKeyReporte(OrdenProduccionDetalleEntity detalle) {
