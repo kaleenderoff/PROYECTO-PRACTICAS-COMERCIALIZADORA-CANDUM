@@ -526,12 +526,6 @@ export class ProgramacionProduccionForm implements OnInit {
   }
 
   calcularLecheRequeridaLitros(): number {
-    // Priorizar el total de entrada calculado desde SKUs (solo leche)
-    // Fallback: batches × kgBatch de fórmula (incluye todos los ingredientes)
-    const totalEntradaSkus = this.calcularTotalKgEntrada();
-    if (totalEntradaSkus > 0) {
-      return Number(totalEntradaSkus.toFixed(2));
-    }
     return Number(this.calcularKgEntradaPorBatchPlan().toFixed(2));
   }
 
