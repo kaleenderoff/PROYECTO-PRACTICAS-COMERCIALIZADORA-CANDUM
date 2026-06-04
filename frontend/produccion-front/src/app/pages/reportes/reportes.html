@@ -134,7 +134,7 @@
       <i class="bi bi-inbox text-4xl block mb-2"></i>
       {{ errorConsumo }}
     </div>
-    <div *ngIf="resumenConsumo && !cargandoConsumo && resumenConsumo.totalOrdenes === 0 && resumenConsumo.totalBatches === 0"
+    <div *ngIf="resumenConsumo && !cargandoConsumo && resumenConsumo.totales.producciones === 0 && resumenConsumo.totales.batches === 0"
       class="text-center py-10 text-slate-500">
       <i class="bi bi-calendar-x text-4xl block mb-2"></i>
       No hay registros de producción para el <strong>{{ fechaConsumo }}</strong>.<br>
@@ -225,7 +225,7 @@
       <i class="bi bi-inbox text-4xl block mb-2"></i>
       {{ errorRecepcion }}
     </div>
-    <div *ngIf="resumenRecepcion && !cargandoRecepcion && resumenRecepcion.totalRecepciones === 0"
+    <div *ngIf="resumenRecepcion && !cargandoRecepcion && resumenRecepcion.totales.recepciones === 0"
       class="text-center py-10 text-slate-500">
       <i class="bi bi-calendar-x text-4xl block mb-2"></i>
       No hay recepciones registradas para el <strong>{{ fechaRecepcion }}</strong>.<br>
