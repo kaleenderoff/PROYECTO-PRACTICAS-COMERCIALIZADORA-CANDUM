@@ -27,9 +27,12 @@ public interface ProgramacionProduccionJpaRepository extends JpaRepository<Progr
     @org.springframework.data.jpa.repository.Query("UPDATE ProgramacionProduccionEntity p SET p.estado = :estado WHERE p.id = :id AND p.estado != :estado")
     void actualizarEstado(@Param("id") Long id, @Param("estado") com.yerman.produccion_api.domain.model.EstadoProgramacionProduccion estado);
 
-    @Query("SELECT COALESCE(SUM(p.numBachesPlan * p.kgBachePlan), 0) FROM ProgramacionProduccionEntity p " +
-           "WHERE p.fechaProduccion = :fecha AND p.estado IN :estados")
-    BigDecimal calcularLecheReservadaPorFecha(
-            @Param("fecha") LocalDate fecha,
-            @Param("estados") List<EstadoProgramacionProduccion> estados);
+    @Query(value = """
+            SELECT COALESCE(SUM(p.num_baches_plan * p.kg_bache_plan), 0)
+            FROM orden_produccion op
+            JOIN programacion_produccion p ON op.id_programacion = p.id
+            WHERE op.fecha_produccion = :fecha
+              AND op.estado IN ('PROGRAMADA', 'EN_EJECUCION')
+            """, nativeQuery = true)
+    BigDecimal calcularLecheReservadaPorFecha(@Param("fecha") LocalDate fecha);
 }
