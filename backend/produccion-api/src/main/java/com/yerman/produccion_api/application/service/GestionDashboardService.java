@@ -89,7 +89,7 @@ public class GestionDashboardService implements GestionDashboardUseCase {
     private String evaluarEstado(BigDecimal actual, BigDecimal meta) {
         if (actual == null) return "SIN_DATOS";
         if (actual.compareTo(meta) >= 0) return "OPTIMO";
-        if (actual.compareTo(meta.subtract(new BigDecimal("2.0"))) >= 0) return "ALERTA";
+        if (actual.compareTo(meta.subtract(new BigDecimal("3.0"))) >= 0) return "ALERTA";
         return "CRITICO";
     }
 }

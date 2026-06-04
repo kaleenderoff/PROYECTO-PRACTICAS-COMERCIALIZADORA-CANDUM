@@ -14,7 +14,10 @@ public record DashboardGerencialResponse(
             BigDecimal kgCremaReal,
             BigDecimal kgCremaEsperada,
             BigDecimal ptDulceLecheKg,
-            BigDecimal ptLecheCondensadaKg
+            BigDecimal ptLecheCondensadaKg,
+            BigDecimal lecheProcesada,
+            BigDecimal kgReproceso,
+            Long totalBatches
     ) {}
 
     public record SemanaGerencialResponse(

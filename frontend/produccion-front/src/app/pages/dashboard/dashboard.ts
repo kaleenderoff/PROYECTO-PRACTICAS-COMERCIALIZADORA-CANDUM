@@ -374,6 +374,61 @@ export class Dashboard implements OnInit {
     });
   }
 
+  get lecheProcesadaGerencial(): number {
+    return (this.gerencial?.tablaSemanal || []).reduce(
+      (acc, sem) => acc + Number(sem.lecheProcesada || 0),
+      0
+    );
+  }
+
+  get ptGerencialTotal(): number {
+    const resumen = this.gerencial?.resumenMes;
+    return Number(resumen?.ptDulceLecheKg || 0) + Number(resumen?.ptLecheCondensadaKg || 0);
+  }
+
+  get semanasGerencialesConDatos(): number {
+    return (this.gerencial?.tablaSemanal || []).filter(sem =>
+      Number(sem.lecheProcesada || 0) > 0 ||
+      Number(sem.ptDulceLeche || 0) > 0 ||
+      Number(sem.ptLecheCondensada || 0) > 0
+    ).length;
+  }
+
+  get fuenteRendimientoGerencial(): string {
+    return this.lecheProcesadaGerencial > 0
+      ? 'Sistema real: consumo de leche por batches'
+      : 'Base historica: leche recibida del periodo';
+  }
+
+  get reprocesoTotalMensual(): number {
+    return Number(this.gerencial?.resumenMes?.kgReproceso || 0);
+  }
+
+  get totalBatchesMensual(): number {
+    return Number(this.gerencial?.resumenMes?.totalBatches || 0);
+  }
+
+  claseRendDL(valor: number): string {
+    if (!valor || valor <= 0) return 'bg-slate-100 text-slate-400';
+    if (valor >= 47) return 'bg-emerald-100 text-emerald-700';
+    if (valor >= 44) return 'bg-amber-100 text-amber-700';
+    return 'bg-red-100 text-red-700';
+  }
+
+  claseRendLC(valor: number): string {
+    if (!valor || valor <= 0) return 'bg-slate-100 text-slate-400';
+    if (valor >= 44.5) return 'bg-emerald-100 text-emerald-700';
+    if (valor >= 41.5) return 'bg-amber-100 text-amber-700';
+    return 'bg-red-100 text-red-700';
+  }
+
+  claseEstado(estado: string): string {
+    if (estado === 'OPTIMO') return 'bg-emerald-100 text-emerald-700';
+    if (estado === 'ALERTA') return 'bg-amber-100 text-amber-700';
+    if (estado === 'CRITICO') return 'bg-red-100 text-red-700';
+    return 'bg-slate-100 text-slate-400';
+  }
+
   getPorcentajeGrasa(leche: number): string {
     return ((leche * 0.04) / 1).toFixed(2);
   }

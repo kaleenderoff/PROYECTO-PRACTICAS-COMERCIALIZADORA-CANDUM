@@ -153,13 +153,17 @@ public class DashboardJpaAdapter implements DashboardRepositoryPort {
                 .divide(new BigDecimal("3000"), 4, RoundingMode.HALF_UP)
                 .multiply(new BigDecimal("131"))
                 .setScale(2, RoundingMode.HALF_UP);
+        Long totalBatches = repository.contarBatchesMensuales(mes, anio);
 
         return new DashboardGerencialResponse.ResumenMesGerencial(
                 datos.lecheRecibida().setScale(1, RoundingMode.HALF_UP),
                 datos.kgCrema().setScale(1, RoundingMode.HALF_UP),
                 kgCremaEsperada,
                 datos.ptDulceLeche().setScale(1, RoundingMode.HALF_UP),
-                datos.ptLecheCondensada().setScale(1, RoundingMode.HALF_UP));
+                datos.ptLecheCondensada().setScale(1, RoundingMode.HALF_UP),
+                datos.lecheProcesada().setScale(1, RoundingMode.HALF_UP),
+                datos.kgReproceso().setScale(1, RoundingMode.HALF_UP),
+                totalBatches != null ? totalBatches : 0L);
     }
 
     @Override

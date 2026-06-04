@@ -108,6 +108,15 @@ public interface DashboardJpaRepository extends Repository<ProductoTerminadoLact
     java.math.BigDecimal obtenerReprocesoMensualGerencial(@Param("mes") int mes, @Param("anio") int anio);
 
     @Query(value = """
+                SELECT COUNT(eb.id)
+                FROM ejecucion_batch eb
+                JOIN orden_produccion op ON eb.id_orden_produccion = op.id
+                WHERE MONTH(op.fecha_produccion) = :mes
+                  AND YEAR(op.fecha_produccion) = :anio
+            """, nativeQuery = true)
+    Long contarBatchesMensuales(@Param("mes") int mes, @Param("anio") int anio);
+
+    @Query(value = """
                 SELECT
                     pt.lote AS lote,
                     pt.producto AS producto,

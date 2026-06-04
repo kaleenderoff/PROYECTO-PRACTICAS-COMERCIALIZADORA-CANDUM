@@ -254,88 +254,86 @@
     <div *ngIf="view === 'gerencial' && gerencial" class="space-y-10 animate-in slide-in-from-right-4 duration-500">
 
         <!-- KPI Cards Section -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
             <!-- Rendimiento DL -->
-            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col">
-                <div class="flex items-center justify-between mb-4">
-                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                        Rendimiento DL
-                    </span>
-                    <span
-                        [class]="gerencial.kpis.estadoDulceLeche === 'OPTIMO' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'"
+            <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Rend. Dulce Leche</span>
+                    <span [ngClass]="claseEstado(gerencial.kpis.estadoDulceLeche)"
                         class="px-2 py-0.5 rounded-full text-[8px] font-black">
                         {{ gerencial.kpis.estadoDulceLeche }}
                     </span>
                 </div>
-
-                <div class="flex items-baseline gap-2">
-                    <span class="text-4xl font-black text-slate-900">
-                        {{ gerencial.kpis.rendDulceLechePromedio | number:'1.1-1' }}%
-                    </span>
-                    <span class="text-[10px] text-slate-400 font-bold">
-                        Meta: {{ gerencial.kpis.metaDulceLeche }}%
-                    </span>
-                </div>
-
-                <div class="mt-4 h-1.5 w-full bg-slate-50 rounded-full overflow-hidden">
-                    <div class="h-full bg-blue-500 transition-all duration-1000"
-                        [style.width.%]="gerencial.kpis.rendDulceLechePromedio">
+                <span class="text-3xl font-black text-slate-900">{{ gerencial.kpis.rendDulceLechePromedio | number:'1.1-1' }}%</span>
+                <span class="text-[10px] text-slate-400 font-bold mt-1">Meta: {{ gerencial.kpis.metaDulceLeche }}% · Crítico &lt; 44%</span>
+                <div class="mt-3 h-1.5 w-full bg-slate-50 rounded-full overflow-hidden">
+                    <div class="h-full transition-all duration-1000"
+                        [ngClass]="gerencial.kpis.estadoDulceLeche === 'OPTIMO' ? 'bg-emerald-500' : gerencial.kpis.estadoDulceLeche === 'ALERTA' ? 'bg-amber-400' : 'bg-red-500'"
+                        [style.width.%]="(gerencial.kpis.rendDulceLechePromedio / gerencial.kpis.metaDulceLeche) * 100">
                     </div>
                 </div>
             </div>
 
             <!-- Rendimiento LC -->
-            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col">
-                <div class="flex items-center justify-between mb-4">
-                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                        Rendimiento LC
-                    </span>
-                    <span
-                        [class]="gerencial.kpis.estadoLecheCondensada === 'OPTIMO' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'"
+            <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Rend. L. Condensada</span>
+                    <span [ngClass]="claseEstado(gerencial.kpis.estadoLecheCondensada)"
                         class="px-2 py-0.5 rounded-full text-[8px] font-black">
                         {{ gerencial.kpis.estadoLecheCondensada }}
                     </span>
                 </div>
-
-                <div class="flex items-baseline gap-2">
-                    <span class="text-4xl font-black text-slate-900">
-                        {{ gerencial.kpis.rendLecheCondensadaPromedio | number:'1.1-1' }}%
-                    </span>
-                    <span class="text-[10px] text-slate-400 font-bold">
-                        Meta: {{ gerencial.kpis.metaLecheCondensada }}%
-                    </span>
-                </div>
-
-                <div class="mt-4 h-1.5 w-full bg-slate-50 rounded-full overflow-hidden">
-                    <div class="h-full bg-emerald-500 transition-all duration-1000"
-                        [style.width.%]="gerencial.kpis.rendLecheCondensadaPromedio">
+                <span class="text-3xl font-black text-slate-900">{{ gerencial.kpis.rendLecheCondensadaPromedio | number:'1.1-1' }}%</span>
+                <span class="text-[10px] text-slate-400 font-bold mt-1">Meta: {{ gerencial.kpis.metaLecheCondensada }}% · Crítico &lt; 41.5%</span>
+                <div class="mt-3 h-1.5 w-full bg-slate-50 rounded-full overflow-hidden">
+                    <div class="h-full transition-all duration-1000"
+                        [ngClass]="gerencial.kpis.estadoLecheCondensada === 'OPTIMO' ? 'bg-emerald-500' : gerencial.kpis.estadoLecheCondensada === 'ALERTA' ? 'bg-amber-400' : 'bg-red-500'"
+                        [style.width.%]="(gerencial.kpis.rendLecheCondensadaPromedio / gerencial.kpis.metaLecheCondensada) * 100">
                     </div>
                 </div>
             </div>
 
-            <!-- Crema Real vs Esperada -->
-            <div class="bg-slate-900 p-8 rounded-[2.5rem] shadow-xl text-white md:col-span-2">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div>
-                        <span class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1 block">
-                            Eficiencia en Descremado
-                        </span>
-                        <h3 class="text-3xl font-black">
-                            {{ gerencial.resumenMes.kgCremaReal | number:'1.0-0' }}
-                            <small class="text-slate-500">kg producidos</small>
-                        </h3>
-                    </div>
+            <!-- Total Batches -->
+            <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col">
+                <span class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Total Batches Mes</span>
+                <span class="text-3xl font-black text-violet-700">{{ totalBatchesMensual }}</span>
+                <span class="text-[10px] text-slate-400 font-bold mt-1">Batches ejecutados en el período</span>
+            </div>
 
-                    <div class="text-right">
-                        <span class="text-[9px] font-bold text-blue-400 uppercase tracking-widest mb-1 block">
-                            Esperado (Excel)
-                        </span>
-                        <span class="text-xl font-bold">
-                            {{ gerencial.resumenMes.kgCremaEsperada | number:'1.0-1' }} kg
-                        </span>
-                    </div>
+            <!-- Reproceso + Crema -->
+            <div class="bg-slate-900 p-6 rounded-[2rem] shadow-xl text-white flex flex-col gap-4">
+                <div>
+                    <span class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] block mb-1">Reproceso Mes</span>
+                    <span class="text-2xl font-black">{{ reprocesoTotalMensual | number:'1.1-1' }} <small class="text-slate-400 text-xs">kg</small></span>
                 </div>
+                <div class="border-t border-slate-800 pt-3">
+                    <span class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] block mb-1">Crema Real / Esperada</span>
+                    <span class="text-sm font-black">{{ gerencial.resumenMes.kgCremaReal | number:'1.0-0' }} kg
+                        <small class="text-slate-500">/ {{ gerencial.resumenMes.kgCremaEsperada | number:'1.0-0' }} kg</small>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resumen leche -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-5">
+                <span class="text-[9px] font-black text-slate-400 uppercase tracking-[0.18em]">Leche Recibida</span>
+                <p class="mt-2 text-2xl font-black text-slate-800">{{ gerencial.resumenMes.lecheRecibidaTotal | number:'1.0-0' }} <small class="text-xs text-slate-400">L</small></p>
+            </div>
+            <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-5">
+                <span class="text-[9px] font-black text-slate-400 uppercase tracking-[0.18em]">Leche Útil (Procesada)</span>
+                <p class="mt-2 text-2xl font-black text-blue-600">{{ gerencial.resumenMes.lecheProcesada | number:'1.0-0' }} <small class="text-xs text-slate-400">L</small></p>
+                <p class="text-[9px] text-slate-400 mt-1">{{ fuenteRendimientoGerencial }}</p>
+            </div>
+            <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-5">
+                <span class="text-[9px] font-black text-slate-400 uppercase tracking-[0.18em]">PT Dulce Leche</span>
+                <p class="mt-2 text-2xl font-black text-blue-700">{{ gerencial.resumenMes.ptDulceLecheKg | number:'1.1-1' }} <small class="text-xs text-slate-400">Kg</small></p>
+            </div>
+            <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-5">
+                <span class="text-[9px] font-black text-slate-400 uppercase tracking-[0.18em]">PT Leche Condensada</span>
+                <p class="mt-2 text-2xl font-black text-emerald-600">{{ gerencial.resumenMes.ptLecheCondensadaKg | number:'1.1-1' }} <small class="text-xs text-slate-400">Kg</small></p>
             </div>
         </div>
 
@@ -415,65 +413,55 @@
             </div>
 
             <div class="overflow-x-auto">
-                <table class="w-full text-left">
+                <table class="w-full text-left text-sm">
                     <thead>
                         <tr class="bg-slate-50/50">
-                            <th class="px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                Semana
-                            </th>
-                            <th
-                                class="px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">
-                                Leche Recibida
-                            </th>
-                            <th
-                                class="px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">
-                                PT Dulce Leche
-                            </th>
-                            <th
-                                class="px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">
-                                Rendimiento DL
-                            </th>
-                            <th
-                                class="px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">
-                                PT Condensada
-                            </th>
-                            <th
-                                class="px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">
-                                Rendimiento LC
-                            </th>
+                            <th class="px-5 py-4 text-[10px] font-black text-slate-400 uppercase">Semana</th>
+                            <th class="px-5 py-4 text-[10px] font-black text-slate-400 uppercase text-right">L. Procesada</th>
+                            <th class="px-5 py-4 text-[10px] font-black text-slate-400 uppercase text-right">L. Recibida</th>
+                            <th class="px-5 py-4 text-[10px] font-black text-slate-400 uppercase text-right">PT DL (kg)</th>
+                            <th class="px-5 py-4 text-[10px] font-black text-slate-400 uppercase text-center">Rend.1 DL</th>
+                            <th class="px-5 py-4 text-[10px] font-black text-slate-400 uppercase text-center">Rend.2 DL</th>
+                            <th class="px-5 py-4 text-[10px] font-black text-slate-400 uppercase text-right">Reproceso</th>
+                            <th class="px-5 py-4 text-[10px] font-black text-slate-400 uppercase text-right">PT LC (kg)</th>
+                            <th class="px-5 py-4 text-[10px] font-black text-slate-400 uppercase text-center">Rend. LC</th>
                         </tr>
                     </thead>
-
                     <tbody class="divide-y divide-slate-50">
                         <tr *ngFor="let sem of gerencial.tablaSemanal" class="hover:bg-slate-50 transition-colors">
-                            <td class="px-10 py-6 font-bold text-slate-700">
-                                W{{ sem.numeroSemana }}
+                            <td class="px-5 py-4 font-bold text-slate-700">
+                                <div>W{{ sem.numeroSemana }}</div>
+                                <div class="text-[10px] text-slate-400 font-normal">{{ sem.rangoFechas }}</div>
                             </td>
-                            <td class="px-10 py-6 text-right font-medium">
-                                {{ sem.lecheRecibida | number:'1.0-0' }} L
-                            </td>
-                            <td class="px-10 py-6 text-right font-black text-blue-600">
-                                {{ sem.ptDulceLeche | number:'1.1-1' }} Kg
-                            </td>
-                            <td class="px-10 py-6 text-center">
-                                <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-[10px] font-black">
-                                    {{ sem.rend1DulceLeche }}%
+                            <td class="px-5 py-4 text-right font-black text-blue-600">{{ sem.lecheProcesada | number:'1.0-0' }} L</td>
+                            <td class="px-5 py-4 text-right text-slate-500">{{ sem.lecheRecibida | number:'1.0-0' }} L</td>
+                            <td class="px-5 py-4 text-right font-black text-slate-800">{{ sem.ptDulceLeche | number:'1.1-1' }}</td>
+                            <td class="px-5 py-4 text-center">
+                                <span class="px-2 py-1 rounded-full text-[10px] font-black"
+                                    [ngClass]="claseRendDL(sem.rend1DulceLeche)">
+                                    {{ sem.rend1DulceLeche | number:'1.1-1' }}%
                                 </span>
                             </td>
-                            <td class="px-10 py-6 text-right font-black text-emerald-600">
-                                {{ sem.ptLecheCondensada | number:'1.1-1' }} Kg
+                            <td class="px-5 py-4 text-center">
+                                <span class="px-2 py-1 rounded-full text-[10px] font-black"
+                                    [ngClass]="claseRendDL(sem.rend2DulceLeche)">
+                                    {{ sem.rend2DulceLeche | number:'1.1-1' }}%
+                                </span>
                             </td>
-                            <td class="px-10 py-6 text-center">
-                                <span
-                                    class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-black">
-                                    {{ sem.rendLecheCondensada }}%
+                            <td class="px-5 py-4 text-right font-medium text-amber-600">
+                                {{ sem.kgReproceso | number:'1.1-1' }} kg
+                            </td>
+                            <td class="px-5 py-4 text-right font-black text-slate-800">{{ sem.ptLecheCondensada | number:'1.1-1' }}</td>
+                            <td class="px-5 py-4 text-center">
+                                <span class="px-2 py-1 rounded-full text-[10px] font-black"
+                                    [ngClass]="claseRendLC(sem.rendLecheCondensada)">
+                                    {{ sem.rendLecheCondensada | number:'1.1-1' }}%
                                 </span>
                             </td>
                         </tr>
-
                         <tr *ngIf="gerencial.tablaSemanal.length === 0">
-                            <td colspan="6" class="py-20 text-center text-slate-400">
-                                Procesando datos históricos para esta vista...
+                            <td colspan="9" class="py-16 text-center text-slate-400">
+                                Sin datos para el período seleccionado.
                             </td>
                         </tr>
                     </tbody>

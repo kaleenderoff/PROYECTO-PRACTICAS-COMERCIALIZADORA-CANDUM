@@ -25,6 +25,24 @@ export interface ResumenMesGerencial {
   kgCremaEsperada: number;
   ptDulceLecheKg: number;
   ptLecheCondensadaKg: number;
+  lecheProcesada: number;
+  kgReproceso: number;
+  totalBatches: number;
+}
+
+export interface SemanaGerencial {
+  numeroSemana: number;
+  rangoFechas: string;
+  lecheRecibida: number;
+  litrosCrema: number;
+  kgCrema: number;
+  lecheProcesada: number;
+  ptDulceLeche: number;
+  kgReproceso: number;
+  rend1DulceLeche: number;
+  rend2DulceLeche: number;
+  ptLecheCondensada: number;
+  rendLecheCondensada: number;
 }
 
 export interface KpisRendimiento {
@@ -38,7 +56,7 @@ export interface KpisRendimiento {
 
 export interface DashboardGerencial {
   resumenMes: ResumenMesGerencial;
-  tablaSemanal: any[];
+  tablaSemanal: SemanaGerencial[];
   kpis: KpisRendimiento;
 }
 
