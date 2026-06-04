@@ -39,7 +39,7 @@ export class OrdenesProduccion implements OnInit {
 
     this.ordenService.listar().subscribe({
       next: (data) => {
-        this.ordenes = data;
+        this.ordenes = [...data].sort((a, b) => b.id - a.id);
         this.cargando = false;
       },
       error: (err) => {
