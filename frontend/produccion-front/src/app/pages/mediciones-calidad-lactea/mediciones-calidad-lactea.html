@@ -679,18 +679,18 @@
                 <div *ngIf="pestanaActiva === 'proceso'" class="grid grid-cols-1 xl:grid-cols-3 gap-8">
 
                     <!-- Detalle inline cuando se hace click en Ver detalle -->
-                    <div *ngIf="controlProcesoDetalle"
+                    <div *ngIf="controlProcesoDetalle as d"
                         class="xl:col-span-2 bg-white rounded-[2.5rem] border border-violet-100 shadow-sm overflow-hidden">
                         <div class="p-6 border-b border-violet-50 bg-violet-50/50 flex items-center justify-between gap-4">
                             <div>
                                 <p class="text-[10px] font-black text-violet-600 uppercase tracking-[0.2em]">Detalle control de proceso</p>
-                                <h3 class="text-xl font-black text-slate-900 mt-1">{{ controlProcesoDetalle.producto || 'Producto' }}</h3>
-                                <p class="text-xs text-slate-500 font-bold mt-1">Lote: {{ controlProcesoDetalle.lote || '-' }} · Fecha: {{ controlProcesoDetalle.fechaProduccion || '-' }}</p>
+                                <h3 class="text-xl font-black text-slate-900 mt-1">{{ d.producto || 'Producto' }}</h3>
+                                <p class="text-xs text-slate-500 font-bold mt-1">Lote: {{ d.lote || '-' }} · Fecha: {{ d.fechaProduccion || '-' }}</p>
                             </div>
                             <div class="flex items-center gap-3">
                                 <span class="px-3 py-1.5 rounded-2xl text-xs font-black uppercase"
-                                    [ngClass]="controlProcesoDetalle.liberado ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'">
-                                    {{ controlProcesoDetalle.liberado ? 'Liberado' : 'Retenido' }}
+                                    [ngClass]="d.liberado ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'">
+                                    {{ d.liberado ? 'Liberado' : 'Retenido' }}
                                 </span>
                                 <button type="button" (click)="cerrarDetalleProceso()"
                                     class="px-4 py-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-black text-sm">
@@ -700,40 +700,40 @@
                         </div>
                         <div class="p-6 space-y-5">
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                <div class="p-3 bg-slate-50 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">Tipo producto</p><p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.tipoProducto || '-' }}</p></div>
-                                <div class="p-3 bg-slate-50 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">Marmita</p><p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.numeroMarmita || '-' }}</p></div>
-                                <div class="p-3 bg-slate-50 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">Fecha vcto.</p><p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.fechaVencimiento || '-' }}</p></div>
-                                <div class="p-3 bg-slate-50 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">Presentación</p><p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.presentacionEnvasado || '-' }}</p></div>
+                                <div class="p-3 bg-slate-50 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">Tipo producto</p><p class="font-black text-slate-900 mt-1">{{ d.tipoProducto || '-' }}</p></div>
+                                <div class="p-3 bg-slate-50 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">Marmita</p><p class="font-black text-slate-900 mt-1">{{ d.numeroMarmita || '-' }}</p></div>
+                                <div class="p-3 bg-slate-50 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">Fecha vcto.</p><p class="font-black text-slate-900 mt-1">{{ d.fechaVencimiento || '-' }}</p></div>
+                                <div class="p-3 bg-slate-50 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">Presentación</p><p class="font-black text-slate-900 mt-1">{{ d.presentacionEnvasado || '-' }}</p></div>
                             </div>
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                <div class="p-3 bg-blue-50 rounded-2xl"><p class="text-[10px] font-black text-blue-500 uppercase">pH leche</p><p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.phLeche ?? '-' }}</p></div>
-                                <div class="p-3 bg-blue-50 rounded-2xl"><p class="text-[10px] font-black text-blue-500 uppercase">Acidez</p><p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.acidezLeche ?? '-' }}</p></div>
-                                <div class="p-3 bg-blue-50 rounded-2xl"><p class="text-[10px] font-black text-blue-500 uppercase">Densidad</p><p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.densidadLeche ?? '-' }}</p></div>
-                                <div class="p-3 bg-blue-50 rounded-2xl"><p class="text-[10px] font-black text-blue-500 uppercase">Grasa</p><p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.grasaLeche ?? '-' }}</p></div>
+                                <div class="p-3 bg-blue-50 rounded-2xl"><p class="text-[10px] font-black text-blue-500 uppercase">pH leche</p><p class="font-black text-slate-900 mt-1">{{ d.phLeche ?? '-' }}</p></div>
+                                <div class="p-3 bg-blue-50 rounded-2xl"><p class="text-[10px] font-black text-blue-500 uppercase">Acidez</p><p class="font-black text-slate-900 mt-1">{{ d.acidezLeche ?? '-' }}</p></div>
+                                <div class="p-3 bg-blue-50 rounded-2xl"><p class="text-[10px] font-black text-blue-500 uppercase">Densidad</p><p class="font-black text-slate-900 mt-1">{{ d.densidadLeche ?? '-' }}</p></div>
+                                <div class="p-3 bg-blue-50 rounded-2xl"><p class="text-[10px] font-black text-blue-500 uppercase">Grasa</p><p class="font-black text-slate-900 mt-1">{{ d.grasaLeche ?? '-' }}</p></div>
                             </div>
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                <div class="p-3 bg-slate-50 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">Inicio hidrólisis</p><p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.horaInicioHidrolisis || '-' }}</p></div>
-                                <div class="p-3 bg-slate-50 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">Fin hidrólisis</p><p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.horaFinHidrolisis || '-' }}</p></div>
-                                <div class="p-3 bg-slate-50 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">pH inicial</p><p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.phInicial ?? '-' }}</p></div>
-                                <div class="p-3 bg-slate-50 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">pH final</p><p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.phFinal ?? '-' }}</p></div>
+                                <div class="p-3 bg-slate-50 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">Inicio hidrólisis</p><p class="font-black text-slate-900 mt-1">{{ d.horaInicioHidrolisis || '-' }}</p></div>
+                                <div class="p-3 bg-slate-50 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">Fin hidrólisis</p><p class="font-black text-slate-900 mt-1">{{ d.horaFinHidrolisis || '-' }}</p></div>
+                                <div class="p-3 bg-slate-50 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">pH inicial</p><p class="font-black text-slate-900 mt-1">{{ d.phInicial ?? '-' }}</p></div>
+                                <div class="p-3 bg-slate-50 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">pH final</p><p class="font-black text-slate-900 mt-1">{{ d.phFinal ?? '-' }}</p></div>
                             </div>
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                <div class="p-3 bg-slate-50 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">Brix inicial</p><p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.brixInicial ?? '-' }}</p></div>
-                                <div class="p-3 bg-slate-50 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">Brix final</p><p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.brixFinal ?? '-' }}</p></div>
-                                <div class="p-3 bg-slate-50 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">Temp. cocción</p><p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.temperaturaCoccion ?? '-' }}</p></div>
-                                <div class="p-3 bg-slate-50 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">Temp. envasado</p><p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.temperaturaEnvasado ?? '-' }}</p></div>
+                                <div class="p-3 bg-slate-50 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">Brix inicial</p><p class="font-black text-slate-900 mt-1">{{ d.brixInicial ?? '-' }}</p></div>
+                                <div class="p-3 bg-slate-50 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">Brix final</p><p class="font-black text-slate-900 mt-1">{{ d.brixFinal ?? '-' }}</p></div>
+                                <div class="p-3 bg-slate-50 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">Temp. cocción</p><p class="font-black text-slate-900 mt-1">{{ d.temperaturaCoccion ?? '-' }}</p></div>
+                                <div class="p-3 bg-slate-50 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">Temp. envasado</p><p class="font-black text-slate-900 mt-1">{{ d.temperaturaEnvasado ?? '-' }}</p></div>
                             </div>
                             <div class="grid grid-cols-3 gap-3">
-                                <div class="p-3 bg-slate-50 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">Color</p><p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.colorVisual || '-' }}</p></div>
-                                <div class="p-3 bg-slate-50 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">Sabor</p><p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.saborVisual || '-' }}</p></div>
-                                <div class="p-3 bg-slate-50 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">Textura</p><p class="font-black text-slate-900 mt-1">{{ controlProcesoDetalle.texturaVisual || '-' }}</p></div>
+                                <div class="p-3 bg-slate-50 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">Color</p><p class="font-black text-slate-900 mt-1">{{ d.colorVisual || '-' }}</p></div>
+                                <div class="p-3 bg-slate-50 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">Sabor</p><p class="font-black text-slate-900 mt-1">{{ d.saborVisual || '-' }}</p></div>
+                                <div class="p-3 bg-slate-50 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">Textura</p><p class="font-black text-slate-900 mt-1">{{ d.texturaVisual || '-' }}</p></div>
                             </div>
-                            <div *ngIf="controlProcesoDetalle.observaciones" class="p-4 bg-slate-50 rounded-2xl">
+                            <div *ngIf="d.observaciones" class="p-4 bg-slate-50 rounded-2xl">
                                 <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Observaciones</p>
-                                <p class="text-sm font-medium text-slate-700">{{ controlProcesoDetalle.observaciones }}</p>
+                                <p class="text-sm font-medium text-slate-700">{{ d.observaciones }}</p>
                             </div>
                             <div *ngIf="puedeCorregirCalidad" class="flex gap-3 pt-2">
-                                <button type="button" (click)="editarProceso(controlProcesoDetalle)"
+                                <button type="button" (click)="editarProceso(d)"
                                     class="px-5 py-3 bg-blue-600 text-white rounded-2xl font-black text-sm hover:bg-blue-700">
                                     Editar este control
                                 </button>
