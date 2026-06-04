@@ -134,6 +134,12 @@
       <i class="bi bi-inbox text-4xl block mb-2"></i>
       {{ errorConsumo }}
     </div>
+    <div *ngIf="resumenConsumo && !cargandoConsumo && resumenConsumo.totalOrdenes === 0 && resumenConsumo.totalBatches === 0"
+      class="text-center py-10 text-slate-500">
+      <i class="bi bi-calendar-x text-4xl block mb-2"></i>
+      No hay registros de producción para el <strong>{{ fechaConsumo }}</strong>.<br>
+      <span class="text-sm">Seleccione una fecha en la que se haya ejecutado producción.</span>
+    </div>
   </div>
 
   <!-- ════════════════════════════════════════════════════════════════════ -->
@@ -218,6 +224,12 @@
     <div *ngIf="errorRecepcion && !cargandoRecepcion" class="text-center py-10 text-slate-500">
       <i class="bi bi-inbox text-4xl block mb-2"></i>
       {{ errorRecepcion }}
+    </div>
+    <div *ngIf="resumenRecepcion && !cargandoRecepcion && resumenRecepcion.totalRecepciones === 0"
+      class="text-center py-10 text-slate-500">
+      <i class="bi bi-calendar-x text-4xl block mb-2"></i>
+      No hay recepciones registradas para el <strong>{{ fechaRecepcion }}</strong>.<br>
+      <span class="text-sm">Seleccione una fecha con recepciones de leche.</span>
     </div>
   </div>
 

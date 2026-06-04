@@ -41,8 +41,7 @@ export class Reportes implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.cargarConsumo();
-    this.cargarRecepcion();
+    // No auto-cargar al inicio — el usuario elige la fecha primero
   }
 
   setView(v: ReporteView): void {
