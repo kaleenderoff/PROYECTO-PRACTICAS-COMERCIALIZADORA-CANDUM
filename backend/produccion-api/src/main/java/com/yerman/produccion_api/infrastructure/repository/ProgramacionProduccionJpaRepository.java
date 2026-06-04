@@ -23,6 +23,10 @@ public interface ProgramacionProduccionJpaRepository extends JpaRepository<Progr
 
     Optional<ProgramacionProduccionEntity> findByCodigoProgramacion(String codigoProgramacion);
 
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("UPDATE ProgramacionProduccionEntity p SET p.estado = :estado WHERE p.id = :id AND p.estado != :estado")
+    void actualizarEstado(@Param("id") Long id, @Param("estado") com.yerman.produccion_api.domain.model.EstadoProgramacionProduccion estado);
+
     @Query("SELECT COALESCE(SUM(p.numBachesPlan * p.kgBachePlan), 0) FROM ProgramacionProduccionEntity p " +
            "WHERE p.fechaProduccion = :fecha AND p.estado IN :estados")
     BigDecimal calcularLecheReservadaPorFecha(

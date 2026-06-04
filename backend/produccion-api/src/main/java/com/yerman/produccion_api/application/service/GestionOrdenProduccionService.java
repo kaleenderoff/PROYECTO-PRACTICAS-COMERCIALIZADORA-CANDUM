@@ -15,6 +15,7 @@ import com.yerman.produccion_api.domain.port.out.ProgramacionProduccionRepositor
 import com.yerman.produccion_api.infrastructure.entity.OrdenProduccionDetalleEntity;
 import com.yerman.produccion_api.infrastructure.entity.ReporteProduccionDiariaEntity;
 import com.yerman.produccion_api.infrastructure.repository.OrdenProduccionDetalleJpaRepository;
+import com.yerman.produccion_api.infrastructure.repository.ProgramacionProduccionJpaRepository;
 import com.yerman.produccion_api.infrastructure.repository.ReporteProduccionDiariaJpaRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +38,7 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
 
     private final OrdenProduccionRepositoryPort ordenRepository;
     private final ProgramacionProduccionRepositoryPort programacionRepository;
+    private final ProgramacionProduccionJpaRepository programacionJpaRepository;
     private final OrdenProduccionDetalleJpaRepository detalleRepository;
     private final EjecucionBatchRepositoryPort batchRepository;
     private final ValidacionOrdenProduccionGuardService validacionGuardService;
@@ -45,12 +47,14 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
     public GestionOrdenProduccionService(
             OrdenProduccionRepositoryPort ordenRepository,
             ProgramacionProduccionRepositoryPort programacionRepository,
+            ProgramacionProduccionJpaRepository programacionJpaRepository,
             OrdenProduccionDetalleJpaRepository detalleRepository,
             EjecucionBatchRepositoryPort batchRepository,
             ValidacionOrdenProduccionGuardService validacionGuardService,
             ReporteProduccionDiariaJpaRepository reporteProduccionDiariaRepository) {
         this.ordenRepository = ordenRepository;
         this.programacionRepository = programacionRepository;
+        this.programacionJpaRepository = programacionJpaRepository;
         this.detalleRepository = detalleRepository;
         this.batchRepository = batchRepository;
         this.validacionGuardService = validacionGuardService;
@@ -242,14 +246,16 @@ public class GestionOrdenProduccionService implements GestionOrdenProduccionUseC
         OrdenProduccion ordenGuardada = ordenRepository.guardar(orden);
 
         // Cancelar también la programación asociada para liberar la leche reservada
+        // Usamos query directo JPA para evitar pasar por lógica de negocio del servicio
         if (orden.getIdProgramacion() != null) {
-            programacionRepository.obtenerPorId(orden.getIdProgramacion()).ifPresent(prog -> {
-                if (prog.getEstado() != com.yerman.produccion_api.domain.model.EstadoProgramacionProduccion.CANCELADA) {
-                    prog.setEstado(com.yerman.produccion_api.domain.model.EstadoProgramacionProduccion.CANCELADA);
-                    programacionRepository.guardar(prog);
-                    LOGGER.info("Programacion {} cancelada por cancelacion de orden {}.", prog.getId(), idOrden);
-                }
-            });
+            try {
+                programacionJpaRepository.actualizarEstado(
+                        orden.getIdProgramacion(),
+                        com.yerman.produccion_api.domain.model.EstadoProgramacionProduccion.CANCELADA);
+                LOGGER.info("Programacion {} cancelada por cancelacion de orden {}.", orden.getIdProgramacion(), idOrden);
+            } catch (Exception e) {
+                LOGGER.warn("No se pudo cancelar programacion {}: {}", orden.getIdProgramacion(), e.getMessage());
+            }
         }
 
         sincronizarReporteProduccionDiaria(fechaProduccion);
