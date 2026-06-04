@@ -97,7 +97,7 @@
                 </div>
             </div>
 
-            <div *ngIf="tanqueOrigenSeleccionado()" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div *ngIf="tanqueOrigenSeleccionado()" class="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
                     <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                         Tanque origen
@@ -121,10 +121,19 @@
 
                 <div class="p-4 rounded-2xl bg-blue-50 border border-blue-100">
                     <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest">
-                        Después del descremado
+                        Saldo tanque origen
                     </span>
                     <p class="mt-1 text-xl font-black text-blue-700">
                         {{ litrosDespuesDescremado() | number:'1.0-3' }} L
+                    </p>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-cyan-50 border border-cyan-100">
+                    <span class="text-[10px] font-black text-cyan-700 uppercase tracking-widest">
+                        Transferido a destino
+                    </span>
+                    <p class="mt-1 text-xl font-black text-cyan-700">
+                        {{ lecheDescremadaTransferida() | number:'1.0-3' }} L
                     </p>
                 </div>
 

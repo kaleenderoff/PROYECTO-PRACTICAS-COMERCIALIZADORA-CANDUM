@@ -267,6 +267,13 @@ export class DescremadoForm implements OnInit {
     return Math.max(disponibles - litros, 0);
   }
 
+  lecheDescremadaTransferida(): number {
+    const litros = Number(this.form.get('litrosDescremados')?.value || 0);
+    const crema = Number(this.form.get('cremaObtenidaKg')?.value || 0);
+
+    return Math.max(litros - crema, 0);
+  }
+
   rendimientoCremaPor100Litros(): number {
     const litros = Number(this.form.get('litrosDescremados')?.value || 0);
     const crema = Number(this.form.get('cremaObtenidaKg')?.value || 0);
