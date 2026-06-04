@@ -55,9 +55,10 @@ export class EjecucionProduccion implements OnInit {
       })
     ).subscribe({
       next: (data) => {
-        this.producciones = data.sort((a, b) => 
-          new Date(b.fechaProduccion).getTime() - new Date(a.fechaProduccion).getTime()
-        );
+        this.producciones = data.sort((a, b) => {
+          const diffFecha = new Date(b.fechaProduccion).getTime() - new Date(a.fechaProduccion).getTime();
+          return diffFecha !== 0 ? diffFecha : b.id - a.id;
+        });
         this.cargando = false;
       },
       error: (err) => {
