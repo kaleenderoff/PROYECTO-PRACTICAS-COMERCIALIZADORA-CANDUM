@@ -148,6 +148,11 @@ export class OrdenEjecucion implements OnInit {
       next: (ordenActualizada) => {
         this.orden = ordenActualizada;
         this.notification.toast('Tanque de leche descremada actualizado.');
+        // Recargar saldos de tanques para reflejar el saldo actualizado
+        this.recepcionLecheService.listarSaldosTanques().subscribe({
+          next: (saldos) => { this.tanques = saldos.filter(t => t.activo); },
+          error: () => {}
+        });
         this.cargando = false;
       },
       error: (err) => {
@@ -541,9 +546,10 @@ export class OrdenEjecucion implements OnInit {
       return;
     }
 
+    const idBatch = this.batchEditando.id;
     this.cargando = true;
 
-    this.batchService.actualizarFinalizado(this.batchEditando.id, {
+    this.batchService.actualizarFinalizado(idBatch, {
       kgProducidos: Number(this.edicionBatch.kgProducidos),
       brixFinal: Number(this.edicionBatch.brixFinal),
       observaciones: this.edicionBatch.observaciones,
@@ -587,6 +593,17 @@ export class OrdenEjecucion implements OnInit {
   }
 
   guardarProduccionReal(): void {
+    if (!this.skusEditables || this.skusEditables.length === 0) {
+      this.notification.warning('No hay SKUs cargados. Recargue la página e intente de nuevo.');
+      return;
+    }
+
+    const hayUnidadesRegistradas = this.skusEditables.some(s => Number(s.unidadesReales || 0) > 0);
+    if (!hayUnidadesRegistradas) {
+      this.notification.warning('Debe registrar las unidades reales producidas en al menos un SKU.');
+      return;
+    }
+
     this.cargando = true;
 
     this.ordenService.registrarSkus(this.idOrden, this.skusEditables).subscribe({
