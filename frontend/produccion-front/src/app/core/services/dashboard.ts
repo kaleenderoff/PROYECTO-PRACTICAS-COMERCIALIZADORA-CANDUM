@@ -78,7 +78,8 @@ export interface SkuProduccionMensual {
 export interface MovimientoLecheOperativo {
   id: number;
   idTanque: number;
-  nombreTanque: string;
+  tanque: string;
+  nombreTanque: string; // alias por compatibilidad
   tipoMovimiento: string;
   fechaHora: string;
   cantidadLitros: number;
